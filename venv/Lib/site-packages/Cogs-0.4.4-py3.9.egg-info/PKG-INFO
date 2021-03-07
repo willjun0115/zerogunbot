@@ -1,0 +1,21 @@
+Metadata-Version: 1.1
+Name: Cogs
+Version: 0.4.4
+Summary: Toolkit for developing command-line utilities in Python
+Home-page: http://bitbucket.org/prometheus/cogs
+Author: Kirill Simonov (Prometheus Research, LLC)
+Author-email: xi@resolvent.net
+License: MIT
+Download-URL: http://pypi.python.org/pypi/Cogs
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Utilities

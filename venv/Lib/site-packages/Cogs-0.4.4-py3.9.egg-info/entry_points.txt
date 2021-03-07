@@ -1,0 +1,6 @@
+[cogs.extensions]
+
+
+[console_scripts]
+cogs = cogs.run:main
+

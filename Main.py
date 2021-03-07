@@ -19,12 +19,8 @@ async def on_ready():
     game = discord.Game("시작하는 중...")
     await app.change_presence(status=discord.Status.online, activity=game)
     while True:
-        game = discord.Game("베타테스트")
-        await app.change_presence(status=discord.Status.online, activity=game)
-        await asyncio.sleep(1)
         game = discord.Game(prefix + "도움말")
         await app.change_presence(status=discord.Status.online, activity=game)
-        await asyncio.sleep(4)
 
 
 @app.event

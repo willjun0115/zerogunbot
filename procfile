@@ -1,1 +1,2 @@
-worker: python Main.py
+ECHO가 설정되어 있습니다.
+worker: python Main.py 

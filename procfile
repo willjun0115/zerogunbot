@@ -1,1 +1,1 @@
-worker: python newbottest
+worker: python newbottest\Main.py

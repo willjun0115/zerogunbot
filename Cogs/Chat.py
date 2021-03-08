@@ -135,10 +135,10 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         openxl.save("learning.xlsx")
 
     @commands.command(name='연결', help='봇을 음성 채널에 연결시킵니다.\n(관리자 권한)',
-                      usage='%연결')
+                      usage='%연결',  pass_context=True)
     async def connect_voice(self, ctx):
         channel = ctx.author.voice.channel
-        await channel.connect
+        await channel.connect()
 
 
 def setup(app):

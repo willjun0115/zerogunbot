@@ -2,3 +2,4 @@ asyncio
 discord.py
 Cogs
 openpyxl
+discord

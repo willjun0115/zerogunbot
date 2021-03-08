@@ -80,6 +80,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         for i in range(1, 1000):
             if wb["A" + str(i)].value == str(word):
                 wb["A" + str(i)].value = '_'
+                wb["B" + str(i)].value = None
                 await ctx.send(str(word) + "을(를) 잊었습니다.")
                 break
         openxl.save("learning.xlsx")

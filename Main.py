@@ -71,15 +71,6 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingPermissions):
         await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
-@app.command(name='prefix', help="접두사를 변경합니다."
-                                        "\n('매니저' 필요)", usage="%prefix ~", pass_context=True)
-async def set_prefix(ctx, args):
-    if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
-        await ctx.send("접두사를 " + str(args) + "로 변경했습니다.")
-        return prefix == str(args)
-    else:
-        await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
-
 
 app.remove_command("help")
 app.run(token)

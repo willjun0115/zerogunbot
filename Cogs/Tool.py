@@ -92,6 +92,14 @@ class Tool(commands.Cog, name="도구(Tool)"):
                                           "\n DJ = 1")
         await ctx.send(embed=embed)
 
+    @commands.command(name='접두사', help="접두사를 변경합니다."
+                                        "\n('매니저' 필요)", usage="%접두사 ~", pass_context=True)
+    async def set_prefix(self, ctx, args):
+        if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
+            self.prefix = str(args)
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+
 
 def setup(app):
     app.add_cog(Tool(app))

@@ -134,10 +134,11 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await ctx.send("언어 목록을 초기화했습니다.")
         openxl.save("learning.xlsx")
 
-    @commands.command(name='연결', help='언어 목록을 초기화합니다.\n(관리자 권한)',
+    @commands.command(name='연결', help='봇을 음성 채널에 연결시킵니다.\n(관리자 권한)',
                       usage='%연결')
     async def connect_voice(self, ctx):
         channel = ctx.author.voice.channel
+        await ctx.send(str(channel.name) + "에 연결했습니다.")
         await channel.connect()
 
 

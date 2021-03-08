@@ -138,8 +138,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
                       usage='%연결')
     async def connect_voice(self, ctx):
         channel = ctx.author.voice.channel
-        await ctx.send(str(channel.name) + "에 연결했습니다.")
-        await channel.connect(timeout=60.0)
+        await channel.connect
 
 
 def setup(app):

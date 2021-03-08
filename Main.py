@@ -1,6 +1,7 @@
 import asyncio
 import discord
 from discord.ext import commands
+from discord.utils import get
 import os
 
 prefix = '%'
@@ -68,6 +69,15 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         await ctx.send(":x: 값이 잘못되었습니다.")
     elif isinstance(error, commands.MissingPermissions):
+        await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+
+@app.command(name='prefix', help="접두사를 변경합니다."
+                                        "\n('매니저' 필요)", usage="%prefix ~", pass_context=True)
+async def set_prefix(ctx, args):
+    if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
+        app.prefix = str(args)
+        await ctx.send("접두사를 " + str(args) + "로 변경했습니다.")
+    else:
         await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
 

@@ -23,7 +23,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                 dm_channel = await ctx.author.create_dm()
                 await dm_channel.send("비밀번호를 입력해주세요.")
                 def check(m):
-                    return m.author == ctx.author and m.channel == ctx.channel
+                    return m.author == ctx.author and m.channel == dm_channel
                 try:
                     msg = await self.app.wait_for("message", check=check, timeout=10.0)
                 except asyncio.TimeoutError:
@@ -68,7 +68,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                     await dm_channel.send("비밀번호를 입력해주세요.")
 
                     def check(m):
-                        return m.author == ctx.author and m.channel == ctx.channel
+                        return m.author == ctx.author and m.channel == dm_channel
 
                     try:
                         msg = await self.app.wait_for("message", check=check, timeout=10.0)

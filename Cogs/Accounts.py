@@ -79,10 +79,29 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                     else:
                         if wb["C" + str(i)].value == msg:
                             await ctx.message.author.add_roles(get(ctx.guild.roles, name='로그인'))
-                            await ctx.channel.send(str(ctx.author) + " 님이 로그인했습니다.",
-                                                  reason=dm_channel.send(str(ctx.author) + " 님이 로그인했습니다."))
+                            await ctx.channel.send(str(ctx.author) + " 님이 로그인 했습니다.",
+                                                  reason=dm_channel.send(str(ctx.author) + " 님이 로그인 했습니다."))
                             break
             openxl.save("account.xlsx")
+
+    @commands.command(name='로그아웃', help='0군 계정을 로그아웃합니다.',
+                      usage='%로그아웃', pass_context=True)
+    async def log_out(self, ctx):
+        dm_channel = await ctx.author.create_dm()
+        if get(ctx.guild.roles, name='로그인') in ctx.author.roles:
+            id = str(ctx.author.id)
+            openxl = openpyxl.load_workbook("account.xlsx")
+            wb = openxl.active
+            for i in range(1, 100):
+                if wb["B" + str(i)].value == id:
+                    await ctx.message.author.remove_roles(get(ctx.guild.roles, name='로그인'))
+                    await ctx.channel.send(str(ctx.author) + " 님이 로그아웃 했습니다.",
+                                           reason=dm_channel.send(str(ctx.author) + " 님이 로그아웃 했습니다."))
+                    break
+            openxl.save("account.xlsx")
+        else:
+            await dm_channel.send("로그인 되어 있지 않습니다.")
+
 
     @commands.command(name='코인등록', help='자신의 아이디를 코인 시스템에 등록합니다.',
                       usage='%코인등록', pass_context=True)

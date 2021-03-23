@@ -31,7 +31,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                     await dm_channel.send("시간 초과되었습니다.")
                     break
                 else:
-                    wb["C" + str(i)].value = str(msg)
+                    wb["C" + str(i)].value = str(msg.content)
                     wb["B" + str(i)].value = id
                     wb["A" + str(i)].value = ctx.author.name
                     await dm_channel.send(str(ctx.author.name) + " 님의 아이디를 등록했습니다. ")
@@ -59,7 +59,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
     async def log_in(self, ctx):
         dm_channel = await ctx.author.create_dm()
         if get(ctx.guild.roles, name='로그인') in ctx.author.roles:
-            await dm_channel.send("이미 로그인되어 있습니다.")
+            await ctx.send("이미 로그인되어 있습니다.")
         else:
             id = str(ctx.author.id)
             openxl = openpyxl.load_workbook("account.xlsx")
@@ -77,10 +77,9 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                         await dm_channel.send("시간 초과되었습니다.")
                         break
                     else:
-                        if wb["C" + str(i)].value == str(msg):
+                        if wb["C" + str(i)].value == str(msg.content):
                             await ctx.message.author.add_roles(get(ctx.guild.roles, name='로그인'))
-                            await ctx.channel.send(str(ctx.author) + " 님이 로그인 했습니다.",
-                                                  reason=dm_channel.send(str(ctx.author) + " 님이 로그인 했습니다."))
+                            await ctx.send(str(ctx.author) + " 님이 로그인 했습니다.")
                             break
                         else:
                             await dm_channel.send("비밀번호가 틀렸습니다.")
@@ -97,8 +96,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
             for i in range(1, 100):
                 if wb["B" + str(i)].value == id:
                     await ctx.message.author.remove_roles(get(ctx.guild.roles, name='로그인'))
-                    await ctx.channel.send(str(ctx.author) + " 님이 로그아웃 했습니다.",
-                                           reason=dm_channel.send(str(ctx.author) + " 님이 로그아웃 했습니다."))
+                    await ctx.send(str(ctx.author) + " 님이 로그아웃 했습니다.")
                     break
             openxl.save("account.xlsx")
         else:

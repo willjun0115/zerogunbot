@@ -19,6 +19,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
         for i in range(1, 100):
             if wb["B" + str(i)].value == id:
                 await ctx.channel.send("이미 등록된 아이디입니다.")
+                break
             elif wb["B" + str(i)].value == "_":
                 dm_channel = await ctx.author.create_dm()
                 await dm_channel.send("비밀번호를 입력해주세요.")

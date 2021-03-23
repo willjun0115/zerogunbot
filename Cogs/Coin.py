@@ -12,24 +12,6 @@ class Coin(commands.Cog, name="코인(Coin)"):
         self.app = app
 
     @commands.has_permissions(administrator=True)
-    @commands.command(name='코인등록', help='대상의 id를 코인 시스템에 등록합니다.'
-                                        '\n(관리자 권한)', usage='%코인등록 @', pass_context=True)
-    async def register_coin(self, ctx, member: discord.Member):
-        id = str(member.id)
-        openxl = openpyxl.load_workbook("coin.xlsx")
-        wb = openxl.active
-        for i in range(1, 100):
-            if wb["A" + str(i)].value == id:
-                await ctx.channel.send("이미 등록된 아이디입니다.")
-            else:
-                if wb["A" + str(i)].value == "_":
-                    wb["A" + str(i)].value = id
-                    wb["C" + str(i)].value = member.name
-                    await ctx.channel.send(str(member.name) + " 님의 아이디를 등록했습니다. ")
-                    break
-        openxl.save("coin.xlsx")
-
-    @commands.has_permissions(administrator=True)
     @commands.command(name='코인설정', help='대상의 코인을 설정합니다.'
                                         '\n(관리자 권한)', usage='%코인설정 @ ~', pass_context=True)
     async def set_coin(self, ctx, member: discord.Member, num):
@@ -38,8 +20,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
         openxl = openpyxl.load_workbook("coin.xlsx")
         wb = openxl.active
         for i in range(1, 100):
-            if wb["A" + str(i)].value == id:
-                wb["B" + str(i)].value = int(coin)
+            if wb["B" + str(i)].value == id:
+                wb["C" + str(i)].value = int(coin)
 
                 await ctx.channel.send(f"코인 설정: {coin}")
                 break
@@ -54,8 +36,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
         openxl = openpyxl.load_workbook("coin.xlsx")
         wb = openxl.active
         for i in range(1, 100):
-            if wb["A" + str(i)].value == id:
-                wb["B" + str(i)].value = wb["B" + str(i)].value + int(coin)
+            if wb["B" + str(i)].value == id:
+                wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
 
                 await ctx.channel.send(f"코인 추가: +{coin}")
                 break
@@ -70,8 +52,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
         openxl = openpyxl.load_workbook("coin.xlsx")
         wb = openxl.active
         for i in range(1, 100):
-            if wb["A" + str(i)].value == id:
-                wb["B" + str(i)].value = wb["B" + str(i)].value - int(coin)
+            if wb["B" + str(i)].value == id:
+                wb["C" + str(i)].value = wb["C" + str(i)].value - int(coin)
 
                 await ctx.channel.send(f"코인 감소: -{coin}")
                 break
@@ -83,8 +65,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
         openxl = openpyxl.load_workbook("coin.xlsx")
         wb = openxl.active
         for i in range(1, 100):
-            if wb["A" + str(i)].value == id:
-                coin = wb["B" + str(i)].value
+            if wb["B" + str(i)].value == id:
+                coin = wb["C" + str(i)].value
                 await ctx.channel.send(str(ctx.author.name) + f" 님의 코인: {coin}")
                 break
         openxl.save("coin.xlsx")
@@ -98,10 +80,10 @@ class Coin(commands.Cog, name="코인(Coin)"):
             openxl = openpyxl.load_workbook("coin.xlsx")
             wb = openxl.active
             for i in range(1, 100):
-                if wb["A" + str(i)].value == id:
-                    if 0 < int(num) <= wb["B" + str(i)].value:
+                if wb["B" + str(i)].value == id:
+                    if 0 < int(num) <= wb["C" + str(i)].value:
                         rand = random.randint(-1, 1)
-                        wb["B" + str(i)].value = wb["B" + str(i)].value + int(num) * rand
+                        wb["C" + str(i)].value = wb["C" + str(i)].value + int(num) * rand
                         embed = discord.Embed(title="<베팅 결과>",
                                               description=ctx.author.name + " 님의 결과")
                         if rand == -1:
@@ -110,7 +92,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
                             embed.add_field(name="> 베팅결과", value="=", inline=True)
                         elif rand == 1:
                             embed.add_field(name="> 베팅결과", value="+", inline=True)
-                        embed.add_field(name="> 현재 코인", value=str(wb["B" + str(i)].value), inline=True)
+                        embed.add_field(name="> 현재 코인", value=str(wb["C" + str(i)].value), inline=True)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send("코인이 부족합니다.")
@@ -131,12 +113,10 @@ class Coin(commands.Cog, name="코인(Coin)"):
             openxl = openpyxl.load_workbook("coin.xlsx")
             wb = openxl.active
             for i in range(1, 100):
-                if wb["A" + str(i)].value == id:
-                    s_coin += wb["B" + str(i)].value
-                elif wb["A" + str(i)].value == oppo_id:
-                    o_coin += wb["B" + str(i)].value
-                elif wb["A" + str(i)].value == '_':
-                    break
+                if wb["B" + str(i)].value == id:
+                    s_coin += wb["C" + str(i)].value
+                elif wb["B" + str(i)].value == oppo_id:
+                    o_coin += wb["C" + str(i)].value
             if s_coin >= int(num) and o_coin >= int(num):
                 msg = await ctx.send(ctx.author.name + " 님이 " + member.name + " 님에게 "
                                      + str(num) + " 코인을 걸고 트레이드를 신청합니다."
@@ -157,31 +137,31 @@ class Coin(commands.Cog, name="코인(Coin)"):
                     if str(reaction) == '✅':
                         rand = random.randint(0, 1)
                         for i in range(1, 100):
-                            if wb["A" + str(i)].value == id:
-                                if 0 < int(num) <= wb["B" + str(i)].value:
-                                    wb["B" + str(i)].value = wb["B" + str(i)].value + int(num) * (rand * 2 - 1)
+                            if wb["B" + str(i)].value == id:
+                                if 0 < int(num) <= wb["C" + str(i)].value:
+                                    wb["C" + str(i)].value = wb["C" + str(i)].value + int(num) * (rand * 2 - 1)
                                     embed = discord.Embed(title="<트레이드 결과>",
                                                           description=ctx.author.name + " 님의 결과")
                                     if rand == 0:
                                         embed.add_field(name="> 결과", value="패배", inline=True)
                                     else:
                                         embed.add_field(name="> 결과", value="승리", inline=True)
-                                    embed.add_field(name="> 현재 코인", value=str(wb["B" + str(i)].value), inline=True)
+                                    embed.add_field(name="> 현재 코인", value=str(wb["C" + str(i)].value), inline=True)
                                     await ctx.send(embed=embed)
                                 else:
                                     await ctx.send("코인이 부족합니다.")
                                 break
                         for i in range(1, 100):
-                            if wb["A" + str(i)].value == oppo_id:
-                                if 0 < int(num) <= wb["B" + str(i)].value:
-                                    wb["B" + str(i)].value = wb["B" + str(i)].value - int(num) * (rand * 2 - 1)
+                            if wb["B" + str(i)].value == oppo_id:
+                                if 0 < int(num) <= wb["C" + str(i)].value:
+                                    wb["C" + str(i)].value = wb["C" + str(i)].value - int(num) * (rand * 2 - 1)
                                     embed = discord.Embed(title="<트레이드 결과>",
                                                           description=member.name + " 님의 결과")
                                     if rand == 0:
                                         embed.add_field(name="> 결과", value="승리", inline=True)
                                     else:
                                         embed.add_field(name="> 결과", value="패배", inline=True)
-                                    embed.add_field(name="> 현재 코인", value=str(wb["B" + str(i)].value), inline=True)
+                                    embed.add_field(name="> 현재 코인", value=str(wb["C" + str(i)].value), inline=True)
                                     await ctx.send(embed=embed)
                                 else:
                                     await ctx.send("코인이 부족합니다.")
@@ -202,8 +182,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
         openxl = openpyxl.load_workbook("coin.xlsx")
         wb = openxl.active
         for i in range(1, 100):
-            if wb["A" + str(i)].value == id:
-                wb["B" + str(i)].value = int(coin)
+            if wb["B" + str(i)].value == id:
+                wb["C" + str(i)].value = int(coin)
 
                 await ctx.channel.send(f"시작 코인 충전: {coin}")
                 break

@@ -12,7 +12,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
     async def help_command(self, ctx, func=None):
         if func is None:
             embed = discord.Embed(title="도움말", description="접두사는 % 입니다.")
-            cog_list = ["도구(Tool)", "권한(Permission)", "채팅(Chat)", "게임(Game)", "코인(Coin)"]
+            cog_list = ["도구(Tool)", "권한(Permission)", "채팅(Chat)", "게임(Game)", "코인(Coin)", "계정(Accounts)"]
             for x in cog_list:
                 cog_data = self.app.get_cog(x)
                 command_list = cog_data.get_commands()
@@ -46,7 +46,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
             for member in ctx.channel.members:
                 try:
                     for role in member.roles:
-                        if 1 < role.position <= 15:
+                        if 2 < role.position <= 16:
                             await member.remove_roles(role)
                 except:
                     pass
@@ -55,7 +55,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         else:
             try:
                 for role in member.roles:
-                    if 1 < role.position <= 15:
+                    if 2 < role.position <= 16:
                         await member.remove_roles(role)
             except:
                 pass
@@ -68,8 +68,8 @@ class Tool(commands.Cog, name="도구(Tool)"):
         role_p = 0
         try:
             for role in member.roles:
-                if 2 < role.position <= 15:
-                    role_p += role.position - 2
+                if 3 < role.position <= 16:
+                    role_p += role.position - 3
         except:
             pass
         await ctx.send(str(member) + " 님의 역할 레벨은 " + str(role_p) + " 입니다.")

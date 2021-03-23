@@ -48,7 +48,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
             dm_channel = await ctx.author.create_dm()
             for i in range(1, 100):
                 if wb["B" + str(i)].value == id:
-                    wb["C" + str(i)].value = password
+                    wb["C" + str(i)].value = str(password)
                     await dm_channel.send(":white_check_mark: 변경되었습니다.")
             openxl.save("account.xlsx")
         else:
@@ -77,7 +77,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                         await dm_channel.send("시간 초과되었습니다.")
                         break
                     else:
-                        if wb["C" + str(i)].value == msg:
+                        if wb["C" + str(i)].value == str(msg):
                             await ctx.message.author.add_roles(get(ctx.guild.roles, name='로그인'))
                             await ctx.channel.send(str(ctx.author) + " 님이 로그인 했습니다.",
                                                   reason=dm_channel.send(str(ctx.author) + " 님이 로그인 했습니다."))

@@ -77,6 +77,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                         await dm_channel.send("시간 초과되었습니다.")
                     else:
                         if wb["C" + str(i)].value == msg:
+                            await ctx.author.add_roles(get(ctx.guild.roles, name='로그인'))
                             await dm_channel.send(str(ctx.author) + " 님이 로그인했습니다.",
                                                   reason=dm_channel.send(str(ctx.author) + " 님이 로그인했습니다."))
                             break

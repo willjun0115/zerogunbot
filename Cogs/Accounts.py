@@ -82,6 +82,8 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                             await ctx.channel.send(str(ctx.author) + " 님이 로그인 했습니다.",
                                                   reason=dm_channel.send(str(ctx.author) + " 님이 로그인 했습니다."))
                             break
+                        else:
+                            await dm_channel.send("비밀번호가 틀렸습니다.")
             openxl.save("account.xlsx")
 
     @commands.command(name='로그아웃', help='0군 계정을 로그아웃합니다.',

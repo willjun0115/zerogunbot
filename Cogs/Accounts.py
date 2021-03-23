@@ -64,7 +64,6 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
             id = str(ctx.author.id)
             openxl = openpyxl.load_workbook("account.xlsx")
             wb = openxl.active
-
             for i in range(1, 100):
                 if wb["B" + str(i)].value == id:
                     await dm_channel.send("비밀번호를 입력해주세요.")

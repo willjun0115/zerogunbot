@@ -28,6 +28,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                     msg = await self.app.wait_for("message", check=check, timeout=10.0)
                 except asyncio.TimeoutError:
                     await dm_channel.send("시간 초과되었습니다.")
+                    break
                 else:
                     wb["C" + str(i)].value = msg
                     wb["B" + str(i)].value = id

@@ -30,7 +30,7 @@ class Accounts(commands.Cog, name="계정(Accounts)"):
                     await dm_channel.send("시간 초과되었습니다.")
                     break
                 else:
-                    wb["C" + str(i)].value = msg
+                    wb["C" + str(i)].value = str(msg)
                     wb["B" + str(i)].value = id
                     wb["A" + str(i)].value = ctx.author.name
                     await dm_channel.send(str(ctx.author.name) + " 님의 아이디를 등록했습니다. ")

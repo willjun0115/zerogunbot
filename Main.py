@@ -68,6 +68,7 @@ async def prefix(ctx, args):
         global app
         app = commands.Bot(command_prefix=prefix)
         await ctx.send("접두사를 " + prefix + "로 변경하였습니다.")
+        return app, prefix
     else:
         ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

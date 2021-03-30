@@ -4,7 +4,8 @@ from discord.ext import commands
 from discord.utils import get
 import os
 
-app = commands.Bot(command_prefix="%")
+prefix = '%'
+app = commands.Bot(command_prefix=prefix)
 
 token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"
 
@@ -57,17 +58,6 @@ async def reload_commands(ctx, extension=None):
         app.unload_extension(f"Cogs.{extension}")
         app.load_extension(f"Cogs.{extension}")
         await ctx.send(f":white_check_mark: {extension}을(를) 다시 불러왔습니다.")
-
-
-@app.command(name="prefix")
-async def prefix(ctx, args):
-    if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
-        global app
-        app = commands.Bot(command_prefix=str(args))
-        await ctx.send("접두사를 " + str(args) + "로 변경하였습니다.")
-        return app
-    else:
-        ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
 
 @app.event

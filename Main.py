@@ -65,6 +65,8 @@ async def prefix(ctx, args):
     if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
         global prefix
         prefix = args
+        global app
+        app = commands.Bot(command_prefix=prefix)
         await ctx.send("접두사를 " + prefix + "로 변경하였습니다.")
     else:
         ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")

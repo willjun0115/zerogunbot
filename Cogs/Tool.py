@@ -92,12 +92,6 @@ class Tool(commands.Cog, name="도구(Tool)"):
                                           "\n DJ = 1")
         await ctx.send(embed=embed)
 
-    @commands.command(name="접두사", help='접두사를 변경합니다. (default = %)', usage='%접두사')
-    async def prefix(self, ctx, args):
-        global prefix
-        self.prefix = args
-        await ctx.send("접두사를 " + prefix + "로 변경하였습니다.")
-
 
 def setup(app):
     app.add_cog(Tool(app))

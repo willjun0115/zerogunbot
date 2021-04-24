@@ -11,6 +11,25 @@ class Coin(commands.Cog, name="코인(Coin)"):
     def __init__(self, app):
         self.app = app
 
+    @commands.command(name='코인등록', help='자신의 아이디를 코인 시스템에 등록합니다.',
+                      usage='%코인등록', pass_context=True)
+    async def register_coin(self, ctx):
+        id = str(ctx.author.id)
+        openxl = openpyxl.load_workbook("coin.xlsx")
+        wb = openxl.active
+        for i in range(1, 100):
+            if wb["B" + str(i)].value == id:
+                await ctx.channel.send("이미 등록된 아이디입니다.")
+                break
+            else:
+                if wb["B" + str(i)].value == "_":
+                    wb["B" + str(i)].value = id
+                    wb["A" + str(i)].value = ctx.author.name
+                    wb["C" + str(i)].value = 0
+                    await ctx.channel.send(str(ctx.author.name) + " 님의 아이디를 등록했습니다. ")
+                    break
+        openxl.save("coin.xlsx")
+
     @commands.has_permissions(administrator=True)
     @commands.command(name='코인설정', help='대상의 코인을 설정합니다.'
                                         '\n(관리자 권한)', usage='%코인설정 @ ~', pass_context=True)
@@ -202,7 +221,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
         role_price = 0
         if 1 <= int(num) <= 13:
             for role in ctx.guild.roles:
-                if role.position == int(num) + 3:
+                if role.position == int(num) + 2:
                     arole = role
             if arole in ctx.author.roles:
                 await ctx.send("이미 " + arole.name + "을(를) 보유하고 있습니다.")

@@ -350,8 +350,8 @@ class Game(commands.Cog, name="게임(Game)"):
             role_p = 0
             try:
                 for role in member.roles:
-                    if 3 < role.position <= 16:
-                        role_p += role.position - 3
+                    if 2 < role.position <= 15:
+                        role_p += role.position - 2
             except:
                 pass
             if role_p >= 15:

@@ -26,7 +26,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
                     wb["B" + str(i)].value = id
                     wb["A" + str(i)].value = ctx.author.name
                     wb["C" + str(i)].value = 0
-                    await ctx.channel.send(str(ctx.author.name) + " 님의 아이디를 등록했습니다. ")
+                    await ctx.channel.send(str(ctx.author.name) + " 님의 아이디를 등록했습니다.\n"
+                                                                  "시작 코인 :coin: 100 개를 지급했습니다.")
                     break
         openxl.save("coin.xlsx")
 
@@ -120,7 +121,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
         else:
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
-    @commands.command(name='트레이드', help='자신의 코인을 걸고 상대방과 베팅합니다.'
+    @commands.command(name='트레이드', help='자신과 상대방의 코인을 베팅합니다.'
                                       '\n1/2 확률로 이긴 쪽이 코인을 빼앗아옵니다.', usage='%트레이드 @ ~', pass_context=True)
     async def trade_coin(self, ctx, member: discord.Member, num):
         my_channel = ctx.guild.get_channel(814888257698398289)
@@ -221,7 +222,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
         role_price = 0
         if 1 <= int(num) <= 13:
             for role in ctx.guild.roles:
-                if role.position == int(num) + 2:
+                if role.position == int(num) + 3:
                     arole = role
             if arole in ctx.author.roles:
                 await ctx.send("이미 " + arole.name + "을(를) 보유하고 있습니다.")

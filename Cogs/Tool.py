@@ -13,6 +13,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         if func is None:
             embed = discord.Embed(title="도움말", description="접두사는 % 입니다.")
             cog_list = ["도구(Tool)", "권한(Permission)", "채팅(Chat)", "게임(Game)", "코인(Coin)"]
+            embed.add_field(name="> 시스템(System)", value="load\nunload\nreload", inline=True)
             for x in cog_list:
                 cog_data = self.app.get_cog(x)
                 command_list = cog_data.get_commands()
@@ -35,6 +36,24 @@ class Tool(commands.Cog, name="도구(Tool)"):
                             break
                         else:
                             command_notfound = True
+                            if func == 'load':
+                                embed = discord.Embed(title=f"명령어 : load", description='명령어 카테고리를 불러옵니다.')
+                                embed.add_field(name="사용법", value='%load ~')
+                                await ctx.send(embed=embed)
+                                command_notfound = False
+                                break
+                            if func == 'unload':
+                                embed = discord.Embed(title=f"명령어 : unload", description='불러온 명령어 카테고리를 제거합니다.')
+                                embed.add_field(name="사용법", value='%unload ~')
+                                await ctx.send(embed=embed)
+                                command_notfound = False
+                                break
+                            if func == 'reload':
+                                embed = discord.Embed(title=f"명령어 : reload", description='명령어 카테고리를 다시 불러옵니다.')
+                                embed.add_field(name="사용법", value='%reload, %reload ~')
+                                await ctx.send(embed=embed)
+                                command_notfound = False
+                                break
             if command_notfound is True:
                 await ctx.send('명령어를 찾을 수 없습니다.')
 

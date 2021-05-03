@@ -272,6 +272,19 @@ class Coin(commands.Cog, name="코인(Coin)"):
         else:
             await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")
 
+    @commands.command(name='출석체크', help='하루 한 번 출석체크하고 코인을 받습니다.', usage='%출석체크')
+    async def gain_coin(self, ctx):
+        id = str(ctx.author.id)
+        openxl = openpyxl.load_workbook("coin.xlsx")
+        wb = openxl.active
+        for i in range(1, 100):
+            if wb["B" + str(i)].value == id:
+                wb["C" + str(i)].value = wb["C" + str(i)].value + int(100)
+
+                await ctx.channel.send(f"코인 추가: + :coin: 100")
+                break
+        openxl.save("coin.xlsx")
+
 
 def setup(app):
     app.add_cog(Coin(app))

@@ -136,14 +136,5 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await ctx.send("언어 목록을 초기화했습니다.")
         openxl.save("learning.xlsx")
 
-    @commands.command(name="입력대화", help="입력값을 채팅에 전송합니다.", usage="%입력대화", pass_context=True)
-    async def say_(self, ctx):
-        window = Tk()
-        entry = Entry(window)
-        entry.pack()
-        button = Button(window, text="보내기", command=await ctx.send(str(entry.get())))
-        button.pack()
-        window.mainloop()
-
 def setup(app):
     app.add_cog(Chat(app))

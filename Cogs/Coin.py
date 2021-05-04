@@ -272,23 +272,6 @@ class Coin(commands.Cog, name="코인(Coin)"):
         else:
             await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")
 
-    @commands.command(name='출석체크', help='출석체크하고 코인을 받습니다.', usage='%출석체크')
-    async def attendance(self, ctx):
-        my_channel = ctx.guild.get_channel(838698439062716436)
-        if ctx.channel == my_channel:
-            id = str(ctx.author.id)
-            openxl = openpyxl.load_workbook("coin.xlsx")
-            wb = openxl.active
-            for i in range(1, 100):
-                if wb["B" + str(i)].value == id:
-                    coin = random.randint(10, 200)
-                    wb["C" + str(i)].value = wb["C" + str(i)].value + coin
-                    await ctx.channel.send(f":white_check_mark: 출석체크 완료! + :coin: {coin}")
-                    break
-            openxl.save("coin.xlsx")
-        else:
-            await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
-
 
 def setup(app):
     app.add_cog(Coin(app))

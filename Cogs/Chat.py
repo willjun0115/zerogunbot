@@ -4,7 +4,6 @@ import random
 from discord.ext import commands
 from discord.utils import get
 import openpyxl
-from tkinter import *
 
 
 class Chat(commands.Cog, name="채팅(Chat)"):

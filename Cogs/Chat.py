@@ -46,16 +46,6 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await asyncio.sleep(1)
         await msg.edit(content=':boom: ', delete_after=1)
 
-    @commands.command(name="야", help="봇에게 말을 겁니다. 학습한 언어에 대답합니다. \n(A = 단어)",
-                      usage="%야 A", pass_context=True)
-    async def call_learn(self, ctx, word):
-        openxl = openpyxl.load_workbook("learning.xlsx")
-        wb = openxl.active
-        for i in range(1, 1000):
-            if wb["A" + str(i)].value == str(word):
-                await ctx.send(str(wb["B" + str(i)].value))
-                break
-
 
 def setup(app):
     app.add_cog(Chat(app))

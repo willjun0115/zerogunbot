@@ -76,7 +76,8 @@ class Game(commands.Cog, name="게임(Game)"):
                     await ctx.send(':hand_splayed:')
                     await ctx.send('비겼네요.')
 
-    @commands.command(name="가챠", help="확률적으로 권한을 보상으로 얻습니다.\n권한을 잃을 수도 있습니다.", usage="%가챠")
+    @commands.command(name="가챠", help="확률적으로 권한을 보상으로 얻습니다.\n권한을 잃을 수도 있습니다."
+                                      "\n10~100개의 코인을 얻습니다.", usage="%가챠")
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
@@ -297,6 +298,17 @@ class Game(commands.Cog, name="게임(Game)"):
                         await ctx.send(embed=embed)
                 else:
                     await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
+            id = str(ctx.message.author.id)
+            coin = random.randint(10, 100)
+            openxl = openpyxl.load_workbook("coin.xlsx")
+            wb = openxl.active
+            for i in range(1, 100):
+                if wb["B" + str(i)].value == id:
+                    wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
+
+                    await ctx.channel.send(f"코인 획득! + :coin: {coin}")
+                    break
+            openxl.save("coin.xlsx")
         else:
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
@@ -342,7 +354,8 @@ class Game(commands.Cog, name="게임(Game)"):
                 await ctx.message.author.remove_roles(get(ctx.guild.roles, name="도박중독"))
 
     @commands.command(name='도전', help="(역할 레벨 총합이 15 이상이어야만 사용 가능)\n상위 권한에 도전합니다."
-                                      "\n실패 시 가장 높은 권한을 하나 잃습니다.", usage="%도전")
+                                      "\n실패 시 가장 높은 권한을 하나 잃습니다."
+                                      "\n50~200개의 코인을 얻습니다.", usage="%도전")
     async def challenge(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
@@ -391,6 +404,17 @@ class Game(commands.Cog, name="게임(Game)"):
                             await ctx.send("도전에 실패했습니다.")
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
+                    id = str(ctx.message.author.id)
+                    coin = random.randint(50, 200)
+                    openxl = openpyxl.load_workbook("coin.xlsx")
+                    wb = openxl.active
+                    for i in range(1, 100):
+                        if wb["B" + str(i)].value == id:
+                            wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
+
+                            await ctx.channel.send(f"코인 획득! + :coin: {coin}")
+                            break
+                    openxl.save("coin.xlsx")
             else:
                 await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

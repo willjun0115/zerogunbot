@@ -25,7 +25,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
                 if wb["B" + str(i)].value == "_":
                     wb["B" + str(i)].value = id
                     wb["A" + str(i)].value = ctx.author.name
-                    wb["C" + str(i)].value = 0
+                    wb["C" + str(i)].value = 100
                     await ctx.channel.send(str(ctx.author.name) + " 님의 아이디를 등록했습니다.\n"
                                                                   "시작 코인 :coin: 100 개를 지급했습니다.")
                     break

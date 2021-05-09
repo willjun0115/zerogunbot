@@ -31,6 +31,19 @@ class Coin(commands.Cog, name="코인(Coin)"):
                     break
         openxl.save("coin.xlsx")
 
+    @commands.command(name='코인명단', help='코인 시스템의 등록자 명단을 확인합니다.',
+                      usage='%코인명단', pass_context=True)
+    async def register_list(self, ctx):
+        openxl = openpyxl.load_workbook("coin.xlsx")
+        wb = openxl.active
+        embed = discord.Embed(title="<코인 등록자 명단>",
+                              description="'%코인등록'을 통해 등록해주세요.")
+        for i in range(1, 100):
+            if wb["B" + str(i)].value != "_":
+                embed.add_field(name=str(wb["A" + str(i)].value), value=":coin:" + str(wb["C" + str(i)].value), inline=False)
+        await ctx.send(embed=embed)
+        openxl.save("coin.xlsx")
+
     @commands.has_permissions(administrator=True)
     @commands.command(name='코인설정', help='대상의 코인을 설정합니다.'
                                         '\n(관리자 권한)', usage='%코인설정 @ ~', pass_context=True)

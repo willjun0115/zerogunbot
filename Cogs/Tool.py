@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
+import openpyxl
 
 
 class Tool(commands.Cog, name="도구(Tool)"):
@@ -110,6 +111,12 @@ class Tool(commands.Cog, name="도구(Tool)"):
                                           "\n 이모티콘 관리 = 2"
                                           "\n DJ = 1")
         await ctx.send(embed=embed)
+
+    @commands.has_permissions(administrator=True)
+    @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.\n(관리자 권한)',
+                      usage='%백업', pass_context=True)
+    async def backup_coin(self, ctx):
+        await ctx.send(file=discord.File(fp='coin.xlsx', filename='backup_coin.xlsx'))
 
 
 def setup(app):

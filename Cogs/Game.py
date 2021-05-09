@@ -298,17 +298,16 @@ class Game(commands.Cog, name="게임(Game)"):
                         await ctx.send(embed=embed)
                 else:
                     await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
-            id = str(ctx.message.author.id)
-            coin = random.randint(10, 100)
-            openxl = openpyxl.load_workbook("coin.xlsx")
-            wb = openxl.active
-            for i in range(1, 100):
-                if wb["B" + str(i)].value == id:
-                    wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
-
+                id = str(ctx.message.author.id)
+                coin = random.randint(10, 100)
+                openxl = openpyxl.load_workbook("coin.xlsx")
+                wb = openxl.active
+                for i in range(1, 100):
+                    if wb["B" + str(i)].value == id:
+                        wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
                     await ctx.channel.send(f"코인 획득! + :coin: {coin}")
                     break
-            openxl.save("coin.xlsx")
+                openxl.save("coin.xlsx")
         else:
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
@@ -341,21 +340,23 @@ class Game(commands.Cog, name="게임(Game)"):
                 await ctx.message.author.remove_roles(get(ctx.guild.roles, name="도박중독"))
             else:
                 msg = await ctx.send("5분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.")
-                await asyncio.sleep(59)
-                await msg.edit(content="4분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.")
-                await asyncio.sleep(59)
-                await msg.edit(content="3분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.")
-                await asyncio.sleep(59)
-                await msg.edit(content="2분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.")
-                await asyncio.sleep(59)
-                await msg.edit(content="1분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.", delete_after=60)
-                await asyncio.sleep(59)
-                await ctx.send(ctx.author.name + " 님의 가챠 권한이 회복되었습니다.")
-                await ctx.message.author.remove_roles(get(ctx.guild.roles, name="도박중독"))
+                time = 5
+                while time == 0:
+                    if get(ctx.guild.roles, name='도박중독') in member.roles:
+                        await asyncio.sleep(59)
+                        time -= 1
+                        await msg.edit(content=str(time) + "분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.")
+                        if time == 0:
+                            await ctx.send(ctx.author.name + " 님의 가챠 권한이 회복되었습니다.")
+                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="도박중독"))
+                            break
+                    else:
+                        await msg.edit(content=ctx.author.name + " 님의 가챠 권한이 회복되었습니다.", delete_after=3)
+                        break
 
     @commands.command(name='도전', help="(역할 레벨 총합이 15 이상이어야만 사용 가능)\n상위 권한에 도전합니다."
                                       "\n실패 시 가장 높은 권한을 하나 잃습니다."
-                                      "\n50~200개의 코인을 얻습니다.", usage="%도전")
+                                      "\n100~200개의 코인을 얻습니다.", usage="%도전")
     async def challenge(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
@@ -405,7 +406,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
                     id = str(ctx.message.author.id)
-                    coin = random.randint(50, 200)
+                    coin = random.randint(100, 200)
                     openxl = openpyxl.load_workbook("coin.xlsx")
                     wb = openxl.active
                     for i in range(1, 100):

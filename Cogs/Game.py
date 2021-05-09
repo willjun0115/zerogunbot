@@ -344,12 +344,13 @@ class Game(commands.Cog, name="게임(Game)"):
                 id = str(ctx.author.id)
                 openxl = openpyxl.load_workbook("coin.xlsx")
                 wb = openxl.active
-                price = 100
                 for i in range(1, 100):
                     if wb["B" + str(i)].value == id:
+                        price = 100 + wb["C" + str(i)].value
                         if wb["C" + str(i)].value >= price:
                             coin = wb["C" + str(i)].value
                             wb["C" + str(i)].value = coin - price
+                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="도박중독"))
                             await ctx.channel.send(ctx.author.name + " 님의 가챠 권한이 회복되었습니다. - :coin:" + str(price))
                             break
                         else:

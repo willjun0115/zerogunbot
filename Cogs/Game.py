@@ -82,7 +82,7 @@ class Game(commands.Cog, name="게임(Game)"):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
             msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n:skull_crossbones: 을 누르면 확률이 올라가는 대신,"
-                                 "\n10% 확률로 5분간 가챠를 금지당할 수 있습니다.\n일반 가챠는 :video_game: 을 눌러주세요.")
+                                 "\n10% 확률로 '도박중독'에 걸립니다.\n일반 가챠는 :video_game: 을 눌러주세요.")
             reaction_list = ['🎮', '☠️', '❎']
             for r in reaction_list:
                 await msg.add_reaction(r)
@@ -330,7 +330,7 @@ class Game(commands.Cog, name="게임(Game)"):
         embed.add_field(name="> DJ", value="15% / 25% (4% / 10%)", inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(name="탈출", help="'가챠'로 금지된 가챠 권한을 회복합니다.", usage="%탈출")
+    @commands.command(name="탈출", help="코인을 내고 '가챠'로 금지된 가챠 권한을 회복합니다.", usage="%탈출")
     async def escape_jail(self, ctx):
         my_channel = ctx.guild.get_channel(811937429689991169)
         if ctx.channel == my_channel:
@@ -339,20 +339,20 @@ class Game(commands.Cog, name="게임(Game)"):
                 await ctx.send(ctx.author.name + " 님의 가챠 권한이 회복되었습니다.")
                 await ctx.message.author.remove_roles(get(ctx.guild.roles, name="도박중독"))
             else:
-                msg = await ctx.send("5분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.")
-                time = 5
-                while time == 0:
-                    if get(ctx.guild.roles, name='도박중독') in member.roles:
-                        await asyncio.sleep(59)
-                        time -= 1
-                        await msg.edit(content=str(time) + "분 후, " + ctx.author.name + " 님의 권한이 회복됩니다.")
-                        if time == 0:
-                            await ctx.send(ctx.author.name + " 님의 가챠 권한이 회복되었습니다.")
-                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="도박중독"))
+                id = str(ctx.author.id)
+                openxl = openpyxl.load_workbook("coin.xlsx")
+                wb = openxl.active
+                price = 500
+                for i in range(1, 100):
+                    if wb["B" + str(i)].value == id:
+                        if wb["C" + str(i)].value >= price:
+                            coin = wb["C" + str(i)].value
+                            wb["C" + str(i)].value = coin - price
+                            await ctx.channel.send(ctx.author.name + " 님의 가챠 권한이 회복되었습니다. - :coin:" + str(price))
                             break
-                    else:
-                        await msg.edit(content=ctx.author.name + " 님의 가챠 권한이 회복되었습니다.", delete_after=3)
-                        break
+                        else:
+                            await ctx.channel.send("코인이 부족합니다.")
+                openxl.save("coin.xlsx")
 
     @commands.command(name='도전', help="(역할 레벨 총합이 15 이상이어야만 사용 가능)\n상위 권한에 도전합니다."
                                       "\n실패 시 가장 높은 권한을 하나 잃습니다."

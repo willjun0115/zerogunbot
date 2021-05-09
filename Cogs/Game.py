@@ -351,7 +351,7 @@ class Game(commands.Cog, name="게임(Game)"):
                             await ctx.channel.send(ctx.author.name + " 님의 가챠 권한이 회복되었습니다. - :coin:" + str(price))
                             break
                         else:
-                            await ctx.channel.send("코인이 부족합니다.")
+                            await ctx.channel.send("코인이 부족합니다. (보석금: :coin:" + str(price) + ")")
                 openxl.save("coin.xlsx")
 
     @commands.command(name='도전', help="(역할 레벨 총합이 15 이상이어야만 사용 가능)\n상위 권한에 도전합니다."

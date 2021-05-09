@@ -14,10 +14,10 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 (확률%)", pass_context=int())
     async def gamble(self, ctx, args):
         args = float(args)
-        if args >= 50:
-            await ctx.send("당첨 확률은 100이상으로 설정할 수 없습니다.")
+        if args > 50:
+            await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
         elif args <= 0:
-            await ctx.send("당첨 확률은 0이하로 설정할 수 업습니다.")
+            await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
         else:
             await ctx.send(str(args) + "% 확률의 도박을 돌립니다...")
             await asyncio.sleep(2)
@@ -25,7 +25,7 @@ class Game(commands.Cog, name="게임(Game)"):
             if win > args:
                 await ctx.send(ctx.author.name + " Lose 배율 x" + str(100/args))
             else:
-                await ctx.send(ctx.author.name + " Win! x" + str(100/args))
+                await ctx.send(ctx.author.name + " Win! 배율 x" + str(100/args))
 
     @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.", usage="%가위바위보")
     async def rock_scissors_paper(self, ctx):

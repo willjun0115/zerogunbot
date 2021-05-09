@@ -32,7 +32,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
         openxl.save("coin.xlsx")
 
     @commands.has_permissions(administrator=True)
-    @commands.command(name='강제등록', help='타인의 아이디를 코인 시스템에 강제 등록합니다.',
+    @commands.command(name='강제등록', help='타인의 아이디를 코인 시스템에 강제 등록합니다.\n(관리자 권한)',
                       usage='%강제등록', pass_context=True)
     async def register_coin_force(self, ctx, member: discord.Member):
         id = str(member.id)

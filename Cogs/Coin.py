@@ -31,6 +31,25 @@ class Coin(commands.Cog, name="코인(Coin)"):
                     break
         openxl.save("coin.xlsx")
 
+    @commands.has_permissions(administrator=True)
+    @commands.command(name='강제등록', help='타인의 아이디를 코인 시스템에 강제 등록합니다.',
+                      usage='%강제등록', pass_context=True)
+    async def register_coin_force(self, ctx, member: discord.Member):
+        id = str(member.id)
+        openxl = openpyxl.load_workbook("coin.xlsx")
+        wb = openxl.active
+        for i in range(1, 100):
+            if wb["B" + str(i)].value == id:
+                await ctx.channel.send("이미 등록된 아이디입니다.")
+                break
+            else:
+                if wb["B" + str(i)].value == "_":
+                    wb["B" + str(i)].value = id
+                    wb["A" + str(i)].value = member.name
+                    await ctx.channel.send(str(member.name) + " 님의 아이디를 등록했습니다.")
+                    break
+        openxl.save("coin.xlsx")
+
     @commands.command(name='코인명단', help='코인 시스템의 등록자 명단을 확인합니다.',
                       usage='%코인명단', pass_context=True)
     async def register_list(self, ctx):

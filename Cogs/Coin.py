@@ -53,7 +53,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
     @commands.has_permissions(administrator=True)
     @commands.command(name='등록해지', help='타인의 아이디를 코인 시스템에서 삭제합니다.\n(관리자 권한)',
                       usage='%등록해지', pass_context=True)
-    async def register_coin_force(self, ctx, member: discord.Member):
+    async def remove_coin_force(self, ctx, member: discord.Member):
         id = str(member.id)
         openxl = openpyxl.load_workbook("coin.xlsx")
         wb = openxl.active

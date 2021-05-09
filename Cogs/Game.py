@@ -346,7 +346,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 wb = openxl.active
                 for i in range(1, 100):
                     if wb["B" + str(i)].value == id:
-                        price = 100 + wb["C" + str(i)].value
+                        price = 100 + wb["C" + str(i)].value // 10
                         if wb["C" + str(i)].value >= price:
                             coin = wb["C" + str(i)].value
                             wb["C" + str(i)].value = coin - price

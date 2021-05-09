@@ -305,8 +305,8 @@ class Game(commands.Cog, name="게임(Game)"):
                 for i in range(1, 100):
                     if wb["B" + str(i)].value == id:
                         wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
-                    await ctx.channel.send(f"코인 획득! + :coin: {coin}")
-                    break
+                        await ctx.channel.send(f"코인 획득! + :coin: {coin}")
+                        break
                 openxl.save("coin.xlsx")
         else:
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
@@ -412,7 +412,6 @@ class Game(commands.Cog, name="게임(Game)"):
                     for i in range(1, 100):
                         if wb["B" + str(i)].value == id:
                             wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
-
                             await ctx.channel.send(f"코인 획득! + :coin: {coin}")
                             break
                     openxl.save("coin.xlsx")

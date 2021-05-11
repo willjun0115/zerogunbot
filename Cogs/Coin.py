@@ -208,8 +208,10 @@ class Coin(commands.Cog, name="코인(Coin)"):
                                     wb["C" + str(i)].value = wb["C" + str(i)].value + int(num) * rand
                                     embed = discord.Embed(title="<트레이드 결과>",
                                                           description=ctx.author.name + " 님의 결과")
-                                    if rand == 0:
+                                    if rand == 1:
                                         embed.add_field(name="> 결과", value="패배", inline=True)
+                                    elif rand == 0:
+                                        embed.add_field(name="> 결과", value="무승부", inline=True)
                                     else:
                                         embed.add_field(name="> 결과", value="승리", inline=True)
                                     embed.add_field(name="> 현재 코인", value=str(wb["C" + str(i)].value), inline=True)
@@ -223,8 +225,10 @@ class Coin(commands.Cog, name="코인(Coin)"):
                                     wb["C" + str(i)].value = wb["C" + str(i)].value + int(num) * rand
                                     embed = discord.Embed(title="<트레이드 결과>",
                                                           description=member.name + " 님의 결과")
-                                    if rand == 0:
+                                    if rand == -1:
                                         embed.add_field(name="> 결과", value="승리", inline=True)
+                                    elif rand == 0:
+                                        embed.add_field(name="> 결과", value="무승부", inline=True)
                                     else:
                                         embed.add_field(name="> 결과", value="패배", inline=True)
                                     embed.add_field(name="> 현재 코인", value=str(wb["C" + str(i)].value), inline=True)

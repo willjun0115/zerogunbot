@@ -327,8 +327,6 @@ class Coin(commands.Cog, name="코인(Coin)"):
             for role in ctx.guild.roles:
                 if role.position == int(num) + 3:
                     arole = role
-            if arole in ctx.author.roles:
-                await ctx.send("이미 " + arole.name + "을(를) 보유하고 있습니다.")
             else:
                 if int(num) == 1:
                     role_price = 50

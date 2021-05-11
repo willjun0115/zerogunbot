@@ -320,7 +320,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
 
     @commands.command(name='판매', help='역할을 판매하여 코인을 획득합니다. (판매가의 10%)\n'
                                       '명령어 뒤에 역할 번호를 입력해주세요.', usage='%판매 ~', pass_context=True)
-    async def pay_coin(self, ctx, num):
+    async def sell_coin(self, ctx, num):
         arole = None
         role_price = 0
         if 1 <= int(num) <= 13:

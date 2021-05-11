@@ -85,13 +85,13 @@ class Permission(commands.Cog, name="권한(Permission)"):
                 if oppo_role < my_role:
                     try:
                         for role in athr.roles:
-                            if 2 < role.position <= 11:
+                            if 2 < role.position <= 10:
                                 await athr.remove_roles(role)
                     except:
                         pass
                     try:
                         for role in member.roles:
-                            if 2 < role.position <= 11:
+                            if 2 < role.position <= 10:
                                 await athr.add_roles(role)
                     except:
                         pass

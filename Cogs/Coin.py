@@ -201,11 +201,11 @@ class Coin(commands.Cog, name="코인(Coin)"):
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     if str(reaction) == '✅':
-                        rand = random.randint(0, 1)
+                        rand = random.randint(-1, 1)
                         for i in range(1, 100):
                             if wb["B" + str(i)].value == id:
                                 if 0 < int(num) <= wb["C" + str(i)].value:
-                                    wb["C" + str(i)].value = wb["C" + str(i)].value + int(num) * (rand * 2 - 1)
+                                    wb["C" + str(i)].value = wb["C" + str(i)].value + int(num) * rand
                                     embed = discord.Embed(title="<트레이드 결과>",
                                                           description=ctx.author.name + " 님의 결과")
                                     if rand == 0:
@@ -220,7 +220,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
                         for i in range(1, 100):
                             if wb["B" + str(i)].value == oppo_id:
                                 if 0 < int(num) <= wb["C" + str(i)].value:
-                                    wb["C" + str(i)].value = wb["C" + str(i)].value - int(num) * (rand * 2 - 1)
+                                    wb["C" + str(i)].value = wb["C" + str(i)].value + int(num) * rand
                                     embed = discord.Embed(title="<트레이드 결과>",
                                                           description=member.name + " 님의 결과")
                                     if rand == 0:
@@ -233,7 +233,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
                                     await ctx.send("코인이 부족합니다.")
                                 break
                     else:
-                        await ctx.send("트레이드 신청을 거절했습니다.", delete_after=2)
+                        await ctx.send("트레이드 신청을 거절했습니다.")
             else:
                 await ctx.send("자신과 상대의 보유 코인 이하로만 베팅할 수 있습니다.")
 
@@ -314,6 +314,61 @@ class Coin(commands.Cog, name="코인(Coin)"):
                             break
                         else:
                             await ctx.channel.send("코인이 부족합니다.")
+                openxl.save("coin.xlsx")
+        else:
+            await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")
+
+    @commands.command(name='판매', help='역할을 판매하여 코인을 획득합니다. (판매가의 10%)\n'
+                                      '명령어 뒤에 역할 번호를 입력해주세요.', usage='%판매 ~', pass_context=True)
+    async def pay_coin(self, ctx, num):
+        arole = None
+        role_price = 0
+        if 1 <= int(num) <= 13:
+            for role in ctx.guild.roles:
+                if role.position == int(num) + 3:
+                    arole = role
+            if arole in ctx.author.roles:
+                await ctx.send("이미 " + arole.name + "을(를) 보유하고 있습니다.")
+            else:
+                if int(num) == 1:
+                    role_price = 50
+                elif int(num) == 2:
+                    role_price = 150
+                elif int(num) == 3:
+                    role_price = 200
+                elif int(num) == 4:
+                    role_price = 300
+                elif int(num) == 5:
+                    role_price = 500
+                elif int(num) == 6:
+                    role_price = 750
+                elif int(num) == 7:
+                    role_price = 800
+                elif int(num) == 8:
+                    role_price = 1000
+                elif int(num) == 9:
+                    role_price = 1500
+                elif int(num) == 10:
+                    role_price = 2000
+                elif int(num) == 11:
+                    role_price = 2500
+                elif int(num) == 12:
+                    role_price = 4000
+                elif int(num) == 13:
+                    role_price = 10000
+                id = str(ctx.author.id)
+                openxl = openpyxl.load_workbook("coin.xlsx")
+                wb = openxl.active
+                for i in range(1, 100):
+                    if wb["B" + str(i)].value == id:
+                        if arole in ctx.author.roles:
+                            coin = wb["C" + str(i)].value
+                            wb["C" + str(i)].value = coin + role_price
+                            await ctx.author.remove_roles(arole)
+                            await ctx.channel.send(arole.name + "을(를) 판매했습니다. + :coin: " + str(role_price))
+                            break
+                        else:
+                            await ctx.send(arole.name + "을(를) 보유하고 있지 않습니다.")
                 openxl.save("coin.xlsx")
         else:
             await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")

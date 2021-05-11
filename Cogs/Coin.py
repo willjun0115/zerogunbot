@@ -358,6 +358,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
                     role_price = 4000
                 elif int(num) == 13:
                     role_price = 10000
+                if get(ctx.guild.roles, name='스틸') in ctx.author.roles:
+                    role_price = 0
                 id = str(ctx.author.id)
                 openxl = openpyxl.load_workbook("coin.xlsx")
                 wb = openxl.active

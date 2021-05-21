@@ -3,12 +3,17 @@ import asyncio
 import random
 from discord.utils import get
 from discord.ext import commands
+import openpyxl
 
 
 class Permission(commands.Cog, name="권한(Permission)"):
 
     def __init__(self, app):
         self.app = app
+
+    @commands.command(name="청소", help="숫자만큼 채팅을 지웁니다.\n('언론통제' 필요)", usage="%청소 ~", pass_context=True)
+    async def clean(self, ctx, num):
+        await ctx.channel.purge(limit=int(num))
 
     @commands.command(name='패드립', help="저희 봇에 그런 기능은 없습니다?\n('유미학살자' 필요)", usage="%패드립")
     async def fdr(self, ctx):
@@ -83,19 +88,31 @@ class Permission(commands.Cog, name="권한(Permission)"):
                 except:
                     pass
                 if oppo_role < my_role:
-                    try:
-                        for role in athr.roles:
-                            if 2 < role.position <= 12:
-                                await athr.remove_roles(role)
-                    except:
-                        pass
-                    try:
-                        for role in member.roles:
-                            if 2 < role.position <= 12:
-                                await athr.add_roles(role)
-                    except:
-                        pass
-                    await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 역할을 스틸했습니다!")
+                    id = str(ctx.author.id)
+                    openxl = openpyxl.load_workbook("coin.xlsx")
+                    wb = openxl.active
+                    for i in range(1, 100):
+                        if wb["B" + str(i)].value == id:
+                            if wb["C" + str(i)].value >= 10 * oppo_role:
+                                coin = wb["C" + str(i)].value
+                                wb["C" + str(i)].value = coin - 10 * oppo_role
+                                try:
+                                    for role in athr.roles:
+                                        if 2 < role.position <= 12:
+                                            await athr.remove_roles(role)
+                                except:
+                                    pass
+                                try:
+                                    for role in member.roles:
+                                        if 2 < role.position <= 12:
+                                            await athr.add_roles(role)
+                                except:
+                                    pass
+                                await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 역할을 스틸했습니다!")
+                                break
+                            else:
+                                await ctx.channel.send("코인이 부족합니다.")
+                    openxl.save("coin.xlsx")
                 else:
                     await ctx.channel.send("역할 레벨이 부족합니다.")
         else:

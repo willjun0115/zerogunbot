@@ -13,6 +13,7 @@ class Permission(commands.Cog, name="권한(Permission)"):
 
     @commands.command(name="청소", help="숫자만큼 채팅을 지웁니다.\n('언론통제' 필요)", usage="%청소 ~", pass_context=True)
     async def clean(self, ctx, num):
+        await ctx.message.delete()
         await ctx.channel.purge(limit=int(num))
 
     @commands.command(name='패드립', help="저희 봇에 그런 기능은 없습니다?\n('유미학살자' 필요)", usage="%패드립")

@@ -329,7 +329,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
         role_price = 0
         if 1 <= int(num) <= 13:
             for role in ctx.guild.roles:
-                if role.position == int(num) + 3:
+                if role.position == int(num) + 2:
                     arole = role
             else:
                 if int(num) == 1:

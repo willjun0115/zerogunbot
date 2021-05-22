@@ -114,7 +114,7 @@ class Permission(commands.Cog, name="권한(Permission)"):
                                 except:
                                     pass
                                 await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 역할을 스틸했습니다!"
-                                                                                            "\n :coin: -" + str(10 * oppo_role))
+                                                                                            "\n - :coin:" + str(10 * oppo_role))
                                 break
                             else:
                                 await ctx.channel.send("코인이 부족합니다.")

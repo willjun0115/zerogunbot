@@ -181,6 +181,18 @@ class Game(commands.Cog, name="게임(Game)"):
                     else:
                         embed.add_field(name='DJ', value='=', inline=True)
                     await ctx.send(embed=embed)
+                    id = str(ctx.message.author.id)
+                    coin = random.randint(10, 50)
+                    if get(ctx.guild.roles, name='매니저') in ctx.message.author.roles:
+                        coin = coin * 2
+                    openxl = openpyxl.load_workbook("coin.xlsx")
+                    wb = openxl.active
+                    for i in range(1, 100):
+                        if wb["B" + str(i)].value == id:
+                            wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
+                            await ctx.channel.send(f"코인 획득! + :coin: {coin}")
+                            break
+                    openxl.save("coin.xlsx")
                 elif str(reaction) == '☠️':
                     embed = discord.Embed(title="<:skull_crossbones:  가챠 결과>", description=ctx.author.name + " 님의 결과")
                     lose_gacha = random.random() * 100
@@ -298,18 +310,20 @@ class Game(commands.Cog, name="게임(Game)"):
                         else:
                             embed.add_field(name='DJ', value='=', inline=True)
                         await ctx.send(embed=embed)
+                        id = str(ctx.message.author.id)
+                        coin = random.randint(10, 100)
+                        if get(ctx.guild.roles, name='매니저') in ctx.message.author.roles:
+                            coin = coin * 2
+                        openxl = openpyxl.load_workbook("coin.xlsx")
+                        wb = openxl.active
+                        for i in range(1, 100):
+                            if wb["B" + str(i)].value == id:
+                                wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
+                                await ctx.channel.send(f"코인 획득! + :coin: {coin}")
+                                break
+                        openxl.save("coin.xlsx")
                 else:
                     await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
-                id = str(ctx.message.author.id)
-                coin = random.randint(10, 100)
-                openxl = openpyxl.load_workbook("coin.xlsx")
-                wb = openxl.active
-                for i in range(1, 100):
-                    if wb["B" + str(i)].value == id:
-                        wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
-                        await ctx.channel.send(f"코인 획득! + :coin: {coin}")
-                        break
-                openxl.save("coin.xlsx")
         else:
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
@@ -406,18 +420,20 @@ class Game(commands.Cog, name="게임(Game)"):
                             await member.remove_roles(lst[-1])
                         else:
                             await ctx.send("도전에 실패했습니다.")
+                        id = str(ctx.message.author.id)
+                        coin = random.randint(200, 300)
+                        if get(ctx.guild.roles, name='매니저') in member.roles:
+                            coin = coin * 2
+                        openxl = openpyxl.load_workbook("coin.xlsx")
+                        wb = openxl.active
+                        for i in range(1, 100):
+                            if wb["B" + str(i)].value == id:
+                                wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
+                                await ctx.channel.send(f"코인 획득! + :coin: {coin}")
+                                break
+                        openxl.save("coin.xlsx")
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
-                    id = str(ctx.message.author.id)
-                    coin = random.randint(100, 200)
-                    openxl = openpyxl.load_workbook("coin.xlsx")
-                    wb = openxl.active
-                    for i in range(1, 100):
-                        if wb["B" + str(i)].value == id:
-                            wb["C" + str(i)].value = wb["C" + str(i)].value + int(coin)
-                            await ctx.channel.send(f"코인 획득! + :coin: {coin}")
-                            break
-                    openxl.save("coin.xlsx")
             else:
                 await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

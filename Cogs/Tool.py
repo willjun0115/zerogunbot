@@ -105,7 +105,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
             await ctx.send(embed=embed)
         else:
             for role in ctx.guild.roles:
-                if role.name == args:
+                if role == args:
                     embed = discord.Embed(title="> " + role.name,
                                           description="Lv. " + str(role.position - 2), colour=role.colour)
                     embed.add_field(name="권한", value=str(role.permissions))

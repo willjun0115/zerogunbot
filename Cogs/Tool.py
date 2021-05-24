@@ -100,7 +100,8 @@ class Tool(commands.Cog, name="도구(Tool)"):
             embed = discord.Embed(title="<역할 목록>",
                                   description="역할 순위가 높을수록 할당 레벨이 높습니다.")
             for role in ctx.guild.roles:
-                embed.add_field(name="> " + role.name, value="Lv. " + str(role.position - 2), inline=False)
+                if 2 < role.position <= 15:
+                    embed.add_field(name="> " + role.name, value="Lv. " + str(role.position - 2), inline=False)
             await ctx.send(embed=embed)
         else:
             for role in ctx.guild.roles:

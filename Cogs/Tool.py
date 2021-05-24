@@ -120,7 +120,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
     @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.\n(관리자 권한)',
                       usage='%백업', pass_context=True)
     async def backup_coin(self, ctx):
-        await ctx.send(file=discord.File(fp='coin.xlsx', filename='backup_coin.xlsx'))
+        await ctx.send(file=discord.File(fp='coin.xlsx', filename='coin.xlsx'))
 
 
 def setup(app):

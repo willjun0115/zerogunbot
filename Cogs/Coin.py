@@ -250,26 +250,18 @@ class Coin(commands.Cog, name="코인(Coin)"):
         embed = discord.Embed(title="<코인 상점>",
                               description="%구매 (역할 번호) 로 구매해주세요\n"
                                           "'매니저' 역할 보유 시, 50% 할인!")
-        embed.add_field(name='> 13. 매니저', value=':coin: 100000', inline=True)
-        embed.add_field(name='> 12. 스틸', value=':coin: 40000', inline=True)
-        embed.add_field(name='> 11. 가챠 확장팩', value=':coin: 25000', inline=True)
-        embed.add_field(name='> 10. 도박중독 치료', value=':coin: 20000', inline=True)
-        embed.add_field(name='> 9. 창씨개명', value=':coin: 15000', inline=True)
-        embed.add_field(name='> 8. 강제이동', value=':coin: 10000', inline=True)
-        embed.add_field(name='> 7. 가렌Q', value=':coin: 8000', inline=True)
-        embed.add_field(name='> 6. 귀마개', value=':coin: 7500', inline=True)
-        embed.add_field(name='> 5. 미카엘', value=':coin: 5000', inline=True)
-        embed.add_field(name='> 4. 언론통제', value=':coin: 3000', inline=True)
-        embed.add_field(name='> 3. 유미학살자', value=':coin: 2000', inline=True)
-        embed.add_field(name='> 2. 이모티콘 관리', value=':coin: 1500', inline=True)
-        embed.add_field(name='> 1. DJ', value=':coin: 500', inline=True)
+        openxl_ = openpyxl.load_workbook("Roles.xlsx")
+        wb_ = openxl_.active
+        for role in ctx.guild.roles:
+            if 2 < role.position <= 15:
+                embed.add_field(name="> " + role.name, value=":coin: " + str(wb_["B" + str(role.position-2)].value), inline=True)
         await ctx.send(embed=embed)
+        openxl_.save("Roles.xlsx")
 
     @commands.command(name='구매', help='코인을 소비하여 역할을 구매합니다.\n'
                                       '명령어 뒤에 역할 번호를 입력해주세요.', usage='%구매 ~', pass_context=True)
     async def pay_coin(self, ctx, num):
         arole = None
-        role_price = 0
         if 1 <= int(num) <= 13:
             for role in ctx.guild.roles:
                 if role.position == int(num) + 2:
@@ -277,32 +269,9 @@ class Coin(commands.Cog, name="코인(Coin)"):
             if arole in ctx.author.roles:
                 await ctx.send("이미 " + arole.name + "을(를) 보유하고 있습니다.")
             else:
-                if int(num) == 1:
-                    role_price = 500
-                elif int(num) == 2:
-                    role_price = 1500
-                elif int(num) == 3:
-                    role_price = 2000
-                elif int(num) == 4:
-                    role_price = 3000
-                elif int(num) == 5:
-                    role_price = 5000
-                elif int(num) == 6:
-                    role_price = 7500
-                elif int(num) == 7:
-                    role_price = 8000
-                elif int(num) == 8:
-                    role_price = 10000
-                elif int(num) == 9:
-                    role_price = 15000
-                elif int(num) == 10:
-                    role_price = 20000
-                elif int(num) == 11:
-                    role_price = 25000
-                elif int(num) == 12:
-                    role_price = 40000
-                elif int(num) == 13:
-                    role_price = 100000
+                openxl_ = openpyxl.load_workbook("Roles.xlsx")
+                wb_ = openxl_.active
+                role_price = int(wb_["B" + str(num)].value)
                 if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
                     role_price = role_price / 2
                 id = str(ctx.author.id)
@@ -319,6 +288,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
                         else:
                             await ctx.channel.send("코인이 부족합니다.")
                 openxl.save("coin.xlsx")
+                openxl_.save("Roles.xlsx")
         else:
             await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")
 
@@ -326,38 +296,14 @@ class Coin(commands.Cog, name="코인(Coin)"):
                                       '명령어 뒤에 역할 번호를 입력해주세요.', usage='%판매 ~', pass_context=True)
     async def sell_coin(self, ctx, num):
         arole = None
-        role_price = 0
         if 1 <= int(num) <= 13:
             for role in ctx.guild.roles:
                 if role.position == int(num) + 2:
                     arole = role
             else:
-                if int(num) == 1:
-                    role_price = 50
-                elif int(num) == 2:
-                    role_price = 150
-                elif int(num) == 3:
-                    role_price = 200
-                elif int(num) == 4:
-                    role_price = 300
-                elif int(num) == 5:
-                    role_price = 500
-                elif int(num) == 6:
-                    role_price = 750
-                elif int(num) == 7:
-                    role_price = 800
-                elif int(num) == 8:
-                    role_price = 1000
-                elif int(num) == 9:
-                    role_price = 1500
-                elif int(num) == 10:
-                    role_price = 2000
-                elif int(num) == 11:
-                    role_price = 2500
-                elif int(num) == 12:
-                    role_price = 4000
-                elif int(num) == 13:
-                    role_price = 10000
+                openxl_ = openpyxl.load_workbook("Roles.xlsx")
+                wb_ = openxl_.active
+                role_price = int(wb_["B" + str(num)].value) // 10
                 id = str(ctx.author.id)
                 openxl = openpyxl.load_workbook("coin.xlsx")
                 wb = openxl.active
@@ -372,6 +318,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
                         else:
                             await ctx.send(arole.name + "을(를) 보유하고 있지 않습니다.")
                 openxl.save("coin.xlsx")
+                openxl_.save("Roles.xlsx")
         else:
             await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")
 

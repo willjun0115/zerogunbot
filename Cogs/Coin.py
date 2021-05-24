@@ -250,6 +250,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
         embed = discord.Embed(title="<코인 상점>",
                               description="%구매 (역할 번호) 로 구매해주세요\n"
                                           "'매니저' 역할 보유 시, 50% 할인!")
+        for role in ctx.guild.roles:
+            embed.add_field(name='> '+str(role.position-2)+'. '+role.name, value=':coin: ', inline=True)
         embed.add_field(name='> 13. 매니저', value=':coin: 100000', inline=True)
         embed.add_field(name='> 12. 스틸', value=':coin: 40000', inline=True)
         embed.add_field(name='> 11. 가챠 확장팩', value=':coin: 25000', inline=True)
@@ -358,8 +360,6 @@ class Coin(commands.Cog, name="코인(Coin)"):
                     role_price = 4000
                 elif int(num) == 13:
                     role_price = 10000
-                if get(ctx.guild.roles, name='스틸') in ctx.author.roles:
-                    role_price = 0
                 id = str(ctx.author.id)
                 openxl = openpyxl.load_workbook("coin.xlsx")
                 wb = openxl.active

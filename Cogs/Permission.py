@@ -70,7 +70,7 @@ class Permission(commands.Cog, name="권한(Permission)"):
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
-    @commands.command(name="스틸", help="자신보다 역할 레벨이 낮은 대상의 '창씨개명' 이하 권한을 가져옵니다.\n('스틸' 필요)", usage="%스틸 @",
+    @commands.command(name="스틸", help="자신보다 역할 레벨이 낮은 대상의 '창씨개명' 이하 권한을 덮어씁니다.\n('스틸' 필요)", usage="%스틸 @",
                       pass_context=True)
     async def steal(self, ctx, member: discord.Member):
         athr = ctx.message.author
@@ -98,26 +98,26 @@ class Permission(commands.Cog, name="권한(Permission)"):
                     wb = openxl.active
                     for i in range(1, 100):
                         if wb["B" + str(i)].value == id:
-                            if wb["C" + str(i)].value >= 10 * oppo_role:
+                            if wb["C" + str(i)].value >= 100 * oppo_role:
                                 coin = wb["C" + str(i)].value
-                                wb["C" + str(i)].value = coin - 10 * oppo_role
+                                wb["C" + str(i)].value = coin - 100 * oppo_role
                                 try:
                                     for role in athr.roles:
-                                        if 2 < role.position <= 12:
+                                        if 2 < role.position <= 11:
                                             await athr.remove_roles(role)
                                 except:
                                     pass
                                 try:
                                     for role in member.roles:
-                                        if 2 < role.position <= 12:
+                                        if 2 < role.position <= 11:
                                             await athr.add_roles(role)
                                 except:
                                     pass
                                 await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 역할을 스틸했습니다!"
-                                                                                            "\n - :coin:" + str(10 * oppo_role))
+                                                                                            "\n - :coin: " + str(100 * oppo_role))
                                 break
                             else:
-                                await ctx.channel.send("코인이 부족합니다.")
+                                await ctx.channel.send("코인이 부족합니다. 필요 코인: :coin: " + str(100 * oppo_role))
                     openxl.save("coin.xlsx")
                 else:
                     await ctx.channel.send("역할 레벨이 부족합니다.")

@@ -15,6 +15,7 @@ class Game(commands.Cog, name="게임(Game)"):
     async def gamble(self, ctx, args):
         openxl = openpyxl.load_workbook("coin.xlsx")
         wb = openxl.active
+        id = str(ctx.author.id)
         for i in range(1, 100):
             if wb["B" + str(i)].value == id:
                 if 0 < 100 <= wb["C" + str(i)].value:

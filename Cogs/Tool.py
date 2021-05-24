@@ -95,7 +95,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         await ctx.send(str(member) + " 님의 역할 레벨은 " + str(role_p) + " 입니다.")
 
     @commands.command(name="역할목록", help='역할 목록을 표시합니다.', usage='%역할목록, %역할목록 ~', pass_context=True)
-    async def role_lv_list(self, ctx, args: discord.Role = None):
+    async def role_lv_list(self, ctx, args: discord.Role.mention = None):
         if args is None:
             embed = discord.Embed(title="<역할 목록>",
                                   description="역할 순위가 높을수록 할당 레벨이 높습니다.")
@@ -105,7 +105,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
             await ctx.send(embed=embed)
         else:
             for role in ctx.guild.roles:
-                if role == args:
+                if role.mention == args:
                     embed = discord.Embed(title="> " + role.name,
                                           description="Lv. " + str(role.position - 2), colour=role.colour)
                     embed.add_field(name="권한", value=str(role.permissions))

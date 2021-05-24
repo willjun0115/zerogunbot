@@ -373,7 +373,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(name='도전', help="(역할 레벨 총합이 15 이상이어야만 사용 가능)\n상위 권한에 도전합니다."
                                       "\n실패 시 가장 높은 권한을 하나 잃습니다."
-                                      "\n100~200개의 코인을 얻습니다.", usage="%도전")
+                                      "\n200~300개의 코인을 얻습니다.", usage="%도전")
     async def challenge(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:

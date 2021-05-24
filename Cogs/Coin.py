@@ -168,7 +168,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
     @commands.command(name='트레이드', help='자신과 상대방의 코인을 베팅합니다.'
-                                      '\n1/2 확률로 이긴 쪽이 코인을 빼앗아옵니다.', usage='%트레이드 @ ~', pass_context=True)
+                                      '\n1/3 확률로 이긴 쪽이 코인을 빼앗아옵니다.', usage='%트레이드 @ ~', pass_context=True)
     async def trade_coin(self, ctx, member: discord.Member, num):
         my_channel = ctx.guild.get_channel(814888257698398289)
         if ctx.channel == my_channel:
@@ -254,74 +254,59 @@ class Coin(commands.Cog, name="코인(Coin)"):
         wb_ = openxl_.active
         for role in ctx.guild.roles:
             if 2 < role.position <= 15:
-                embed.add_field(name="> " + str(role.position-2) + ". " + role.name,
+                embed.add_field(name="> " + role.name,
                                 value=":coin: " + str(wb_["B" + str(role.position-2)].value), inline=True)
         await ctx.send(embed=embed)
         openxl_.save("Roles.xlsx")
 
     @commands.command(name='구매', help='코인을 소비하여 역할을 구매합니다.\n'
-                                      '명령어 뒤에 역할 번호를 입력해주세요.', usage='%구매 ~', pass_context=True)
-    async def pay_coin(self, ctx, num):
-        arole = None
-        if 1 <= int(num) <= 13:
-            for role in ctx.guild.roles:
-                if role.position == int(num) + 2:
-                    arole = role
-            if arole in ctx.author.roles:
-                await ctx.send("이미 " + arole.name + "을(를) 보유하고 있습니다.")
-            else:
-                openxl_ = openpyxl.load_workbook("Roles.xlsx")
-                wb_ = openxl_.active
-                role_price = int(wb_["B" + str(num)].value)
-                if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
-                    role_price = role_price / 2
-                id = str(ctx.author.id)
-                openxl = openpyxl.load_workbook("coin.xlsx")
-                wb = openxl.active
-                for i in range(1, 100):
-                    if wb["B" + str(i)].value == id:
-                        if wb["C" + str(i)].value >= role_price:
-                            coin = wb["C" + str(i)].value
-                            wb["C" + str(i)].value = coin - role_price
-                            await ctx.author.add_roles(arole)
-                            await ctx.channel.send(arole.name + "을(를) 구매했습니다!")
-                            break
-                        else:
-                            await ctx.channel.send("코인이 부족합니다.")
-                openxl.save("coin.xlsx")
-                openxl_.save("Roles.xlsx")
+                                      '명령어 뒤에 역할을 태그해주세요.', usage='%구매 @', pass_context=True)
+    async def pay_coin(self, ctx, role: discord.Role):
+        if role in ctx.author.roles:
+            await ctx.send("이미 " + role.name + "을(를) 보유하고 있습니다.")
         else:
-            await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")
+            openxl_ = openpyxl.load_workbook("Roles.xlsx")
+            wb_ = openxl_.active
+            role_price = int(wb_["B" + str(role.position - 2)].value)
+            if get(ctx.guild.roles, name='매니저') in ctx.author.roles:
+                role_price = role_price / 2
+            id = str(ctx.author.id)
+            openxl = openpyxl.load_workbook("coin.xlsx")
+            wb = openxl.active
+            for i in range(1, 100):
+                if wb["B" + str(i)].value == id:
+                    if wb["C" + str(i)].value >= role_price:
+                        coin = wb["C" + str(i)].value
+                        wb["C" + str(i)].value = coin - role_price
+                        await ctx.author.add_roles(role)
+                        await ctx.channel.send(role.name + "을(를) 구매했습니다!")
+                        break
+                    else:
+                        await ctx.channel.send("코인이 부족합니다.")
+            openxl.save("coin.xlsx")
+            openxl_.save("Roles.xlsx")
 
     @commands.command(name='판매', help='역할을 판매하여 코인을 획득합니다. (판매가의 10%)\n'
-                                      '명령어 뒤에 역할 번호를 입력해주세요.', usage='%판매 ~', pass_context=True)
-    async def sell_coin(self, ctx, num):
-        arole = None
-        if 1 <= int(num) <= 13:
-            for role in ctx.guild.roles:
-                if role.position == int(num) + 2:
-                    arole = role
-            else:
-                openxl_ = openpyxl.load_workbook("Roles.xlsx")
-                wb_ = openxl_.active
-                role_price = int(wb_["B" + str(num)].value) // 10
-                id = str(ctx.author.id)
-                openxl = openpyxl.load_workbook("coin.xlsx")
-                wb = openxl.active
-                for i in range(1, 100):
-                    if wb["B" + str(i)].value == id:
-                        if arole in ctx.author.roles:
-                            coin = wb["C" + str(i)].value
-                            wb["C" + str(i)].value = coin + role_price
-                            await ctx.author.remove_roles(arole)
-                            await ctx.channel.send(arole.name + "을(를) 판매했습니다. + :coin: " + str(role_price))
-                            break
-                        else:
-                            await ctx.send(arole.name + "을(를) 보유하고 있지 않습니다.")
-                openxl.save("coin.xlsx")
-                openxl_.save("Roles.xlsx")
-        else:
-            await ctx.send("잘못된 값입니다. 1~13 사이의 정수를 입력해주세요.")
+                                      '명령어 뒤에 역할을 태그해주세요.', usage='%판매 @', pass_context=True)
+    async def sell_coin(self, ctx, role: discord.Role):
+        openxl_ = openpyxl.load_workbook("Roles.xlsx")
+        wb_ = openxl_.active
+        openxl = openpyxl.load_workbook("coin.xlsx")
+        wb = openxl.active
+        role_price = int(wb_["B" + str(role.position - 2)].value) // 10
+        id = str(ctx.author.id)
+        for i in range(1, 100):
+            if wb["B" + str(i)].value == id:
+                if role in ctx.author.roles:
+                    coin = wb["C" + str(i)].value
+                    wb["C" + str(i)].value = coin + role_price
+                    await ctx.author.remove_roles(role)
+                    await ctx.channel.send(role.name + "을(를) 판매했습니다. + :coin: " + str(role_price))
+                    break
+                else:
+                    await ctx.send(role.name + "을(를) 보유하고 있지 않습니다.")
+        openxl.save("coin.xlsx")
+        openxl_.save("Roles.xlsx")
 
 
 def setup(app):

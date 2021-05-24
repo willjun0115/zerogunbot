@@ -11,7 +11,7 @@ class Game(commands.Cog, name="게임(Game)"):
     def __init__(self, app):
         self.app = app
 
-    @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 (확률%)", pass_context=int())
+    @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int())
     async def gamble(self, ctx, args):
         args = int(args)
         if args > 50:
@@ -25,7 +25,7 @@ class Game(commands.Cog, name="게임(Game)"):
             await asyncio.sleep(2)
             win = random.random() * 100
             if win >= args:
-                await ctx.send(ctx.author.name + " Lose 배율 x" + str(100/args))
+                await ctx.send(ctx.author.name + " Lose")
             else:
                 await ctx.send(ctx.author.name + " Win! 배율 x" + str(100/args))
 

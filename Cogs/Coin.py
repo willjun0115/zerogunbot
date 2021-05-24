@@ -254,7 +254,8 @@ class Coin(commands.Cog, name="코인(Coin)"):
         wb_ = openxl_.active
         for role in ctx.guild.roles:
             if 2 < role.position <= 15:
-                embed.add_field(name="> " + role.name, value=":coin: " + str(wb_["B" + str(role.position-2)].value), inline=True)
+                embed.add_field(name="> " + str(role.position-2) + ". " + role.name,
+                                value=":coin: " + str(wb_["B" + str(role.position-2)].value), inline=True)
         await ctx.send(embed=embed)
         openxl_.save("Roles.xlsx")
 

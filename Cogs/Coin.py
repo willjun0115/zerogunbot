@@ -248,7 +248,7 @@ class Coin(commands.Cog, name="코인(Coin)"):
     @commands.command(name="코인상점", help='코인 상점의 상품 목록을 공개합니다.', usage='%코인상점')
     async def role_price_list(self, ctx):
         embed = discord.Embed(title="<코인 상점>",
-                              description="%구매 (역할 번호) 로 구매해주세요\n"
+                              description="%구매 (@역할 태그) 로 구매해주세요\n"
                                           "'매니저' 역할 보유 시, 50% 할인!")
         openxl_ = openpyxl.load_workbook("Roles.xlsx")
         wb_ = openxl_.active

@@ -104,14 +104,17 @@ class Tool(commands.Cog, name="도구(Tool)"):
                     embed.add_field(name="> " + role.name, value="Lv. " + str(role.position - 2), inline=False)
             await ctx.send(embed=embed)
         else:
+            openxl = openpyxl.load_workbook("Roles.xlsx")
+            wb = openxl.active
             for role in ctx.guild.roles:
                 if role == args:
                     embed = discord.Embed(title="> " + role.name,
                                           description="Lv. " + str(role.position - 2), colour=role.colour)
-                    embed.add_field(name="권한", value=str(role.permissions))
-                    embed.add_field(name="보유 멤버", value=str(role.members))
+                    embed.add_field(name="> 판매 가격", value=str(wb["B" + str(role.position - 2)].value), inline=False)
+                    embed.add_field(name="> 설명", value=str(wb["C" + str(role.position - 2)].value), inline=False)
                     await ctx.send(embed=embed)
                     break
+            openxl.save("Roles.xlsx")
 
     @commands.has_permissions(administrator=True)
     @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.\n(관리자 권한)',

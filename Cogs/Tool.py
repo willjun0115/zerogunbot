@@ -110,7 +110,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
                 if role == args:
                     embed = discord.Embed(title=role.name,
                                           description="Lv. " + str(role.position - 2), colour=role.colour)
-                    embed.add_field(name="> 판매 가격", value=str(wb["B" + str(role.position - 2)].value), inline=False)
+                    embed.add_field(name="> 판매 가격", value=':coin: '+str(wb["B" + str(role.position - 2)].value), inline=False)
                     embed.add_field(name="> 설명", value=str(wb["C" + str(role.position - 2)].value), inline=False)
                     await ctx.send(embed=embed)
                     break

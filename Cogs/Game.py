@@ -13,21 +13,32 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int())
     async def gamble(self, ctx, args):
-        args = int(args)
-        if args > 50:
-            await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
-        elif args <= 0:
-            await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
-        elif args % 5 != 0:
-            await ctx.send("당첨 확률은 5의 배수여야 합니다.")
-        else:
-            await ctx.send(str(args) + "% 확률의 도박을 돌립니다...")
-            await asyncio.sleep(2)
-            win = random.random() * 100
-            if win >= args:
-                await ctx.send(ctx.author.name + " Lose")
-            else:
-                await ctx.send(ctx.author.name + " Win! 배율 x" + str(100/args))
+        openxl = openpyxl.load_workbook("coin.xlsx")
+        wb = openxl.active
+        for i in range(1, 100):
+            if wb["B" + str(i)].value == id:
+                if 0 < 100 <= wb["C" + str(i)].value:
+                    wb["C" + str(i)].value = wb["C" + str(i)].value - 100
+                    args = int(args)
+                    if args > 50:
+                        await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
+                    elif args <= 0:
+                        await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
+                    elif args % 5 != 0:
+                        await ctx.send("당첨 확률은 5의 배수여야 합니다.")
+                    else:
+                        await ctx.send(str(args) + "% 확률의 도박을 돌립니다... - :coin: " + str(100))
+                        await asyncio.sleep(2)
+                        win = random.random() * 100
+                        if win >= args:
+                            await ctx.send(ctx.author.name + " Lose")
+                        else:
+                            wb["C" + str(i)].value = wb["C" + str(i)].value + 10000 / args
+                            await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
+                else:
+                    await ctx.send("코인이 부족합니다.")
+                break
+        openxl.save("coin.xlsx")
 
     @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.", usage="%가위바위보")
     async def rock_scissors_paper(self, ctx):

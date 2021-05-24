@@ -108,7 +108,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
             wb = openxl.active
             for role in ctx.guild.roles:
                 if role == args:
-                    embed = discord.Embed(title="> " + role.name,
+                    embed = discord.Embed(title=role.name,
                                           description="Lv. " + str(role.position - 2), colour=role.colour)
                     embed.add_field(name="> 판매 가격", value=str(wb["B" + str(role.position - 2)].value), inline=False)
                     embed.add_field(name="> 설명", value=str(wb["C" + str(role.position - 2)].value), inline=False)

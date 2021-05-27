@@ -98,20 +98,27 @@ class Permission(commands.Cog, name="권한(Permission)"):
                     wb = openxl.active
                     for i in range(1, 100):
                         if wb["B" + str(i)].value == id:
-                            if wb["C" + str(i)].value >= 100 * oppo_role:
+                            if wb["C" + str(i)].value >= 10 * oppo_role:
                                 coin = wb["C" + str(i)].value
-                                wb["C" + str(i)].value = coin - 100 * oppo_role
-                                role_list = []
-                                for role in member.roles:
-                                    if 2 < role.position <= 11:
-                                        role_list.append(role)
-                                therole = role_list[random.randint(0, len(role_list))]
-                                await athr.add_roles(therole)
-                                await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 "
-                                               + therole.name + " 역할을 스틸했습니다!\n - :coin: " + str(100 * oppo_role))
-                                break
+                                wb["C" + str(i)].value = coin - 10 * oppo_role
+                                lose_gacha = random.random() * 100
+                                if lose_gacha <= 10:
+                                    coin = wb["C" + str(i)].value
+                                    await ctx.send(":no_entry: " + ctx.author.name + "님이 스틸에 실패해 코인을 잃었습니다."
+                                                                                     "\n - :coin: " + str(coin // 10))
+                                    wb["C" + str(i)].value = coin - coin // 10
+                                else:
+                                    role_list = []
+                                    for role in member.roles:
+                                        if 2 < role.position <= 11:
+                                            role_list.append(role)
+                                    therole = role_list[random.randint(0, len(role_list))]
+                                    await athr.add_roles(therole)
+                                    await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 "
+                                                   + therole.name + " 역할을 스틸했습니다!\n - :coin: " + str(10 * oppo_role))
+                                    break
                             else:
-                                await ctx.channel.send("코인이 부족합니다. 필요 코인: :coin: " + str(100 * oppo_role))
+                                await ctx.channel.send("코인이 부족합니다. 필요 코인: :coin: " + str(10 * oppo_role))
                     openxl.save("coin.xlsx")
                 else:
                     await ctx.channel.send("역할 레벨이 부족합니다.")

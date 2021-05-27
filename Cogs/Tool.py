@@ -117,8 +117,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
                     break
             openxl.save("Roles.xlsx")
 
-    @commands.has_permissions(administrator=True)
-    @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.\n(관리자 권한)',
+    @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.',
                       usage='%백업', pass_context=True)
     async def backup_coin(self, ctx):
         await ctx.send(file=discord.File(fp='coin.xlsx', filename='coin.xlsx'))

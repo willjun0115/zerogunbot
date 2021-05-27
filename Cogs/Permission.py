@@ -107,8 +107,8 @@ class Permission(commands.Cog, name="권한(Permission)"):
                                         role_list.append(role)
                                 therole = role_list[random.randint(0, len(role_list))]
                                 await athr.add_roles(therole)
-                                await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 역할을 스틸했습니다!"
-                                               + therole.name + "\n - :coin: " + str(100 * oppo_role))
+                                await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 "
+                                               + therole.name + " 역할을 스틸했습니다!\n - :coin: " + str(100 * oppo_role))
                                 break
                             else:
                                 await ctx.channel.send("코인이 부족합니다. 필요 코인: :coin: " + str(100 * oppo_role))

@@ -101,18 +101,11 @@ class Permission(commands.Cog, name="권한(Permission)"):
                             if wb["C" + str(i)].value >= 100 * oppo_role:
                                 coin = wb["C" + str(i)].value
                                 wb["C" + str(i)].value = coin - 100 * oppo_role
-                                try:
-                                    for role in athr.roles:
-                                        if 2 < role.position <= 11:
-                                            await athr.remove_roles(role)
-                                except:
-                                    pass
-                                try:
-                                    for role in member.roles:
-                                        if 2 < role.position <= 11:
-                                            await athr.add_roles(role)
-                                except:
-                                    pass
+                                role_list = []
+                                for role in member.roles:
+                                    if 2 < role.position <= 11:
+                                        role_list.append(role)
+                                await athr.add_roles(role_list[random.randint(0, len(role_list))])
                                 await ctx.send(str(athr.name) + " 님이 " + str(member.name) + " 님의 역할을 스틸했습니다!"
                                                                                             "\n - :coin: " + str(100 * oppo_role))
                                 break

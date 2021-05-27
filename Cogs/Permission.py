@@ -70,7 +70,8 @@ class Permission(commands.Cog, name="권한(Permission)"):
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
-    @commands.command(name="스틸", help="자신보다 역할 레벨이 낮은 대상의 '창씨개명' 이하 권한을 무작위로 한 개 얻습니다.\n('스틸' 필요)", usage="%스틸 @",
+    @commands.command(name="스틸", help="자신보다 역할 레벨이 낮은 대상의 '창씨개명' 이하 권한을 무작위로 한 개 얻습니다."
+                                      "\n10% 확률로 실패하여 코인을 잃습니다.\n('스틸' 필요)", usage="%스틸 @",
                       pass_context=True)
     async def steal(self, ctx, member: discord.Member):
         athr = ctx.message.author

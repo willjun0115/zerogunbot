@@ -128,7 +128,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
                       usage='%디코드 ~', pass_context=True)
     async def chat_decode(self, ctx, *, args):
         await ctx.message.delete()
-        dcode = args.decode("UTF-8")
+        dcode = args.decode("utf-8")
         await ctx.send(str(dcode))
 
     @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.',

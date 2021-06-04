@@ -117,7 +117,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
                     break
             openxl.save("Roles.xlsx")
 
-    @commands.command(name='인코드', help='유니코드로 인코딩합니다.',
+    @commands.command(name='인코드', help='입력받은 문자열을 인코딩해 출력합니다.',
                       usage='%인코드 ~', pass_context=True)
     async def chat_encode(self, ctx, *, args):
         await ctx.message.delete()
@@ -129,7 +129,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
             code = code + cc
         await ctx.send(str(code))
 
-    @commands.command(name='디코드', help='유니코드를 디코딩합니다.',
+    @commands.command(name='디코드', help='0군봇이 인코딩한 코드를 입력받아 디코드해 출력합니다.',
                       usage='%디코드 ~', pass_context=True)
     async def chat_decode(self, ctx, *, code):
         await ctx.message.delete()

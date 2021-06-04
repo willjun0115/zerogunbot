@@ -141,6 +141,37 @@ class Tool(commands.Cog, name="도구(Tool)"):
             args = args + cc
         await ctx.send(str(args))
 
+    @commands.command(name='프라이빗인코드', help='입력받은 문자열을 자신만 디코드할 수 있는 코드로 인코딩해 출력합니다.',
+                      usage='%프라이빗인코드 ~', pass_context=True)
+    async def private_encode(self, ctx, *, args):
+        await ctx.message.delete()
+        id = str(ctx.author.id)
+        code = ""
+        args = id[:9] + str(args) + id[9:]
+        for c in args:
+            x = ord(c)
+            x = x * 2 + 4
+            cc = chr(x)
+            code = code + cc
+        await ctx.send(str(code))
+
+    @commands.command(name='프라이빗디코드', help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
+                      usage='%프라이빗디코드 ~', pass_context=True)
+    async def private_decode(self, ctx, *, code):
+        await ctx.message.delete()
+        id = str(ctx.author.id)
+        args = ""
+        for c in code:
+            x = ord(c)
+            x = (x - 4) // 2
+            cc = chr(x)
+            args = args + cc
+        id_ = args[:9] + args[-9:]
+        if id == id_:
+            await ctx.send(str(args[9:-9]))
+        else:
+            await ctx.send(":no_entry_sign: 코드 작성자의 아이디가 일치하지 않습니다.")
+
     @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.',
                       usage='%백업', pass_context=True)
     async def backup_coin(self, ctx):

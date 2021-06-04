@@ -136,7 +136,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         args = ""
         for c in code:
             x = ord(c)
-            x = x // 2 - 2
+            x = (x - 2) // 2
             cc = chr(x)
             args = args + cc
         await ctx.send(str(args))

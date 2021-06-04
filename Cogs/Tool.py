@@ -117,6 +117,20 @@ class Tool(commands.Cog, name="도구(Tool)"):
                     break
             openxl.save("Roles.xlsx")
 
+    @commands.command(name='인코드', help='UTF-8 유니코드로 인코딩합니다.',
+                      usage='%인코드 ~', pass_context=True)
+    async def chat_encode(self, ctx, *, args):
+        await ctx.message.delete()
+        code = args.encode("UTF-8")
+        await ctx.send(str(code))
+
+    @commands.command(name='디코드', help='UTF-8 유니코드를 디코딩합니다.',
+                      usage='%디코드 ~', pass_context=True)
+    async def chat_decode(self, ctx, *, args):
+        await ctx.message.delete()
+        dcode = args.decode("UTF-8")
+        await ctx.send(str(dcode))
+
     @commands.command(name='백업', help='코인 데이터베이스를 백업합니다.',
                       usage='%백업', pass_context=True)
     async def backup_coin(self, ctx):

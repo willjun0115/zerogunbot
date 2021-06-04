@@ -124,7 +124,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         code = ""
         for c in args:
             x = ord(c)
-            x = x + len(args) * 2 - 3
+            x = x * 2 + 11
             cc = chr(x)
             code = code + cc
         await ctx.send(str(code))
@@ -136,7 +136,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         args = ""
         for c in code:
             x = ord(c)
-            x = x - len(code) * 2 + 3
+            x = (x - 11) // 2
             cc = chr(x)
             args = args + cc
         await ctx.send(str(args))

@@ -182,7 +182,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
                 x = (x + 31) // 2
                 cc = chr(x)
                 args = args + cc
-                await ctx.send(str(args))
+            await ctx.send(str(args))
         else:
             await ctx.send(":no_entry_sign: 코드 작성자의 아이디가 일치하지 않습니다.")
 

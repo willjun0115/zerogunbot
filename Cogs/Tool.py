@@ -145,30 +145,30 @@ class Tool(commands.Cog, name="도구(Tool)"):
                       usage='%프라이빗인코드 ~', pass_context=True)
     async def private_encode(self, ctx, *, args):
         await ctx.message.delete()
-        id = str(ctx.author.id)
+        id = chr(ctx.author.id)
         code = ""
-        args = id[:9] + str(args) + id[9:]
         for c in args:
             x = ord(c)
-            x = x * 2 + 4
+            x = x * 2 - 31
             cc = chr(x)
             code = code + cc
+        code = code + id
         await ctx.send(str(code))
 
     @commands.command(name='프라이빗디코드', help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
                       usage='%프라이빗디코드 ~', pass_context=True)
     async def private_decode(self, ctx, *, code):
         await ctx.message.delete()
-        id = str(ctx.author.id)
-        args = ""
-        for c in code:
-            x = ord(c)
-            x = (x - 4) // 2
-            cc = chr(x)
-            args = args + cc
-        id_ = args[:9] + args[-9:]
-        if id == id_:
-            await ctx.send(str(args[9:-9]))
+        id = chr(ctx.author.id)
+        if id == code[-1]:
+            code = code[:-1]
+            args = ""
+            for c in code:
+                x = ord(c)
+                x = (x + 31) // 2
+                cc = chr(x)
+                args = args + cc
+                await ctx.send(str(args))
         else:
             await ctx.send(":no_entry_sign: 코드 작성자의 아이디가 일치하지 않습니다.")
 

@@ -145,23 +145,37 @@ class Tool(commands.Cog, name="도구(Tool)"):
                       usage='%프라이빗인코드 ~', pass_context=True)
     async def private_encode(self, ctx, *, args):
         await ctx.message.delete()
-        id = chr(ctx.author.id)
+        id = str(ctx.author.id)
+        id_1 = int(id[0:3])
+        id_2 = int(id[3:6])
+        id_3 = int(id[6:9])
+        id_4 = int(id[9:12])
+        id_5 = int(id[12:15])
+        id_6 = int(id[15:18])
+        idcode = chr(id_1) + chr(id_2) + chr(id_3) + chr(id_4) + chr(id_5) + chr(id_6)
         code = ""
         for c in args:
             x = ord(c)
             x = x * 2 - 31
             cc = chr(x)
             code = code + cc
-        code = code + id
+        code = code + idcode
         await ctx.send(str(code))
 
     @commands.command(name='프라이빗디코드', help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
                       usage='%프라이빗디코드 ~', pass_context=True)
     async def private_decode(self, ctx, *, code):
         await ctx.message.delete()
-        id = chr(ctx.author.id)
-        if id == code[-1]:
-            code = code[:-1]
+        id = str(ctx.author.id)
+        id_1 = int(id[0:3])
+        id_2 = int(id[3:6])
+        id_3 = int(id[6:9])
+        id_4 = int(id[9:12])
+        id_5 = int(id[12:15])
+        id_6 = int(id[15:18])
+        idcode = chr(id_1) + chr(id_2) + chr(id_3) + chr(id_4) + chr(id_5) + chr(id_6)
+        if idcode == code[-6:]:
+            code = code[:-6]
             args = ""
             for c in code:
                 x = ord(c)

@@ -159,7 +159,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
             x = x * 2 - 31
             cc = chr(x)
             code = code + cc
-        code = code + idcode
+        code = idcode + ";" + code
         await ctx.send(str(code))
 
     @commands.command(name='프라이빗디코드', help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
@@ -174,8 +174,8 @@ class Tool(commands.Cog, name="도구(Tool)"):
         id_5 = int(id[12:15])
         id_6 = int(id[15:18])
         idcode = chr(id_1) + chr(id_2) + chr(id_3) + chr(id_4) + chr(id_5) + chr(id_6)
-        if idcode == code[-6:]:
-            code = code[:-6]
+        if idcode == code[:6]:
+            code = code[7:]
             args = ""
             for c in code:
                 x = ord(c)

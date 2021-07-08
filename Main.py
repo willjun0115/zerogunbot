@@ -29,6 +29,9 @@ async def on_message(message):
     await app.process_commands(message)
     if message.author.bot:
         return None
+    else:
+        if '애미' in message:
+            await message.delete()
 
 
 @commands.has_permissions(administrator=True)

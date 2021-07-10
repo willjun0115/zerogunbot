@@ -60,23 +60,23 @@ class Tool(commands.Cog, name="도구(Tool)"):
 
     @commands.has_permissions(administrator=True)
     @commands.command(name="경고", help="멤버에게 경고를 부여합니다.", usage="%경고 @")
-    async def warning(self, ctx, member:discord.Member):
+    async def warning(self, ctx, member: discord.Member):
         if get(ctx.guild.roles, name="0군 정품 인증 마크") in member.roles:
-            await ctx.message.author.add_roles(get(ctx.guild.roles, name="경고"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="0군 정품 인증 마크"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="창씨개명"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="음성 통제"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="언론 통제"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="DJ"))
+            await member.add_roles(get(ctx.guild.roles, name="경고"))
+            await member.remove_roles(get(ctx.guild.roles, name="0군 정품 인증 마크"))
+            await member.remove_roles(get(ctx.guild.roles, name="창씨개명"))
+            await member.remove_roles(get(ctx.guild.roles, name="음성 통제"))
+            await member.remove_roles(get(ctx.guild.roles, name="언론 통제"))
+            await member.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
+            await member.remove_roles(get(ctx.guild.roles, name="DJ"))
         elif get(ctx.guild.roles, name="경고") in member.roles:
-            await ctx.message.author.add_roles(get(ctx.guild.roles, name="위험"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="경고"))
+            await member.add_roles(get(ctx.guild.roles, name="위험"))
+            await member.remove_roles(get(ctx.guild.roles, name="경고"))
         elif get(ctx.guild.roles, name="위험") in member.roles:
-            await ctx.message.author.add_roles(get(ctx.guild.roles, name="제한"))
-            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="위험"))
+            await member.add_roles(get(ctx.guild.roles, name="제한"))
+            await member.remove_roles(get(ctx.guild.roles, name="위험"))
         elif get(ctx.guild.roles, name="제한") in member.roles:
-            await ctx.message.author.add_roles(get(ctx.guild.roles, name="제한"))
+            await member.add_roles(get(ctx.guild.roles, name="제한"))
 
     @commands.command(name='인코드', help='입력받은 문자열을 인코딩해 출력합니다.',
                       usage='%인코드 ~', pass_context=True)

@@ -46,6 +46,53 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await asyncio.sleep(1)
         await msg.edit(content=':boom: ', delete_after=1)
 
+    @commands.command(name="청소", help="숫자만큼 채팅을 지웁니다.", usage="%청소 ~", pass_context=True)
+    async def clean(self, ctx, num):
+        await ctx.message.delete()
+        member = ctx.message.author
+        if get(ctx.guild.roles, name='언론 통제') in member.roles:
+            await ctx.channel.purge(limit=int(num))
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+
+    @commands.command(name='패드립', help="저희 봇에 그런 기능은 없습니다?", usage="%패드립")
+    async def fdr(self, ctx):
+        msg = await ctx.send("느금마")
+        await asyncio.sleep(1)
+        await msg.edit(content='저는 그런 말 못해요 ㅠㅠ')
+
+    @commands.command(name='엄마삭제', help="입력값의 엄마를 삭제합니다.", usage="%엄마삭제 ~", pass_context=True)
+    async def delete_mom_(self, ctx, *, args):
+        msg = await ctx.send("\"" + args + "\"님의 엄마 삭제 중...  0% :clock12: ")
+        await asyncio.sleep(1)
+        await msg.edit(content="\"" + args + "\"님의 엄마 삭제 중...  25% :clock3: ")
+        await asyncio.sleep(1)
+        await msg.edit(content="\"" + args + "\"님의 엄마 삭제 중...  50% :clock6: ")
+        await asyncio.sleep(1)
+        await msg.edit(content="\"" + args + "\"님의 엄마 삭제 중...  75% :clock9: ")
+        await asyncio.sleep(1)
+        await msg.edit(content="\"" + args + "\"님의 엄마 삭제 중...  99% :clock11: ")
+        await asyncio.sleep(2)
+        await msg.edit(content=":white_check_mark: \"" + args + "\"님의 엄마이(가) 삭제되었습니다.")
+
+    @commands.command(name="엄마검색", help="입력값의 엄마를 검색합니다.", usage="%엄마검색 ~", pass_context=True)
+    async def search_mom_(self, ctx, *, args):
+        msg = await ctx.send(":mag_right: \"" + args + "\"님의 엄마 검색 중.")
+        await asyncio.sleep(1)
+        await msg.edit(content=":mag_right: \"" + args + "\"님의 엄마 검색 중..")
+        await asyncio.sleep(1)
+        await msg.edit(content=":mag_right: \"" + args + "\"님의 엄마 검색 중...")
+        await asyncio.sleep(1)
+        mom_exist = random.randint(0, 3)
+        if mom_exist == 0:
+            await msg.edit(content=":warning: \"" + args + "\"님의 엄마을(를) 찾을 수 없습니다.")
+        elif mom_exist == 1:
+            await msg.edit(content=":white_check_mark: \"" + args + "\"님의 엄마가 확인되었습니다. \n(검색결과 수: 1)")
+        elif mom_exist == 2:
+            await msg.edit(content=":white_check_mark: \"" + args + "\"님의 엄마가 확인되었습니다. \n(검색결과 수: 2)")
+        else:
+            await msg.edit(content=":white_check_mark: \"" + args + "\"님의 엄마가 확인되었습니다. \n(검색결과 수: 99+)")
+
 
 def setup(app):
     app.add_cog(Chat(app))

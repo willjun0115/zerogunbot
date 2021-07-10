@@ -82,69 +82,72 @@ class Game(commands.Cog, name="게임(Game)"):
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
-            msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
-            reaction_list = ['✅', '❎']
-            for r in reaction_list:
-                await msg.add_reaction(r)
+            if get(ctx.guild.roles, name="0군 정품 인증 마크") in ctx.message.author.roles:
+                msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
+                reaction_list = ['✅', '❎']
+                for r in reaction_list:
+                    await msg.add_reaction(r)
 
-            def check(reaction, user):
-                return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
 
-            try:
-                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
-            except asyncio.TimeoutError:
-                await msg.edit(content="시간 초과!", delete_after=2)
-            else:
-                if str(reaction) == '✅':
-                    embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
-                    namectrl = random.random() * 100
-                    voicectrl = random.random() * 100
-                    chatctrl = random.random() * 100
-                    emoji = random.random() * 100
-                    dj = random.random() * 100
-                    if namectrl <= 1:
-                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="창씨개명"))
-                        embed.add_field(name='창씨개명', value='+', inline=True)
-                    elif namectrl >= 85:
-                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="창씨개명"))
-                        embed.add_field(name='창씨개명', value='-', inline=True)
-                    else:
-                        embed.add_field(name='창씨개명', value='=', inline=True)
-                    if voicectrl <= 2:
-                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="음성 통제"))
-                        embed.add_field(name='음성 통제', value='+', inline=True)
-                    elif voicectrl >= 90:
-                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="음성 통제"))
-                        embed.add_field(name='음성 통제', value='-', inline=True)
-                    else:
-                        embed.add_field(name='음성 통제', value='=', inline=True)
-                    if chatctrl <= 3:
-                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="언론 통제"))
-                        embed.add_field(name='언론 통제', value='+', inline=True)
-                    elif chatctrl >= 92.5:
-                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="언론 통제"))
-                        embed.add_field(name='언론 통제', value='-', inline=True)
-                    else:
-                        embed.add_field(name='언론 통제', value='=', inline=True)
-                    if emoji <= 10:
-                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-                        embed.add_field(name='이모티콘 관리', value='+', inline=True)
-                    elif emoji >= 95:
-                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-                        embed.add_field(name='이모티콘 관리', value='-', inline=True)
-                    else:
-                        embed.add_field(name='이모티콘 관리', value='=', inline=True)
-                    if dj <= 15:
-                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="DJ"))
-                        embed.add_field(name='DJ', value='+', inline=True)
-                    elif dj >= 97.5:
-                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="DJ"))
-                        embed.add_field(name='DJ', value='-', inline=True)
-                    else:
-                        embed.add_field(name='DJ', value='=', inline=True)
-                    await ctx.send(embed=embed)
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
                 else:
-                    await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
+                    if str(reaction) == '✅':
+                        embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
+                        namectrl = random.random() * 100
+                        voicectrl = random.random() * 100
+                        chatctrl = random.random() * 100
+                        emoji = random.random() * 100
+                        dj = random.random() * 100
+                        if namectrl <= 1:
+                            await ctx.message.author.add_roles(get(ctx.guild.roles, name="창씨개명"))
+                            embed.add_field(name='창씨개명', value='+', inline=True)
+                        elif namectrl >= 85:
+                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="창씨개명"))
+                            embed.add_field(name='창씨개명', value='-', inline=True)
+                        else:
+                            embed.add_field(name='창씨개명', value='=', inline=True)
+                        if voicectrl <= 2:
+                            await ctx.message.author.add_roles(get(ctx.guild.roles, name="음성 통제"))
+                            embed.add_field(name='음성 통제', value='+', inline=True)
+                        elif voicectrl >= 90:
+                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="음성 통제"))
+                            embed.add_field(name='음성 통제', value='-', inline=True)
+                        else:
+                            embed.add_field(name='음성 통제', value='=', inline=True)
+                        if chatctrl <= 3:
+                            await ctx.message.author.add_roles(get(ctx.guild.roles, name="언론 통제"))
+                            embed.add_field(name='언론 통제', value='+', inline=True)
+                        elif chatctrl >= 92.5:
+                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="언론 통제"))
+                            embed.add_field(name='언론 통제', value='-', inline=True)
+                        else:
+                            embed.add_field(name='언론 통제', value='=', inline=True)
+                        if emoji <= 10:
+                            await ctx.message.author.add_roles(get(ctx.guild.roles, name="이모티콘 관리"))
+                            embed.add_field(name='이모티콘 관리', value='+', inline=True)
+                        elif emoji >= 95:
+                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
+                            embed.add_field(name='이모티콘 관리', value='-', inline=True)
+                        else:
+                            embed.add_field(name='이모티콘 관리', value='=', inline=True)
+                        if dj <= 15:
+                            await ctx.message.author.add_roles(get(ctx.guild.roles, name="DJ"))
+                            embed.add_field(name='DJ', value='+', inline=True)
+                        elif dj >= 97.5:
+                            await ctx.message.author.remove_roles(get(ctx.guild.roles, name="DJ"))
+                            embed.add_field(name='DJ', value='-', inline=True)
+                        else:
+                            embed.add_field(name='DJ', value='=', inline=True)
+                        await ctx.send(embed=embed)
+                    else:
+                        await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
+            else:
+                await ctx.send(":no_entry: 권한이 없습니다.")
         else:
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 

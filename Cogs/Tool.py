@@ -61,6 +61,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
     @commands.has_permissions(administrator=True)
     @commands.command(name="경고", help="멤버에게 경고를 부여합니다.", usage="%경고 @")
     async def warning(self, ctx, member: discord.Member):
+        await ctx.send(":warning: " + member.name + " 님에게 경고가 주어졌습니다. (경고 3회 시 제한)")
         if get(ctx.guild.roles, name="0군 정품 인증 마크") in member.roles:
             await member.add_roles(get(ctx.guild.roles, name="경고"))
             await member.remove_roles(get(ctx.guild.roles, name="0군 정품 인증 마크"))

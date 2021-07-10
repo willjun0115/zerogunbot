@@ -111,18 +111,18 @@ class Game(commands.Cog, name="게임(Game)"):
                     else:
                         embed.add_field(name='창씨개명', value='=', inline=True)
                     if voicectrl <= 2:
-                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="강제이동"))
+                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="음성 통제"))
                         embed.add_field(name='음성 통제', value='+', inline=True)
                     elif voicectrl >= 90:
-                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="강제이동"))
+                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="음성 통제"))
                         embed.add_field(name='음성 통제', value='-', inline=True)
                     else:
                         embed.add_field(name='음성 통제', value='=', inline=True)
                     if chatctrl <= 3:
-                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="가렌Q"))
+                        await ctx.message.author.add_roles(get(ctx.guild.roles, name="언론 통제"))
                         embed.add_field(name='언론 통제', value='+', inline=True)
                     elif chatctrl >= 92.5:
-                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="가렌Q"))
+                        await ctx.message.author.remove_roles(get(ctx.guild.roles, name="언론 통제"))
                         embed.add_field(name='언론 통제', value='-', inline=True)
                     else:
                         embed.add_field(name='언론 통제', value='=', inline=True)

@@ -9,9 +9,6 @@ app = commands.Bot(command_prefix=prefix)
 
 token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"
 
-censorship = True
-wordlist = []
-
 for filename in os.listdir("Cogs"):
     if filename.endswith(".py"):
         app.load_extension(f"Cogs.{filename[:-3]}")
@@ -30,16 +27,13 @@ async def on_ready():
 @app.event
 async def on_message(message):
     ch = message.channel
+    gu = message.guild
     if message.author.bot:
         return None
     else:
-        if censorship is True:
-            for word in wordlist:
-                if word in message.content:
-                    await message.delete()
-                    await ch.send(":no_entry: 금지어 사용으로 검열되었습니다.")
-            else:
-                await app.process_commands(message)
+        if get(gu.roles, name="제한") in message.author.roles:
+            await message.delete()
+            await ch.send(":no_entry: 금지어 사용으로 검열되었습니다.")
         else:
             await app.process_commands(message)
 

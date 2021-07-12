@@ -11,19 +11,19 @@ class Voice(commands.Cog, name="음성(Voice)"):
     def __init__(self, app):
         self.app = app
 
-    @commands.command(name="연결", help="", usage="%연결")
+    @commands.command(name="연결", help="음성 채널에 연결합니다.", usage="%연결")
     async def connect(self, ctx):
         channel = ctx.message.author.voice.channel
         await ctx.guild.change_voice_state(channel=channel)
         await ctx.send(str(channel.name) + ' 채널에 연결합니다.')
         await channel.connect()
 
-    @commands.command(name="연결해제", help="", usage="%연결해제")
+    @commands.command(name="퇴장", help="음성 채널을 나갑니다.", usage="%퇴장")
     async def disconnect(self, ctx):
         channel = ctx.message.author.voice.channel
         await channel.connect()
 
-    @commands.command(name="잠수", help="", usage="%잠수")
+    @commands.command(name="잠수", help="잠수방으로 이동합니다.", usage="%잠수")
     async def submerge(self, ctx):
         channel = ctx.guild.get_channel(760198518987685949)
         await ctx.message.author.move_to(channel)

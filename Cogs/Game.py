@@ -162,6 +162,12 @@ class Game(commands.Cog, name="게임(Game)"):
                                     embed.add_field(name="강등", value="-", inline=True)
                                 else:
                                     embed.add_field(name="유지", value="=", inline=True)
+                            elif lv == get(ctx.guild.roles, name="0군 정품 인증 마크").position:
+                                if rand <= 0.2:
+                                    await ctx.author.add_roles(get(ctx.guild.roles, name="DJ"))
+                                    embed.add_field(name="승급", value="+", inline=True)
+                                else:
+                                    embed.add_field(name="유지", value="=", inline=True)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
@@ -177,6 +183,7 @@ class Game(commands.Cog, name="게임(Game)"):
         embed.add_field(name="> 언론 통제", value="5% (10%)", inline=False)
         embed.add_field(name="> 이모티콘 관리", value="7.5% (7.5%)", inline=False)
         embed.add_field(name="> DJ", value="10% (5%)", inline=False)
+        embed.add_field(name="> 0군 정품 인증 마크", value="20%", inline=False)
         embed.add_field(name="> 경고", value="10%", inline=False)
         embed.add_field(name="> 위험", value="7.5%", inline=False)
         embed.add_field(name="> 제한", value="5%", inline=False)

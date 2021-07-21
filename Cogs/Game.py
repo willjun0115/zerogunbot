@@ -82,7 +82,7 @@ class Game(commands.Cog, name="게임(Game)"):
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
-            if ctx.author.top_role.position <= get(ctx.guild.roles, name="제한").position:
+            if ctx.author.top_role.position >= get(ctx.guild.roles, name="제한").position:
                 msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
                 reaction_list = ['✅', '❎']
                 for r in reaction_list:

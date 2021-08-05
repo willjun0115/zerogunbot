@@ -193,12 +193,11 @@ class Game(commands.Cog, name="게임(Game)"):
     async def ppeong(self, ctx):
         msg = await ctx.send(ctx.message.author.name + " 님이 뻥을 제안합니다."
                                                        "\n 10초 후 자동 시작합니다. 참가하시려면 :white_check_mark:를 눌러주세요.")
-        check = '✅'
-        msg.add_reaction(check)
+        msg.add_reaction('✅')
         await asyncio.sleep(10)
         participants = [ctx.message.author]
         for r in msg.reactions:
-            if r == check:
+            if r == '✅':
                 for i in r.users():
                     participants.append(i)
         await ctx.send("참가자: " + str(participants))

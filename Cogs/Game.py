@@ -189,6 +189,23 @@ class Game(commands.Cog, name="게임(Game)"):
         embed.add_field(name="> 제한", value="5%", inline=False)
         await ctx.send(embed=embed)
 
+    @commands.command(name="뻥", help="뻥을 시작합니다. 참가자는 3~5인 입니다.", usage="%뻥")
+    async def ppeong(self, ctx):
+        msg = await ctx.send(ctx.message.author.name + " 님이 뻥을 제안합니다."
+                                                       "\n 10초 후 자동 시작합니다. 참가하시려면 :white_check_mark:를 눌러주세요.")
+        check = '✅'
+        msg.add_reaction(check)
+        await asyncio.sleep(10)
+        participants = []
+        for r in msg.reactions:
+            if r == check:
+                for i in r.users():
+                    participants.append(i)
+        await ctx.send("참가자: " + str(participants))
+        ow = {ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+              participants: discord.PermissionOverwrite(read_messages=True)}
+        await ctx.guild.create_text_channel('뻥', overwrites=ow)
+
 
 def setup(app):
     app.add_cog(Game(app))

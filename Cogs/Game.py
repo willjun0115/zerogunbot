@@ -202,8 +202,10 @@ class Game(commands.Cog, name="게임(Game)"):
                     participants.append(i)
         await ctx.send("참가자: " + str(participants))
         ow = {ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
-              participants: discord.PermissionOverwrite(read_messages=True)}
-        await ctx.guild.create_text_channel('뻥', overwrites=ow)
+              ctx.message.author: discord.PermissionOverwrite(read_messages=True)}
+        ch = await ctx.guild.create_text_channel('뻥', overwrites=ow)
+        for i in participants:
+            await ch.set_permissions(i, read_messages=True)
 
 
 def setup(app):

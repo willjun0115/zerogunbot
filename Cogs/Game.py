@@ -172,7 +172,8 @@ class Game(commands.Cog, name="게임(Game)"):
         embed.add_field(name="> 언랭", value="20%", inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(name="리폿", help="부적절한 사용자를 신고합니다.\n확률적으로 강등되며, 이용제한에 걸립니다.", usage="%리폿 @")
+    @commands.command(name="리폿", help="부적절한 사용자를 신고합니다.\n확률적으로 강등되며, 이용제한에 걸립니다."
+                                      "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="%리폿 @")
     async def report(self, ctx, member: discord.Member):
         await ctx.message.delete()
         rand = random.random()

@@ -31,11 +31,7 @@ async def on_message(message):
     if message.author.bot:
         return None
     else:
-        if get(gu.roles, name="제한") in message.author.roles:
-            await message.delete()
-            await ch.send(":no_entry: 금지어 사용으로 검열되었습니다.")
-        else:
-            await app.process_commands(message)
+        await app.process_commands(message)
 
 
 @commands.has_permissions(administrator=True)

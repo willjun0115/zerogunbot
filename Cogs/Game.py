@@ -82,7 +82,7 @@ class Game(commands.Cog, name="게임(Game)"):
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
-            if ctx.author.top_role.position >= get(ctx.guild.roles, name="제한").position:
+            if ctx.author.top_role.position >= get(ctx.guild.roles, name="언랭").position:
                 msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
                 reaction_list = ['✅', '❎']
                 for r in reaction_list:
@@ -171,6 +171,9 @@ class Game(commands.Cog, name="게임(Game)"):
         embed.add_field(name="> DJ", value="10% (5%)", inline=False)
         embed.add_field(name="> 언랭", value="20%", inline=False)
         await ctx.send(embed=embed)
+
+    @commands.command(name="리폿", help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%리폿")
+    async def gacha_p(self, ctx):
 
 
 def setup(app):

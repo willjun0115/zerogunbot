@@ -58,26 +58,6 @@ class Tool(commands.Cog, name="도구(Tool)"):
             if command_notfound is True:
                 await ctx.send('명령어를 찾을 수 없습니다.')
 
-    @commands.has_permissions(administrator=True)
-    @commands.command(name="경고", help="멤버에게 경고를 부여합니다.", usage="%경고 @")
-    async def warning(self, ctx, member: discord.Member):
-        await ctx.send(":warning: " + member.name + " 님에게 경고가 주어졌습니다. (경고 3회 시 제한)")
-        if member.top_role == get(ctx.guild.roles, name="0군 정품 인증 마크"):
-            await member.add_roles(get(ctx.guild.roles, name="경고"))
-            await member.remove_roles(get(ctx.guild.roles, name="창씨개명"))
-            await member.remove_roles(get(ctx.guild.roles, name="음성 통제"))
-            await member.remove_roles(get(ctx.guild.roles, name="언론 통제"))
-            await member.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-            await member.remove_roles(get(ctx.guild.roles, name="DJ"))
-        elif get(ctx.guild.roles, name="경고") in member.roles:
-            await member.add_roles(get(ctx.guild.roles, name="위험"))
-            await member.remove_roles(get(ctx.guild.roles, name="경고"))
-        elif get(ctx.guild.roles, name="위험") in member.roles:
-            await member.add_roles(get(ctx.guild.roles, name="제한"))
-            await member.remove_roles(get(ctx.guild.roles, name="위험"))
-        elif get(ctx.guild.roles, name="제한") in member.roles:
-            await member.add_roles(get(ctx.guild.roles, name="제한"))
-
     @commands.command(name='인코드', help='입력받은 문자열을 인코딩해 출력합니다.',
                       usage='%인코드 ~', pass_context=True)
     async def chat_encode(self, ctx, *, args):

@@ -99,75 +99,60 @@ class Game(commands.Cog, name="게임(Game)"):
                     if str(reaction) == '✅':
                         rand = random.random()
                         embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
-                        if get(ctx.guild.roles, name="경고") in ctx.author.roles:
-                            embed.add_field(name="전", value="경고", inline=True)
+                        lv = ctx.author.top_role.position
+                        if lv == get(ctx.guild.roles, name="이용제한").position:
                             if rand <= 0.1:
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="경고"))
-                                embed.add_field(name="후", value="None", inline=True)
+                                await ctx.author.remove_roles(get(ctx.guild.roles, name="이용제한"))
+                                embed.add_field(name="해제", value="+", inline=True)
+                            elif rand >= 0.9:
+                                await ctx.author.remove_roles(ctx.author.roles[-2])
+                                embed.add_field(name="강등", value="-", inline=True)
                             else:
-                                embed.add_field(name="후", value="경고", inline=True)
-                        elif get(ctx.guild.roles, name="위험") in ctx.author.roles:
-                            embed.add_field(name="전", value="위험", inline=True)
-                            if rand <= 0.075:
-                                await ctx.author.add_roles(get(ctx.guild.roles, name="경고"))
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="위험"))
-                                embed.add_field(name="후", value="경고", inline=True)
+                                embed.add_field(name="유지", value="=", inline=True)
+                        elif lv >= get(ctx.guild.roles, name="창씨개명").position:
+                            embed.add_field(name="-", value="이미 최고 등급입니다.", inline=True)
+                        elif lv == get(ctx.guild.roles, name="음성 통제").position:
+                            if rand <= 0.025:
+                                await ctx.author.add_roles(get(ctx.guild.roles, name="창씨개명"))
+                                embed.add_field(name="승급", value="+", inline=True)
+                            elif rand >= 0.85:
+                                await ctx.author.remove_roles(get(ctx.guild.roles, name="음성 통제"))
+                                embed.add_field(name="강등", value="-", inline=True)
                             else:
-                                embed.add_field(name="후", value="위험", inline=True)
-                        elif get(ctx.guild.roles, name="제한") in ctx.author.roles:
-                            embed.add_field(name="전", value="제한", inline=True)
+                                embed.add_field(name="유지", value="=", inline=True)
+                        elif lv == get(ctx.guild.roles, name="언론 통제").position:
                             if rand <= 0.05:
-                                await ctx.author.add_roles(get(ctx.guild.roles, name="위험"))
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="제한"))
-                                embed.add_field(name="후", value="위험", inline=True)
+                                await ctx.author.add_roles(get(ctx.guild.roles, name="음성 통제"))
+                                embed.add_field(name="승급", value="+", inline=True)
+                            elif rand >= 0.9:
+                                await ctx.author.remove_roles(get(ctx.guild.roles, name="언론 통제"))
+                                embed.add_field(name="강등", value="-", inline=True)
                             else:
-                                embed.add_field(name="후", value="제한", inline=True)
-                        else:
-                            lv = ctx.author.top_role.position
-                            if lv >= get(ctx.guild.roles, name="창씨개명").position:
-                                embed.add_field(name="-", value="이미 최고 등급입니다.", inline=True)
-                            elif lv == get(ctx.guild.roles, name="음성 통제").position:
-                                if rand <= 0.025:
-                                    await ctx.author.add_roles(get(ctx.guild.roles, name="창씨개명"))
-                                    embed.add_field(name="승급", value="+", inline=True)
-                                elif rand >= 0.85:
-                                    await ctx.author.remove_roles(get(ctx.guild.roles, name="음성 통제"))
-                                    embed.add_field(name="강등", value="-", inline=True)
-                                else:
-                                    embed.add_field(name="유지", value="=", inline=True)
-                            elif lv == get(ctx.guild.roles, name="언론 통제").position:
-                                if rand <= 0.05:
-                                    await ctx.author.add_roles(get(ctx.guild.roles, name="음성 통제"))
-                                    embed.add_field(name="승급", value="+", inline=True)
-                                elif rand >= 0.9:
-                                    await ctx.author.remove_roles(get(ctx.guild.roles, name="언론 통제"))
-                                    embed.add_field(name="강등", value="-", inline=True)
-                                else:
-                                    embed.add_field(name="유지", value="=", inline=True)
-                            elif lv == get(ctx.guild.roles, name="이모티콘 관리").position:
-                                if rand <= 0.075:
-                                    await ctx.author.add_roles(get(ctx.guild.roles, name="언론 통제"))
-                                    embed.add_field(name="승급", value="+", inline=True)
-                                elif rand >= 0.925:
-                                    await ctx.author.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-                                    embed.add_field(name="강등", value="-", inline=True)
-                                else:
-                                    embed.add_field(name="유지", value="=", inline=True)
-                            elif lv == get(ctx.guild.roles, name="DJ").position:
-                                if rand <= 0.1:
-                                    await ctx.author.add_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-                                    embed.add_field(name="승급", value="+", inline=True)
-                                elif rand >= 0.95:
-                                    await ctx.author.remove_roles(get(ctx.guild.roles, name="DJ"))
-                                    embed.add_field(name="강등", value="-", inline=True)
-                                else:
-                                    embed.add_field(name="유지", value="=", inline=True)
-                            elif lv == get(ctx.guild.roles, name="0군 정품 인증 마크").position:
-                                if rand <= 0.2:
-                                    await ctx.author.add_roles(get(ctx.guild.roles, name="DJ"))
-                                    embed.add_field(name="승급", value="+", inline=True)
-                                else:
-                                    embed.add_field(name="유지", value="=", inline=True)
+                                embed.add_field(name="유지", value="=", inline=True)
+                        elif lv == get(ctx.guild.roles, name="이모티콘 관리").position:
+                            if rand <= 0.075:
+                                await ctx.author.add_roles(get(ctx.guild.roles, name="언론 통제"))
+                                embed.add_field(name="승급", value="+", inline=True)
+                            elif rand >= 0.925:
+                                await ctx.author.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
+                                embed.add_field(name="강등", value="-", inline=True)
+                            else:
+                                embed.add_field(name="유지", value="=", inline=True)
+                        elif lv == get(ctx.guild.roles, name="DJ").position:
+                            if rand <= 0.1:
+                                await ctx.author.add_roles(get(ctx.guild.roles, name="이모티콘 관리"))
+                                embed.add_field(name="승급", value="+", inline=True)
+                            elif rand >= 0.95:
+                                await ctx.author.remove_roles(get(ctx.guild.roles, name="DJ"))
+                                embed.add_field(name="강등", value="-", inline=True)
+                            else:
+                                embed.add_field(name="유지", value="=", inline=True)
+                        elif lv == get(ctx.guild.roles, name="언랭").position:
+                            if rand <= 0.2:
+                                await ctx.author.add_roles(get(ctx.guild.roles, name="DJ"))
+                                embed.add_field(name="승급", value="+", inline=True)
+                            else:
+                                embed.add_field(name="유지", value="=", inline=True)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
@@ -179,14 +164,12 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="가챠확률", help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%가챠확률")
     async def gacha_p(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="승급 확률 % (강등 확률 %)")
+        embed.add_field(name="> 이용제한", value="10% (10%)", inline=False)
         embed.add_field(name="> 음성 통제", value="2.5% (15%)", inline=False)
         embed.add_field(name="> 언론 통제", value="5% (10%)", inline=False)
         embed.add_field(name="> 이모티콘 관리", value="7.5% (7.5%)", inline=False)
         embed.add_field(name="> DJ", value="10% (5%)", inline=False)
-        embed.add_field(name="> 0군 정품 인증 마크", value="20%", inline=False)
-        embed.add_field(name="> 경고", value="10%", inline=False)
-        embed.add_field(name="> 위험", value="7.5%", inline=False)
-        embed.add_field(name="> 제한", value="5%", inline=False)
+        embed.add_field(name="> 언랭", value="20%", inline=False)
         await ctx.send(embed=embed)
 
 

@@ -198,7 +198,7 @@ class Game(commands.Cog, name="게임(Game)"):
         participants = [ctx.message.author]
         for r in msg.reactions:
             if r == '✅':
-                for i in r.users():
+                async for i in r.users():
                     participants.append(i)
         await ctx.send("참가자: " + str(participants))
         ow = {ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),

@@ -178,7 +178,9 @@ class Game(commands.Cog, name="게임(Game)"):
         rand = random.random()
         embed = discord.Embed(title="<리폿 결과>", description="대상: " + member.name + " 님")
         lv = ctx.author.top_role.position
-        if lv == get(ctx.guild.roles, name="이용제한").position:
+        if lv == get(ctx.guild.roles, name="관리자").position:
+            embed.add_field(name="신고 미접수", value="관리자는 신고할 수 없습니다.", inline=True)
+        elif lv == get(ctx.guild.roles, name="이용제한").position:
             embed.add_field(name="신고 미접수", value="이미 이용제한 중인 사용자입니다.", inline=True)
         elif lv >= get(ctx.guild.roles, name="창씨개명").position:
             if rand <= 0.10:

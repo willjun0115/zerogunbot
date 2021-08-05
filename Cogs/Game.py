@@ -196,7 +196,7 @@ class Game(commands.Cog, name="게임(Game)"):
         check = '✅'
         msg.add_reaction(check)
         await asyncio.sleep(10)
-        participants = []
+        participants = [ctx.message.author]
         for r in msg.reactions:
             if r == check:
                 for i in r.users():

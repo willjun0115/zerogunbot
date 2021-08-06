@@ -184,47 +184,47 @@ class Game(commands.Cog, name="게임(Game)"):
                 embed.add_field(name="신고 미접수", value="이미 이용제한 중인 사용자입니다.", inline=True)
             elif lv == get(ctx.guild.roles, name="창씨개명").position:
                 if rand <= 0.05:
-                    await ctx.author.remove_roles(member.top_role)
-                    await ctx.author.add_roles(get(ctx.guild.roles, name="이용제한"))
+                    await member.remove_roles(member.top_role)
+                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
                     embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
                                     inline=True)
                 else:
                     embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             elif lv == get(ctx.guild.roles, name="음성 통제").position:
                 if rand <= 0.04:
-                    await ctx.author.remove_roles(member.top_role)
-                    await ctx.author.add_roles(get(ctx.guild.roles, name="이용제한"))
+                    await member.remove_roles(member.top_role)
+                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
                     embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
                                     inline=True)
                 else:
                     embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             elif lv == get(ctx.guild.roles, name="언론 통제").position:
                 if rand <= 0.03:
-                    await ctx.author.remove_roles(member.top_role)
-                    await ctx.author.add_roles(get(ctx.guild.roles, name="이용제한"))
+                    await member.remove_roles(member.top_role)
+                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
                     embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
                                     inline=True)
                 else:
                     embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             elif lv == get(ctx.guild.roles, name="이모티콘 관리").position:
                 if rand <= 0.02:
-                    await ctx.author.remove_roles(member.top_role)
-                    await ctx.author.add_roles(get(ctx.guild.roles, name="이용제한"))
+                    await member.remove_roles(member.top_role)
+                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
                     embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
                                     inline=True)
                 else:
                     embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             elif lv == get(ctx.guild.roles, name="DJ").position:
                 if rand <= 0.01:
-                    await ctx.author.remove_roles(member.top_role)
-                    await ctx.author.add_roles(get(ctx.guild.roles, name="이용제한"))
+                    await member.remove_roles(member.top_role)
+                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
                     embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
                                     inline=True)
                 else:
                     embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             elif lv == get(ctx.guild.roles, name="언랭").position:
                 if rand <= 0:
-                    await ctx.author.add_roles(get(ctx.guild.roles, name="이용제한"))
+                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
                     embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
                                     inline=True)
                 else:

@@ -231,6 +231,22 @@ class Game(commands.Cog, name="게임(Game)"):
                     embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             await ctx.send(embed=embed)
 
+    @commands.command(name="토큰", help="자신의 토큰 수를 확인합니다.\n토큰 시스템에 등록되지 않았다면, 새로 ID를 등록합니다.", usage="%토큰")
+    async def zerotoken(self, ctx):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        not_found = True
+        for embed in log_channel.last_message.embeds:
+            if embed.title == ctx.author.id:
+                await ctx.send(str(embed.description) + ' 개')
+                not_found = False
+                break
+            else:
+                not_found = True
+        if not_found is True:
+            new_embed = discord.Embed(title=ctx.author.id, description='0')
+            lst = log_channel.last_message.embeds + [new_embed]
+            log_channel.send(embed=lst)
+
 
 def setup(app):
     app.add_cog(Game(app))

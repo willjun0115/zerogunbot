@@ -236,13 +236,13 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         log = log_channel.last_message.content
         not_found = True
-        if ctx.author.id in log:
+        if str(ctx.author.id) in log:
             await ctx.send(str(log))
             not_found = False
         else:
             not_found = True
         if not_found is True:
-            new_log = log + ctx.author.id
+            new_log = log + str(ctx.author.id)
             log_channel.send(new_log)
 
 

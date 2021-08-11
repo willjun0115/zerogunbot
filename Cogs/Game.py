@@ -304,39 +304,31 @@ class Game(commands.Cog, name="게임(Game)"):
                 member_dm = await member.create_dm()
                 await author_dm.send(member_card)
                 await member_dm.send(author_card)
-                call = False
-                author_bet = 0
-                member_bet = 0
-                while call is False:
-                    def check(m):
-                        return m.author == ctx.author
+                coin = 2
+                msg = await ctx.send(ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
+                                                                              "\n 베팅 토큰: " + str(coin))
+                reaction_list = ['✅', '❎']
+                while True:
+                    for r in reaction_list:
+                        await msg.add_reaction(r)
 
-                    author_m = await self.app.wait_for('message', check=check)
-                    author_bet += int(author_m)
-                    if int(author_bet) == int(member_bet):
-                        await ctx.send(ctx.author.name + " 님이 콜했습니다.")
-                        call = True
-                        break
-                    elif int(author_m) == 0:
-                        await ctx.send(ctx.author.name + " 님이 폴드했습니다.")
-                        break
+                    def check(reaction, user):
+                        return str(reaction) in reaction_list and reaction.message.id == msg.id \
+                            and user in [ctx.author, member]
+
+                    try:
+                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                    except asyncio.TimeoutError:
+                        await msg.edit(content="시간 초과!", delete_after=2)
                     else:
-                        await ctx.send(ctx.author.name + " 님이 레이즈했습니다.")
-
-                    def check(m):
-                        return m.author == member
-
-                    member_m = await self.app.wait_for('message', check=check)
-                    member_bet += int(member_m)
-                    if int(author_bet) == int(member_bet):
-                        await ctx.send(member.name + " 님이 콜했습니다.")
-                        call = True
-                        break
-                    elif int(member_m) == 0:
-                        await ctx.send(member.name + " 님이 폴드했습니다.")
-                        break
-                    else:
-                        await ctx.send(member.name + " 님이 레이즈했습니다.")
+                        if str(reaction) == '✅':
+                            coin += 1
+                            await ctx.send("레이즈")
+                        else:
+                            await ctx.send("다이")
+                            break
+                        await msg.edit(content=ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
+                                                                              "\n 베팅 토큰: " + str(coin))
 
 
 def setup(app):

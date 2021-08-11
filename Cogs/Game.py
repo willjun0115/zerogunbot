@@ -280,6 +280,8 @@ class Game(commands.Cog, name="게임(Game)"):
         log = await log_channel.fetch_message(874982940566753302)
         msg = await ctx.send(ctx.author.name + " 님이 " + member.name + " 님에게 인디언 포커를 신청합니다.\n수락하려면 :white_check_mark: 을 눌러주세요.")
         reaction_list = ['✅', '❎']
+        for r in reaction_list:
+            await msg.add_reaction(r)
 
         def check(reaction, user):
             return str(reaction) in reaction_list and reaction.message.id == msg.id and user == member

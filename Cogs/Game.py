@@ -234,11 +234,11 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="토큰", help="자신의 토큰 수를 확인합니다.\n토큰 시스템에 등록되지 않았다면, 새로 ID를 등록합니다.", usage="%토큰")
     async def zerotoken(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
-        log = log_channel.fetch_message(log_channel.last_message.id).content
-        if str(ctx.author.name) in str(log):
-            await ctx.send(str(log))
+        log = log_channel.history(limit=1)
+        if str(ctx.author.name) in str(log.content):
+            await ctx.send(str(log.content))
         else:
-            new_log = str(log) + str(ctx.author.name)
+            new_log = str(log.content) + str(ctx.author.name)
             await log_channel.send(new_log)
 
 

@@ -13,84 +13,89 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int())
     async def gamble(self, ctx, args):
+        args = int(args)
+        if args > 50:
+            await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
+        elif args <= 0:
+            await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
+        elif args % 5 != 0:
+            await ctx.send("당첨 확률은 5의 배수여야 합니다.")
+        else:
+            await ctx.send(str(args) + "% 확률의 도박을 돌립니다... - " + str(1) + ":coin:")
+            await asyncio.sleep(2)
+            win = random.random() * 100
+            if win >= args:
+                await ctx.send(ctx.author.name + " Lose")
+            else:
+                await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
+
+    @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.", usage="%가위바위보")
+    async def rock_scissors_paper(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
         log = await log_channel.fetch_message(874982940566753302)
         if str(ctx.author.id) in str(log.content):
             idindex = str(log.content).find(str(ctx.author.id))
             endindex = str(log.content)[idindex + 19:].find(';')
             coin = int(str(log.content)[idindex + 19:idindex + 19 + endindex])
-            args = int(args)
-            if args > 50:
-                await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
-            elif args <= 0:
-                await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
-            elif args % 5 != 0:
-                await ctx.send("당첨 확률은 5의 배수여야 합니다.")
+            msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
+            reaction_list = ['✊', '✌️', '🖐️']
+            for r in reaction_list:
+                await msg.add_reaction(r)
+
+            def check(reaction, user):
+                return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+
+            try:
+                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
+            except asyncio.TimeoutError:
+                await msg.edit(content="시간 초과!", delete_after=2)
             else:
-                await ctx.send(str(args) + "% 확률의 도박을 돌립니다... - " + str(1) + ":coin:")
-                coin -= 1
-                await asyncio.sleep(2)
-                win = random.random() * 100
-                if win >= args:
-                    await log.edit(content=str(log.content)[:idindex + 19] + str(coin) + str(log.content)[
-                                                                                idindex + 19 + endindex:])
-                    await ctx.send(ctx.author.name + " Lose")
-                else:
-                    coin += 100 // int(args)
-                    await log.edit(content=str(log.content)[:idindex + 19] + str(coin) + str(log.content)[
-                                                                                         idindex + 19 + endindex:])
-                    await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
+                if str(reaction) == '✊':
+                    bot_react = random.randint(0, 2)
+                    if bot_react == 0:
+                        await ctx.send(':fist:')
+                        await ctx.send('비겼네요.')
+                        coin += 0
+                    elif bot_react == 1:
+                        await ctx.send(':v:')
+                        await ctx.send('제가 졌네요.')
+                        coin -= 1
+                    elif bot_react == 2:
+                        await ctx.send(':hand_splayed:')
+                        await ctx.send('제가 이겼네요!')
+                        coin += 1
+                elif str(reaction) == '✌️':
+                    bot_react = random.randint(0, 2)
+                    if bot_react == 0:
+                        await ctx.send(':fist:')
+                        await ctx.send('제가 이겼네요!')
+                        coin -= 1
+                    elif bot_react == 1:
+                        await ctx.send(':v:')
+                        await ctx.send('비겼네요.')
+                        coin += 0
+                    elif bot_react == 2:
+                        await ctx.send(':hand_splayed:')
+                        await ctx.send('제가 졌네요.')
+                        coin += 1
+                elif str(reaction) == '🖐️':
+                    bot_react = random.randint(0, 2)
+                    if bot_react == 0:
+                        await ctx.send(':fist:')
+                        await ctx.send('제가 졌네요.')
+                        coin += 1
+                    elif bot_react == 1:
+                        await ctx.send(':v:')
+                        await ctx.send('제가 이겼네요!')
+                        coin -= 1
+                    elif bot_react == 2:
+                        await ctx.send(':hand_splayed:')
+                        await ctx.send('비겼네요.')
+                        coin += 0
+                await log.edit(
+                    content=str(log.content)[:idindex + 19] + str(coin) + str(log.content)[idindex + 19 + endindex:])
         else:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
-
-    @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.", usage="%가위바위보")
-    async def rock_scissors_paper(self, ctx):
-        msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
-        reaction_list = ['✊', '✌️', '🖐️']
-        for r in reaction_list:
-            await msg.add_reaction(r)
-
-        def check(reaction, user):
-            return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
-
-        try:
-            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
-        except asyncio.TimeoutError:
-            await msg.edit(content="시간 초과!", delete_after=2)
-        else:
-            if str(reaction) == '✊':
-                bot_react = random.randint(0, 2)
-                if bot_react == 0:
-                    await ctx.send(':fist:')
-                    await ctx.send('비겼네요.')
-                elif bot_react == 1:
-                    await ctx.send(':v:')
-                    await ctx.send('제가 졌네요.')
-                elif bot_react == 2:
-                    await ctx.send(':hand_splayed:')
-                    await ctx.send('제가 이겼네요!')
-            elif str(reaction) == '✌️':
-                bot_react = random.randint(0, 2)
-                if bot_react == 0:
-                    await ctx.send(':fist:')
-                    await ctx.send('제가 이겼네요!')
-                elif bot_react == 1:
-                    await ctx.send(':v:')
-                    await ctx.send('비겼네요.')
-                elif bot_react == 2:
-                    await ctx.send(':hand_splayed:')
-                    await ctx.send('제가 졌네요.')
-            elif str(reaction) == '🖐️':
-                bot_react = random.randint(0, 2)
-                if bot_react == 0:
-                    await ctx.send(':fist:')
-                    await ctx.send('제가 졌네요.')
-                elif bot_react == 1:
-                    await ctx.send(':v:')
-                    await ctx.send('제가 이겼네요!')
-                elif bot_react == 2:
-                    await ctx.send(':hand_splayed:')
-                    await ctx.send('비겼네요.')
 
     @commands.command(name="가챠", help="확률적으로 권한이 승급합니다.\n강등될 수도 있습니다.", usage="%가챠")
     async def gacha(self, ctx):

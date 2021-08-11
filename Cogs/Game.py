@@ -312,27 +312,31 @@ class Game(commands.Cog, name="게임(Game)"):
                         return m.author == ctx.author
 
                     author_m = await self.app.wait_for('message', check=check)
+                    author_bet += int(author_m)
                     if int(author_bet) == int(member_bet):
+                        await ctx.send(ctx.author.name + " 님이 콜했습니다.")
                         call = True
                         break
                     elif int(author_m) == 0:
                         await ctx.send(ctx.author.name + " 님이 폴드했습니다.")
                         break
                     else:
-                        author_bet += int(author_m)
+                        await ctx.send(ctx.author.name + " 님이 레이즈했습니다.")
 
                     def check(m):
                         return m.author == member
 
                     member_m = await self.app.wait_for('message', check=check)
+                    member_bet += int(member_m)
                     if int(author_bet) == int(member_bet):
+                        await ctx.send(member.name + " 님이 콜했습니다.")
                         call = True
                         break
                     elif int(member_m) == 0:
                         await ctx.send(member.name + " 님이 폴드했습니다.")
                         break
                     else:
-                        member_bet += int(member_m)
+                        await ctx.send(member.name + " 님이 레이즈했습니다.")
 
 
 def setup(app):

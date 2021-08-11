@@ -243,7 +243,7 @@ class Game(commands.Cog, name="게임(Game)"):
             not_found = True
         if not_found is True:
             new_log = log + ctx.author.id
-            log_channel.send(embed=new_log)
+            log_channel.send(new_log)
 
 
 def setup(app):

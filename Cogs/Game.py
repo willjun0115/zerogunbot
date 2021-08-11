@@ -271,6 +271,67 @@ class Game(commands.Cog, name="게임(Game)"):
         await log.edit(content=str(args))
         await ctx.send('토큰 로그를 업데이트했습니다.')
 
+    @commands.command(name="인디언포커", help="인디언 포커를 신청합니다."
+                                         "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
+                                         "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
+                                         "\n숫자가 높은 쪽이 이깁니다.\n또한, 10을 들고 '폴드'하면 페널티로 토큰을 추가로 잃습니다.", usage="%인디언포커 @")
+    async def indianpoker(self, ctx, member: discord.Member):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        log = await log_channel.fetch_message(874982940566753302)
+        msg = await ctx.send(ctx.author.name + " 님이 " + member.name + " 님에게 인디언 포커를 신청합니다.\n수락하려면 :white_check_mark: 을 눌러주세요.")
+        reaction_list = ['✅', '❎']
+
+        def check(reaction, user):
+            return str(reaction) in reaction_list and reaction.message.id == msg.id and user == member
+
+        try:
+            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
+        except asyncio.TimeoutError:
+            await msg.edit(content="시간 초과!", delete_after=2)
+        else:
+            if reaction == '✅':
+                deck = []
+                for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
+                    for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
+                        deck.append(i + j)
+                author_card = random.choice(deck)
+                deck.remove(author_card)
+                member_card = random.choice(deck)
+                deck.remove(member_card)
+                author_dm = await ctx.author.create_dm()
+                member_dm = await member.create_dm()
+                await author_dm.send(member_card)
+                await member_dm.send(author_card)
+                call = False
+                author_bet = 0
+                member_bet = 0
+                while call is False:
+                    def check(m):
+                        return m.author == ctx.author
+
+                    author_m = await self.app.wait_for('message', check=check)
+                    if int(author_bet) == int(member_bet):
+                        call = True
+                        break
+                    elif int(author_m) == 0:
+                        await ctx.send(ctx.author.name + " 님이 폴드했습니다.")
+                        break
+                    else:
+                        author_bet += int(author_m)
+
+                    def check(m):
+                        return m.author == member
+
+                    member_m = await self.app.wait_for('message', check=check)
+                    if int(author_bet) == int(member_bet):
+                        call = True
+                        break
+                    elif int(member_m) == 0:
+                        await ctx.send(member.name + " 님이 폴드했습니다.")
+                        break
+                    else:
+                        member_bet += int(member_m)
+
 
 def setup(app):
     app.add_cog(Game(app))

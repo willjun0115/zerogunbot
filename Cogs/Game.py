@@ -302,8 +302,8 @@ class Game(commands.Cog, name="게임(Game)"):
                 deck.remove(member_card)
                 author_dm = await ctx.author.create_dm()
                 member_dm = await member.create_dm()
-                await author_dm.send(member_card)
-                await member_dm.send(author_card)
+                await author_dm.send(str(member_card))
+                await member_dm.send(str(author_card))
 
 
 def setup(app):

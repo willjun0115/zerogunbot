@@ -304,6 +304,8 @@ class Game(commands.Cog, name="게임(Game)"):
                 member_dm = await member.create_dm()
                 await author_dm.send(str(member_card))
                 await member_dm.send(str(author_card))
+            else:
+                await ctx.send("신청을 거절했습니다.")
 
 
 def setup(app):

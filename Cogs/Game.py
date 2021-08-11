@@ -239,7 +239,7 @@ class Game(commands.Cog, name="게임(Game)"):
             await ctx.send(str(log.content))
         else:
             new_log = str(log.content) + str(ctx.author.name)
-            await log_channel.send(new_log)
+            await log_channel.send('874970985307201546')
 
 
 def setup(app):

@@ -237,7 +237,8 @@ class Game(commands.Cog, name="게임(Game)"):
         log = await log_channel.fetch_message(874982940566753302)
         if str(ctx.author.id) in str(log.content):
             idindex = str(log.content).find(str(ctx.author.id))
-            await ctx.send(str(log.content)[idindex+18:idindex+20])
+            endindex = str(log.content)[idindex+19:].find(';')
+            await ctx.send(str(log.content)[idindex+19:idindex+19+endindex]+' :coin:')
         else:
             new_log = str(log.content) + str(ctx.author.id) + ':0;'
             await log.edit(content=new_log)

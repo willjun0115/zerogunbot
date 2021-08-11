@@ -300,8 +300,8 @@ class Game(commands.Cog, name="게임(Game)"):
                 deck.remove(author_card)
                 member_card = random.choice(deck)
                 deck.remove(member_card)
-                author_dm = ctx.author.dm_channel
-                member_dm = member.dm_channel
+                author_dm = await ctx.author.create_dm()
+                member_dm = await member.create_dm()
                 await author_dm.send(member_card)
                 await member_dm.send(author_card)
 

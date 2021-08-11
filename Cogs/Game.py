@@ -241,11 +241,11 @@ class Game(commands.Cog, name="게임(Game)"):
                     await ctx.send(str(field.value) + ' 개')
                     not_found = False
                     break
-            else:
-                not_found = True
+                else:
+                    not_found = True
         if not_found is True:
             new_embed = discord.Embed(title='token log', description=str(ctx.message.created_at))
-            new_embed.add_field(name=str(ctx.author.id), value='0')
+            new_embed.add_field(name=str(ctx.author.id), value='0', inline=True)
             log_channel.send(embed=new_embed)
 
 

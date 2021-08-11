@@ -235,12 +235,12 @@ class Game(commands.Cog, name="게임(Game)"):
     async def zerotoken(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
         await ctx.message.delete()
-        log = await log_channel.fetch_message(log_channel.last_message.id)
-        if str(ctx.author.name) in str(log.content):
-            await ctx.send(str(log))
+        log = await log_channel.fetch_message(874982940566753302)
+        if str(ctx.author.id) in str(log.content):
+            await ctx.send(str(log.content))
         else:
-            new_log = str(log.content) + str(ctx.author.name)
-            await log_channel.send(new_log)
+            new_log = str(log.content) + str(ctx.author.id)
+            await log.edit(content=new_log)
 
 
 def setup(app):

@@ -305,9 +305,11 @@ class Game(commands.Cog, name="게임(Game)"):
                 await author_dm.send(member_card)
                 await member_dm.send(author_card)
                 coin = 2
+                author_call = False
+                member_call = False
                 msg = await ctx.send(ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
                                                                               "\n 베팅 토큰: " + str(coin))
-                reaction_list = ['✅', '❎']
+                reaction_list = ['🔱', '✅', '💀']
                 while True:
                     for r in reaction_list:
                         await msg.add_reaction(r)
@@ -321,12 +323,40 @@ class Game(commands.Cog, name="게임(Game)"):
                     except asyncio.TimeoutError:
                         await msg.edit(content="시간 초과!", delete_after=2)
                     else:
-                        if str(reaction) == '✅':
+                        if str(reaction) == '🔱':
+                            if user == ctx.author:
+                                author_call = False
+                            else:
+                                member_call = False
                             coin += 1
-                            await ctx.send("레이즈")
+                        elif str(reaction) == '✅':
+                            if user == ctx.author:
+                                author_call = True
+                            else:
+                                member_call = True
+                            await ctx.send("콜")
                         else:
                             await ctx.send("다이")
                             break
+                        if author_call is True:
+                            if member_call is True:
+                                await ctx.send("콜 성사")
+                                if author_card[author_card.rfind(':')+1:] == 'A':
+                                    author_num = 1
+                                else:
+                                    author_num = int(author_card[author_card.rfind(':')+1:])
+                                if member_card[member_card.rfind(':')+1:] == 'A':
+                                    member_num = 1
+                                else:
+                                    member_num = int(member_card[member_card.rfind(':')+1:])
+                                if author_num > member_num:
+                                    await ctx.send(ctx.author.name + ' 승!')
+                                elif author_num < member_num:
+                                    await ctx.send(member.name + ' 승!')
+                                else:
+                                    await ctx.send("무승부")
+                                break
+                        await msg.clear_reactions()
                         await msg.edit(content=ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
                                                                               "\n 베팅 토큰: " + str(coin))
 

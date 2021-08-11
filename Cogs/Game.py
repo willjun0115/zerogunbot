@@ -13,21 +13,35 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int())
     async def gamble(self, ctx, args):
-                args = int(args)
-                if args > 50:
-                    await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
-                elif args <= 0:
-                    await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
-                elif args % 5 != 0:
-                    await ctx.send("당첨 확률은 5의 배수여야 합니다.")
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        log = await log_channel.fetch_message(874982940566753302)
+        if str(ctx.author.id) in str(log.content):
+            idindex = str(log.content).find(str(ctx.author.id))
+            endindex = str(log.content)[idindex + 19:].find(';')
+            coin = int(str(log.content)[idindex + 19:idindex + 19 + endindex])
+            args = int(args)
+            if args > 50:
+                await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
+            elif args <= 0:
+                await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
+            elif args % 5 != 0:
+                await ctx.send("당첨 확률은 5의 배수여야 합니다.")
+            else:
+                await ctx.send(str(args) + "% 확률의 도박을 돌립니다... - :coin: " + str(1))
+                await asyncio.sleep(2)
+                win = random.random() * 100
+                if win >= args:
+                    coin -= 1
+                    await log.edit(content=str(log.content)[:idindex + 19] + str(coin) + str(log.content)[
+                                                                                idindex + 19 + endindex:])
+                    await ctx.send(ctx.author.name + " Lose")
                 else:
-                    await ctx.send(str(args) + "% 확률의 도박을 돌립니다... - :coin: " + str(100))
-                    await asyncio.sleep(2)
-                    win = random.random() * 100
-                    if win >= args:
-                        await ctx.send(ctx.author.name + " Lose")
-                    else:
-                        await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
+                    coin += 100 // int(args)
+                    await log.edit(content=str(log.content)[:idindex + 19] + str(coin) + str(log.content)[
+                                                                                         idindex + 19 + endindex:])
+                    await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
+        else:
+            await ctx.send('토큰 로그에 없는 ID 입니다.')
 
     @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.", usage="%가위바위보")
     async def rock_scissors_paper(self, ctx):
@@ -231,24 +245,26 @@ class Game(commands.Cog, name="게임(Game)"):
                     embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             await ctx.send(embed=embed)
 
-    @commands.command(name="토큰", help="자신의 토큰 수를 확인합니다.\n토큰 시스템에 등록되지 않았다면, 새로 ID를 등록합니다.", usage="%토큰")
-    async def zerotoken(self, ctx):
+    @commands.command(name="토큰", help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.", usage="%토큰")
+    async def checktokenlog(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
         log = await log_channel.fetch_message(874982940566753302)
         if str(ctx.author.id) in str(log.content):
             idindex = str(log.content).find(str(ctx.author.id))
             endindex = str(log.content)[idindex+19:].find(';')
-            await ctx.send(str(log.content)[idindex+19:idindex+19+endindex]+' :coin:')
+            await ctx.send(ctx.author.name + ' 님의 토큰 :' + str(log.content)[idindex+19:idindex+19+endindex]+' :coin:')
         else:
             new_log = str(log.content) + str(ctx.author.id) + ':0;'
             await log.edit(content=new_log)
+            await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.has_permissions(administrator=True)
     @commands.command(name="토큰로그", help="토큰로그를 편집합니다. (관리자 권한)", usage="%토큰로그 ~")
-    async def edittekenlog(self, ctx, *, args):
+    async def edittokenlog(self, ctx, *, args):
         log_channel = ctx.guild.get_channel(874970985307201546)
         log = await log_channel.fetch_message(874982940566753302)
         await log.edit(content=str(args))
+        await ctx.send('토큰 로그를 업데이트했습니다.')
 
 
 def setup(app):

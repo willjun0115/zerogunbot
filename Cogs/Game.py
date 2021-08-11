@@ -27,11 +27,11 @@ class Game(commands.Cog, name="게임(Game)"):
             elif args % 5 != 0:
                 await ctx.send("당첨 확률은 5의 배수여야 합니다.")
             else:
-                await ctx.send(str(args) + "% 확률의 도박을 돌립니다... - :coin: " + str(1))
+                await ctx.send(str(args) + "% 확률의 도박을 돌립니다... - " + str(1) + ":coin:")
+                coin -= 1
                 await asyncio.sleep(2)
                 win = random.random() * 100
                 if win >= args:
-                    coin -= 1
                     await log.edit(content=str(log.content)[:idindex + 19] + str(coin) + str(log.content)[
                                                                                 idindex + 19 + endindex:])
                     await ctx.send(ctx.author.name + " Lose")
@@ -252,7 +252,7 @@ class Game(commands.Cog, name="게임(Game)"):
         if str(ctx.author.id) in str(log.content):
             idindex = str(log.content).find(str(ctx.author.id))
             endindex = str(log.content)[idindex+19:].find(';')
-            await ctx.send(ctx.author.name + ' 님의 토큰 :' + str(log.content)[idindex+19:idindex+19+endindex]+' :coin:')
+            await ctx.send(ctx.author.name + ' 님의 토큰 : ' + str(log.content)[idindex+19:idindex+19+endindex]+' :coin:')
         else:
             new_log = str(log.content) + str(ctx.author.id) + ':0;'
             await log.edit(content=new_log)

@@ -304,35 +304,6 @@ class Game(commands.Cog, name="게임(Game)"):
                 member_dm = member.dm_channel
                 await author_dm.send(member_card)
                 await member_dm.send(author_card)
-                call = False
-                author_bet = 0
-                member_bet = 0
-                while call is False:
-                    def check(m):
-                        return m.author == ctx.author
-
-                    author_m = await self.app.wait_for('message', check=check)
-                    if int(author_bet) == int(member_bet):
-                        call = True
-                        break
-                    elif int(author_m) == 0:
-                        await ctx.send(ctx.author.name + " 님이 폴드했습니다.")
-                        break
-                    else:
-                        author_bet += int(author_m)
-
-                    def check(m):
-                        return m.author == member
-
-                    member_m = await self.app.wait_for('message', check=check)
-                    if int(author_bet) == int(member_bet):
-                        call = True
-                        break
-                    elif int(member_m) == 0:
-                        await ctx.send(member.name + " 님이 폴드했습니다.")
-                        break
-                    else:
-                        member_bet += int(member_m)
 
 
 def setup(app):

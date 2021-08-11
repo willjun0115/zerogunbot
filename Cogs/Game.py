@@ -236,16 +236,17 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         not_found = True
         for embed in log_channel.last_message.embeds:
-            if embed.title == ctx.author.id:
-                await ctx.send(str(embed.description) + ' 개')
-                not_found = False
-                break
+            for field in embed.fields:
+                if field.name == str(ctx.author.id):
+                    await ctx.send(str(field.value) + ' 개')
+                    not_found = False
+                    break
             else:
                 not_found = True
         if not_found is True:
-            new_embed = discord.Embed(title=ctx.author.id, description='0')
-            lst = log_channel.last_message.embeds + [new_embed]
-            log_channel.send(embed=lst)
+            new_embed = discord.Embed(title='token log', description=str(ctx.message.created_at))
+            new_embed.add_field(name=str(ctx.author.id), value='0')
+            log_channel.send(embed=new_embed)
 
 
 def setup(app):

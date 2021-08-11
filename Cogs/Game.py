@@ -29,7 +29,7 @@ class Game(commands.Cog, name="게임(Game)"):
             else:
                 await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
 
-    @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.", usage="%가위바위보")
+    @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.", usage="%가위바위보")
     async def rock_scissors_paper(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
         log = await log_channel.fetch_message(874982940566753302)
@@ -59,11 +59,11 @@ class Game(commands.Cog, name="게임(Game)"):
                     elif bot_react == 1:
                         await ctx.send(':v:')
                         await ctx.send('제가 졌네요.')
-                        coin -= 1
+                        coin += 1
                     elif bot_react == 2:
                         await ctx.send(':hand_splayed:')
                         await ctx.send('제가 이겼네요!')
-                        coin += 1
+                        coin -= 1
                 elif str(reaction) == '✌️':
                     bot_react = random.randint(0, 2)
                     if bot_react == 0:

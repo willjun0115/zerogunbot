@@ -348,6 +348,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                 else:
                                     if user == ctx.author:
                                         await ctx.send(ctx.author.name + " 다이")
+                                        await msg.delete()
                                         await log.edit(
                                             content=str(log.content)[:idindex + 19] + str(author_coin + coin) + str(
                                                 log.content)[
@@ -358,6 +359,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                                                                                                  idindex_ + 19 + endindex_:])
                                     else:
                                         await ctx.send(member.name + " 다이")
+                                        await msg.delete()
                                         await log.edit(
                                             content=str(log.content)[:idindex + 19] + str(author_coin - coin) + str(
                                                 log.content)[
@@ -370,6 +372,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                 if author_call is True:
                                     if member_call is True:
                                         await ctx.send("콜 성사")
+                                        await msg.delete()
                                         break
                                 await msg.clear_reactions()
                                 await msg.edit(content=ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."

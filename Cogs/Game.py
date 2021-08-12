@@ -456,15 +456,33 @@ class Game(commands.Cog, name="게임(Game)"):
                 for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
                     for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']:
                         deck.append(i+j)
-                names = [x.name for x in members]
-                embed = discord.Embed(title="<블랙잭>", description=str(names))
+                board = {}
                 for member in members:
                     a = random.choice(deck)
                     deck.remove(a)
                     b = random.choice(deck)
                     deck.remove(b)
-                    embed.add_field(name="> " + member.name, value=a+' '+b, inline=True)
-                await ctx.send(embed=embed)
+                    board[member] = a + ' ' + b
+                msg_ = await ctx.send("카드를 더 받으시겠습니까?")
+                reaction_list = ['✅', '❎']
+                while True:
+                    for r in reaction_list:
+                        await msg_.add_reaction(r)
+
+                    def check(reaction, user):
+                        return str(reaction) in reaction_list and reaction.message.id == msg_.id and user in members
+
+                    try:
+                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                    except asyncio.TimeoutError:
+                        await msg_.edit(content="시간 초과!", delete_after=2)
+                    else:
+                        if str(reaction) == '✅':
+                            c = random.choice(deck)
+                            deck.remove(c)
+                            board[user] = board[user] + ' ' + c
+                        await msg_.clear_reactions()
+                        await msg_.edit("카드를 더 받으시겠습니까?")
 
 
 def setup(app):

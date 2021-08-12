@@ -281,7 +281,7 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="인디언포커", help="인디언 포커를 신청합니다."
                                          "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
                                          "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
-                                         "\n숫자가 높은 쪽이 이깁니다.\n또한, 10을 들고 '폴드'하면 페널티로 토큰을 추가로 잃습니다.", usage="%인디언포커 @")
+                                         "\n숫자가 높은 쪽이 이깁니다.", usage="%인디언포커 @")
     async def indianpoker(self, ctx, member: discord.Member):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = 0
@@ -311,11 +311,12 @@ class Game(commands.Cog, name="게임(Game)"):
                 return str(reaction) in reaction_list and reaction.message.id == msg.id and user == member
 
             try:
-                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
+                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
             except asyncio.TimeoutError:
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
                 if str(reaction) == '✅':
+                    await msg.delete()
                     deck = []
                     for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
                         for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
@@ -331,21 +332,21 @@ class Game(commands.Cog, name="게임(Game)"):
                     coin = 1
                     author_call = False
                     member_call = False
-                    msg = await ctx.send(ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
+                    msg_ = await ctx.send(ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
                                                                                   "\n 베팅 토큰: " + str(coin))
                     reaction_list = ['🔱', '✅', '💀']
                     while True:
                         for r in reaction_list:
-                            await msg.add_reaction(r)
+                            await msg_.add_reaction(r)
 
                         def check(reaction, user):
-                            return str(reaction) in reaction_list and reaction.message.id == msg.id \
+                            return str(reaction) in reaction_list and reaction.message.id == msg_.id \
                                    and user in [ctx.author, member]
 
                         try:
                             reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
                         except asyncio.TimeoutError:
-                            await msg.edit(content="시간 초과!", delete_after=2)
+                            await msg_.edit(content="시간 초과!", delete_after=2)
                         else:
                             if str(reaction) == '🔱':
                                 if user == ctx.author:
@@ -365,20 +366,20 @@ class Game(commands.Cog, name="게임(Game)"):
                                     await author_log.edit(content=author_log.content[:19] + str(author_coin - 1))
                                     await member_log.edit(content=member_log.content[:19] + str(member_coin + 1))
                                     await ctx.send(ctx.author.name + " 다이")
-                                    await msg.delete()
+                                    await msg_.delete()
                                 else:
                                     await author_log.edit(content=author_log.content[:19] + str(author_coin + 1))
                                     await member_log.edit(content=member_log.content[:19] + str(member_coin - 1))
                                     await ctx.send(member.name + " 다이")
-                                    await msg.delete()
+                                    await msg_.delete()
                                 break
                             if author_call is True:
                                 if member_call is True:
                                     await ctx.send("콜 성사")
-                                    await msg.delete()
+                                    await msg_.delete()
                                     break
-                            await msg.clear_reactions()
-                            await msg.edit(content=ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
+                            await msg_.clear_reactions()
+                            await msg_.edit(content=ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
                                                                                             "\n 베팅 토큰: " + str(
                                 coin))
                     if author_card[author_card.rfind(':') + 1:] == 'A':
@@ -403,6 +404,66 @@ class Game(commands.Cog, name="게임(Game)"):
                                 await ctx.send(member.name + ' 승!')
                             else:
                                 await ctx.send("무승부")
+
+    @commands.command(name="블랙잭", help="블랙잭을 신청합니다."
+                                       "\n패의 합이 21에 가장 가까운 사람이 승리합니다."
+                                       "\n시작하면 참가자마다 두 장의 카드를 받습니다."
+                                       "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
+                                       "\n승자를 정합니다.", usage="%블랙잭")
+    async def blackjack(self, ctx):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        members = []
+        start = False
+        msg = await ctx.send(
+            ctx.author.name + " 님이 블랙잭을 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요.")
+        reaction_list = ['✅', '❎']
+        while True:
+            for r in reaction_list:
+                await msg.add_reaction(r)
+
+            def check(reaction, user):
+                return str(reaction) in reaction_list and reaction.message.id == msg.id and user in ctx.guild.members
+
+            try:
+                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+            except asyncio.TimeoutError:
+                await msg.edit(content="시간 초과!", delete_after=2)
+            else:
+                if str(reaction) == '✅':
+                    if user == ctx.author:
+                        members.append(ctx.author)
+                        start = True
+                        break
+                    if user not in members:
+                        members.append(user)
+                else:
+                    if user == ctx.author:
+                        await ctx.send("호스트가 블랙잭을 취소했습니다.")
+                        break
+                    if user in members:
+                        members.remove(user)
+                names = [x.name for x in members]
+                await msg.clear_reactions()
+                await msg.edit(content=ctx.author.name + " 님이 블랙잭을 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
+                                                         "\n참가자 " + str(names))
+        if start is True:
+            if len(members) < 2:
+                await ctx.send("블랙잭은 혼자할 수 없습니다.")
+            elif len(members) > 8:
+                await ctx.send("블랙잭은 최대 8인까지 가능합니다.")
+            else:
+                deck = []
+                for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
+                    for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']:
+                        deck.append(i+j)
+                names = [x.name for x in members]
+                embed = discord.Embed(title="<블랙잭>", description=str(names))
+                for member in members:
+                    a = random.choice(deck)
+                    deck.remove(a)
+                    b = random.choice(deck)
+                    deck.remove(b)
+                    embed.add_field(name="> " + member.name, value=a+' '+b, inline=True)
 
 
 def setup(app):

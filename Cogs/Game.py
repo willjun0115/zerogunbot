@@ -465,15 +465,17 @@ class Game(commands.Cog, name="게임(Game)"):
                     board[member] = a + ' ' + b
                 embed = discord.Embed(title="<블랙잭>", description="호스트: " + ctx.author.name)
                 for member in members:
-                    embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                    embed.add_field(name=member.name, value=board[member], inline=True)
                 msg_ = await ctx.send(embed=embed)
                 reaction_list = ['✅', '❎']
-                while True:
+                finish_members = []
+                while len(finish_members) == len(members):
                     for r in reaction_list:
                         await msg_.add_reaction(r)
 
                     def check(reaction, user):
-                        return str(reaction) in reaction_list and reaction.message.id == msg_.id and user in members
+                        return str(reaction) in reaction_list and reaction.message.id == msg_.id\
+                        and user in members and user not in finish_members
 
                     try:
                         reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
@@ -484,9 +486,14 @@ class Game(commands.Cog, name="게임(Game)"):
                             c = random.choice(deck)
                             deck.remove(c)
                             board[user] = board[user] + ' ' + c
+                        else:
+                            finish_members.append(user)
                         embed = discord.Embed(title="<블랙잭>", description="호스트: " + ctx.author.name)
                         for member in members:
-                            embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                            if member in finish_members:
+                                embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                            else:
+                                embed.add_field(name=member.name, value=board[member], inline=True)
                         await msg_.clear_reactions()
                         await msg_.edit(embed=embed)
 

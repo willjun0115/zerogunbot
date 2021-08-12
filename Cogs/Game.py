@@ -469,7 +469,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 msg_ = await ctx.send(embed=embed)
                 reaction_list = ['✅', '❎']
                 finish_members = []
-                while len(finish_members) == len(members):
+                while len(finish_members) != len(members):
                     for r in reaction_list:
                         await msg_.add_reaction(r)
 

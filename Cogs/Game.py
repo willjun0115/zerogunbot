@@ -328,7 +328,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     member_dm = await member.create_dm()
                     await author_dm.send(member_card)
                     await member_dm.send(author_card)
-                    coin = 2
+                    coin = 1
                     author_call = False
                     member_call = False
                     msg = await ctx.send(ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."

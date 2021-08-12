@@ -463,7 +463,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     b = random.choice(deck)
                     deck.remove(b)
                     board[member] = a + ' ' + b
-                embed = discord.Embed(title="<블랙잭>", description="호스트: " + ctx.author.name)
+                embed = discord.Embed(title="<블랙잭>", description="카드를 더 받을 지, 멈출 지 선택해주세요.")
                 for member in members:
                     embed.add_field(name=member.name, value=board[member], inline=True)
                 msg_ = await ctx.send(embed=embed)

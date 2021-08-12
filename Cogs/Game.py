@@ -261,7 +261,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 await ctx.send(str(coin)+' :coin:')
                 break
         if find_id is False:
-            log_channel.send(str(ctx.author.id)+';0')
+            await log_channel.send(str(ctx.author.id)+';0')
             await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.has_permissions(administrator=True)

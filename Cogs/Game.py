@@ -422,7 +422,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 await msg.add_reaction(r)
 
             def check(reaction, user):
-                return str(reaction) in reaction_list and reaction.message.id == msg.id and user in ctx.guild.members
+                return str(reaction) in reaction_list and reaction.message.id == msg.id and user.bot is False
 
             try:
                 reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)

@@ -271,6 +271,16 @@ class Game(commands.Cog, name="게임(Game)"):
         await log.edit(content=str(args))
         await ctx.send('토큰 로그를 업데이트했습니다.')
 
+    @commands.has_permissions(administrator=True)
+    @commands.command(name="로그", help="로그를 편집합니다. (관리자 권한)", usage="%로그 ~")
+    async def tokenlog(self, ctx):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        coin = ''
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith(ctx.message.author.id) is True:
+                coin = message.content[19:]
+        await ctx.send(str(coin))
+
     @commands.command(name="인디언포커", help="인디언 포커를 신청합니다."
                                          "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
                                          "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"

@@ -406,6 +406,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                 await ctx.send("무승부")
 
     @commands.command(name="블랙잭", help="블랙잭을 신청합니다."
+                                       "\nA는 1 or 11, J,Q,K는 10으로 계산하며,"
                                        "\n패의 합이 21에 가장 가까운 사람이 승리합니다."
                                        "\n시작하면 참가자마다 두 장의 카드를 받습니다."
                                        "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
@@ -488,7 +489,7 @@ class Game(commands.Cog, name="게임(Game)"):
                             board[user] = board[user] + ' ' + c
                         else:
                             finish_members.append(user)
-                        embed = discord.Embed(title="<블랙잭>", description="호스트: " + ctx.author.name)
+                        embed = discord.Embed(title="<블랙잭>", description="카드를 더 받을 지, 멈출 지 선택해주세요.")
                         for member in members:
                             if member in finish_members:
                                 embed.add_field(name="> " + member.name, value=board[member], inline=True)

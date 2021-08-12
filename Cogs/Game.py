@@ -277,7 +277,7 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         coin = ''
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(ctx.message.author.id) is True:
+            if message.content.startswith(str(ctx.author.id)) is True:
                 coin = message.content[19:]
         await ctx.send(str(coin))
 

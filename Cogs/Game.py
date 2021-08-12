@@ -464,6 +464,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     b = random.choice(deck)
                     deck.remove(b)
                     embed.add_field(name="> " + member.name, value=a+' '+b, inline=True)
+                await ctx.send(embed=embed)
 
 
 def setup(app):

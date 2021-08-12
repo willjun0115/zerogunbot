@@ -284,7 +284,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                          "\n숫자가 높은 쪽이 이깁니다.\n또한, 10을 들고 '폴드'하면 페널티로 토큰을 추가로 잃습니다.", usage="%인디언포커 @")
     async def indianpoker(self, ctx, member: discord.Member):
         log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
+        find_id = 0
         author_log = None
         member_log = None
         author_coin = 0
@@ -293,13 +293,12 @@ class Game(commands.Cog, name="게임(Game)"):
             if message.content.startswith(str(ctx.author.id)) is True:
                 author_log = message
                 author_coin = int(message.content[19:])
-                async for message_ in log_channel.history(limit=100):
-                    if message.content.startswith(str(member.id)) is True:
-                        member_log = message_
-                        member_coin = int(message_.content[19:])
-                        find_id = True
-                        break
-        if find_id is False:
+                find_id += 1
+            elif message.content.startswith(str(member.id)) is True:
+                member_log = message
+                member_coin = int(message.content[19:])
+                find_id += 1
+        if find_id < 2:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
         else:
             msg = await ctx.send(

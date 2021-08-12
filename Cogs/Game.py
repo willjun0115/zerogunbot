@@ -496,6 +496,30 @@ class Game(commands.Cog, name="게임(Game)"):
                                 embed.add_field(name=member.name, value=board[member], inline=True)
                         await msg_.clear_reactions()
                         await msg_.edit(embed=embed)
+                winner = ctx.author
+                for member in finish_members:
+                    member_sum = 0
+                    ace = False
+                    for i in board[member].split():
+                        if i[i.rfind(':') + 1:] == 'A':
+                            ace = True
+                            member_sum += 1
+                        elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
+                            member_sum += 10
+                        else:
+                            member_sum += int(i[i.rfind(':') + 1:])
+                    if ace is True:
+                        if member_sum <= 11:
+                            member_sum += 10
+                    board[member] = member_sum
+                for member in finish_members:
+                    if board[member] <= 21:
+                        if board[member] >= board[winner]:
+                            winner = member
+                embed = discord.Embed(title="<블랙잭 결과>", description=winner.name + ' 우승!')
+                for member in members:
+                    embed.add_field(name=member.name, value=board[member], inline=True)
+                await ctx.send(embed=embed)
 
 
 def setup(app):

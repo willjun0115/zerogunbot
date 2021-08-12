@@ -466,7 +466,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 embed = discord.Embed(title="<블랙잭>", description="호스트: " + ctx.author.name)
                 for member in members:
                     embed.add_field(name="> " + member.name, value=board[member], inline=True)
-                msg_ = await ctx.send("카드를 더 받으시겠습니까?")
+                msg_ = await ctx.send(embed=embed)
                 reaction_list = ['✅', '❎']
                 while True:
                     for r in reaction_list:
@@ -484,8 +484,11 @@ class Game(commands.Cog, name="게임(Game)"):
                             c = random.choice(deck)
                             deck.remove(c)
                             board[user] = board[user] + ' ' + c
+                        embed = discord.Embed(title="<블랙잭>", description="호스트: " + ctx.author.name)
+                        for member in members:
+                            embed.add_field(name="> " + member.name, value=board[member], inline=True)
                         await msg_.clear_reactions()
-                        await msg_.edit(content="카드를 더 받으시겠습니까?")
+                        await msg_.edit(embed=embed)
 
 
 def setup(app):

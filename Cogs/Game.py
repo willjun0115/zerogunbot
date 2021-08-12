@@ -408,6 +408,7 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="블랙잭", help="블랙잭을 신청합니다."
                                        "\nA는 1 or 11, J,Q,K는 10으로 계산하며,"
                                        "\n패의 합이 21에 가장 가까운 사람이 승리합니다."
+                                       "\n21를 초과하면 0점으로 처리됩니다."
                                        "\n시작하면 참가자마다 두 장의 카드를 받습니다."
                                        "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
                                        "\n승자를 정합니다.", usage="%블랙잭")
@@ -512,7 +513,10 @@ class Game(commands.Cog, name="게임(Game)"):
                     if ace is True:
                         if member_sum <= 11:
                             member_sum += 10
-                    board[member] = member_sum
+                    if member_sum <= 21:
+                        board[member] = member_sum
+                    else:
+                        board[member] = 0
                 for member in finish_members:
                     if board[member] <= 21:
                         if board[member] >= board[winner]:

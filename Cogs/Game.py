@@ -513,7 +513,6 @@ class Game(commands.Cog, name="게임(Game)"):
                                 embed.add_field(name=member.name, value=board[member], inline=True)
                         await msg_.clear_reactions()
                         await msg_.edit(embed=embed)
-                winner = ctx.author
                 for member in finish_members:
                     member_sum = 0
                     ace = False
@@ -528,17 +527,25 @@ class Game(commands.Cog, name="게임(Game)"):
                     if ace is True:
                         if member_sum <= 11:
                             member_sum += 10
-                    if member_sum <= 21:
+                    if member_sum == 21:
+                        if ace is True:
+                            board[member] = 22
+                        board[member] = 21
+                    elif member_sum < 21:
                         board[member] = member_sum
                     else:
                         board[member] = 0
+                finish_members.reverse()
+                winner = finish_members[0]
                 for member in finish_members:
-                    if board[member] <= 21:
-                        if board[member] >= board[winner]:
-                            winner = member
+                    if board[member] >= board[winner]:
+                        winner = member
                 embed = discord.Embed(title="<블랙잭 결과>", description=winner.name + ' 우승!')
                 for member in members:
-                    embed.add_field(name=member.name, value=board[member], inline=True)
+                    if board[member] == 22:
+                        embed.add_field(name=member.name, value='21(blackjack)', inline=True)
+                    else:
+                        embed.add_field(name=member.name, value=str(board[member]), inline=True)
                 await ctx.send(embed=embed)
 
     @commands.command(name="시드포커", help="시드 포커를 신청합니다."

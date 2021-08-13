@@ -503,7 +503,7 @@ class Game(commands.Cog, name="게임(Game)"):
                             if ace is True:
                                 if member_sum <= 11:
                                     member_sum += 10
-                            if member_sum > 21:
+                            if member_sum >= 21:
                                 finish_members.append(user)
                                 num -= 1
                         else:

@@ -349,10 +349,8 @@ class Game(commands.Cog, name="게임(Game)"):
                             await msg_.edit(content="시간 초과!", delete_after=2)
                         else:
                             if str(reaction) == '🔱':
-                                if user == ctx.author:
-                                    author_call = False
-                                else:
-                                    member_call = False
+                                author_call = False
+                                member_call = False
                                 coin += 1
                             elif str(reaction) == '✅':
                                 if user == ctx.author:
@@ -414,133 +412,102 @@ class Game(commands.Cog, name="게임(Game)"):
                                        "\n승자를 정합니다.", usage="%블랙잭")
     async def blackjack(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
-        members = []
-        start = False
-        msg = await ctx.send(
-            ctx.author.name + " 님이 블랙잭을 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요.")
-        reaction_list = ['✅', '❎']
-        while True:
-            for r in reaction_list:
-                await msg.add_reaction(r)
+        find_id = False
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith(str(ctx.author.id)) is True:
+                find_id = True
+        if find_id is False:
+            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        else:
+            members = []
+            start = False
+            msg = await ctx.send(
+                ctx.author.name + " 님이 블랙잭을 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요.")
+            reaction_list = ['✅', '❎']
+            while True:
+                for r in reaction_list:
+                    await msg.add_reaction(r)
 
-            def check(reaction, user):
-                return str(reaction) in reaction_list and reaction.message.id == msg.id and user.bot is False
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user.bot is False
 
-            try:
-                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
-            except asyncio.TimeoutError:
-                await msg.edit(content="시간 초과!", delete_after=2)
-            else:
-                if str(reaction) == '✅':
-                    if user == ctx.author:
-                        members.append(ctx.author)
-                        start = True
-                        break
-                    if user not in members:
-                        members.append(user)
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
                 else:
-                    if user == ctx.author:
-                        await ctx.send("호스트가 블랙잭을 취소했습니다.")
-                        break
-                    if user in members:
-                        members.remove(user)
-                names = [x.name for x in members]
-                await msg.clear_reactions()
-                await msg.edit(content=ctx.author.name + " 님이 블랙잭을 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
-                                                         "\n참가자 " + str(names))
-        if start is True:
-            if len(members) < 2:
-                await ctx.send("블랙잭은 혼자할 수 없습니다.")
-            elif len(members) > 8:
-                await ctx.send("블랙잭은 최대 8인까지 가능합니다.")
-            else:
-                deck = []
-                for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
-                    for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']:
-                        deck.append(i+j)
-                board = {}
-                finish_members = []
-                for member in members:
-                    a = random.choice(deck)
-                    deck.remove(a)
-                    b = random.choice(deck)
-                    deck.remove(b)
-                    board[member] = a + ' ' + b
-                    member_sum = 0
-                    ace = False
-                    for i in board[member].split():
-                        if i[i.rfind(':') + 1:] == 'A':
-                            ace = True
-                            member_sum += 1
-                        elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
-                            member_sum += 10
-                        else:
-                            member_sum += int(i[i.rfind(':') + 1:])
-                    if ace is True:
-                        if member_sum <= 11:
-                            member_sum += 10
-                    if member_sum >= 21:
-                        finish_members.append(member)
-                players = []
-                for x in members:
-                    if x in finish_members:
-                        pass
+                    if str(reaction) == '✅':
+                        if user == ctx.author:
+                            members.append(ctx.author)
+                            start = True
+                            break
+                        if user not in members:
+                            find_id = False
+                            async for message in log_channel.history(limit=100):
+                                if message.content.startswith(str(user.id)) is True:
+                                    find_id = True
+                                    members.append(user)
+                            if find_id is False:
+                                await ctx.send('토큰 로그에 없는 ID 입니다.')
                     else:
-                        players.append(x)
-                embed = discord.Embed(title="<블랙잭>", description=players[0].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
-                for member in members:
-                    if member in finish_members:
-                        embed.add_field(name="> " + member.name, value=board[member], inline=True)
-                    else:
-                        embed.add_field(name=member.name, value=board[member], inline=True)
-                msg_ = await ctx.send(embed=embed)
-                reaction_list = ['✅', '❎']
-                num = 0
-                while len(finish_members) != len(members):
+                        if user == ctx.author:
+                            await ctx.send("호스트가 블랙잭을 취소했습니다.")
+                            break
+                        if user in members:
+                            members.remove(user)
+                    names = [x.name for x in members]
+                    await msg.clear_reactions()
+                    await msg.edit(content=ctx.author.name + " 님이 블랙잭을 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
+                                                             "\n참가자 " + str(names))
+            if start is True:
+                if len(members) < 2:
+                    await ctx.send("블랙잭은 혼자할 수 없습니다.")
+                elif len(members) > 8:
+                    await ctx.send("블랙잭은 최대 8인까지 가능합니다.")
+                else:
+                    deck = []
+                    for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
+                        for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']:
+                            deck.append(i + j)
+                    board = {}
+                    finish_members = []
+                    for member in members:
+                        a = random.choice(deck)
+                        deck.remove(a)
+                        b = random.choice(deck)
+                        deck.remove(b)
+                        board[member] = a + ' ' + b
+                        member_sum = 0
+                        ace = False
+                        for i in board[member].split():
+                            if i[i.rfind(':') + 1:] == 'A':
+                                ace = True
+                                member_sum += 1
+                            elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
+                                member_sum += 10
+                            else:
+                                member_sum += int(i[i.rfind(':') + 1:])
+                        if ace is True:
+                            if member_sum <= 11:
+                                member_sum += 10
+                        if member_sum >= 21:
+                            finish_members.append(member)
                     players = []
                     for x in members:
                         if x in finish_members:
                             pass
                         else:
                             players.append(x)
-                    if num >= len(players):
-                        num = 0
-                    for r in reaction_list:
-                        await msg_.add_reaction(r)
-
-                    def check(reaction, user):
-                        return str(reaction) in reaction_list and reaction.message.id == msg_.id\
-                                and user == players[num]
-
-                    try:
-                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
-                    except asyncio.TimeoutError:
-                        await msg_.edit(content="시간 초과!", delete_after=2)
-                    else:
-                        if str(reaction) == '✅':
-                            c = random.choice(deck)
-                            deck.remove(c)
-                            board[user] = board[user] + ' ' + c
-                            member_sum = 0
-                            ace = False
-                            for i in board[user].split():
-                                if i[i.rfind(':') + 1:] == 'A':
-                                    ace = True
-                                    member_sum += 1
-                                elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
-                                    member_sum += 10
-                                else:
-                                    member_sum += int(i[i.rfind(':') + 1:])
-                            if ace is True:
-                                if member_sum <= 11:
-                                    member_sum += 10
-                            if member_sum >= 21:
-                                finish_members.append(user)
-                                num -= 1
+                    embed = discord.Embed(title="<블랙잭>", description=players[0].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                    for member in members:
+                        if member in finish_members:
+                            embed.add_field(name="> " + member.name, value=board[member], inline=True)
                         else:
-                            finish_members.append(user)
-                            num -= 1
-                        num += 1
+                            embed.add_field(name=member.name, value=board[member], inline=True)
+                    msg_ = await ctx.send(embed=embed)
+                    reaction_list = ['✅', '❎']
+                    num = 0
+                    while len(finish_members) != len(members):
                         players = []
                         for x in members:
                             if x in finish_members:
@@ -549,56 +516,100 @@ class Game(commands.Cog, name="게임(Game)"):
                                 players.append(x)
                         if num >= len(players):
                             num = 0
-                        if len(players) > 0:
-                            embed = discord.Embed(title="<블랙잭>",
-                                                  description=players[num].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                        for r in reaction_list:
+                            await msg_.add_reaction(r)
+
+                        def check(reaction, user):
+                            return str(reaction) in reaction_list and reaction.message.id == msg_.id \
+                                   and user == players[num]
+
+                        try:
+                            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                        except asyncio.TimeoutError:
+                            await msg_.edit(content="시간 초과!", delete_after=2)
                         else:
-                            embed = discord.Embed(title="<블랙잭>", description="모든 플레이어가 선택을 종료했습니다.")
-                        for member in members:
-                            if member in finish_members:
-                                embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                            if str(reaction) == '✅':
+                                c = random.choice(deck)
+                                deck.remove(c)
+                                board[user] = board[user] + ' ' + c
+                                member_sum = 0
+                                ace = False
+                                for i in board[user].split():
+                                    if i[i.rfind(':') + 1:] == 'A':
+                                        ace = True
+                                        member_sum += 1
+                                    elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
+                                        member_sum += 10
+                                    else:
+                                        member_sum += int(i[i.rfind(':') + 1:])
+                                if ace is True:
+                                    if member_sum <= 11:
+                                        member_sum += 10
+                                if member_sum >= 21:
+                                    finish_members.append(user)
+                                    num -= 1
                             else:
-                                embed.add_field(name=member.name, value=board[member], inline=True)
-                        await msg_.clear_reactions()
-                        await msg_.edit(embed=embed)
-                for member in finish_members:
-                    member_sum = 0
-                    ace = False
-                    bj = False
-                    for i in board[member].split():
-                        if i[i.rfind(':') + 1:] == 'A':
-                            ace = True
-                            if len(board[member].split()) == 2:
-                                bj = True
-                            member_sum += 1
-                        elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
-                            member_sum += 10
+                                finish_members.append(user)
+                                num -= 1
+                            num += 1
+                            players = []
+                            for x in members:
+                                if x in finish_members:
+                                    pass
+                                else:
+                                    players.append(x)
+                            if num >= len(players):
+                                num = 0
+                            if len(players) > 0:
+                                embed = discord.Embed(title="<블랙잭>",
+                                                      description=players[num].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                            else:
+                                embed = discord.Embed(title="<블랙잭>", description="모든 플레이어가 선택을 종료했습니다.")
+                            for member in members:
+                                if member in finish_members:
+                                    embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                                else:
+                                    embed.add_field(name=member.name, value=board[member], inline=True)
+                            await msg_.clear_reactions()
+                            await msg_.edit(embed=embed)
+                    for member in finish_members:
+                        member_sum = 0
+                        ace = False
+                        bj = False
+                        for i in board[member].split():
+                            if i[i.rfind(':') + 1:] == 'A':
+                                ace = True
+                                if len(board[member].split()) == 2:
+                                    bj = True
+                                member_sum += 1
+                            elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
+                                member_sum += 10
+                            else:
+                                member_sum += int(i[i.rfind(':') + 1:])
+                        if ace is True:
+                            if member_sum <= 11:
+                                member_sum += 10
+                        if member_sum == 21:
+                            if bj is True:
+                                board[member] = 22
+                            else:
+                                board[member] = 21
+                        elif member_sum < 21:
+                            board[member] = member_sum
                         else:
-                            member_sum += int(i[i.rfind(':') + 1:])
-                    if ace is True:
-                        if member_sum <= 11:
-                            member_sum += 10
-                    if member_sum == 21:
-                        if bj is True:
-                            board[member] = 22
+                            board[member] = 0
+                    finish_members.reverse()
+                    winner = finish_members[0]
+                    for member in finish_members:
+                        if board[member] >= board[winner]:
+                            winner = member
+                    embed = discord.Embed(title="<블랙잭 결과>", description=winner.name + ' 우승!')
+                    for member in members:
+                        if board[member] == 22:
+                            embed.add_field(name=member.name, value='21(blackjack)', inline=True)
                         else:
-                            board[member] = 21
-                    elif member_sum < 21:
-                        board[member] = member_sum
-                    else:
-                        board[member] = 0
-                finish_members.reverse()
-                winner = finish_members[0]
-                for member in finish_members:
-                    if board[member] >= board[winner]:
-                        winner = member
-                embed = discord.Embed(title="<블랙잭 결과>", description=winner.name + ' 우승!')
-                for member in members:
-                    if board[member] == 22:
-                        embed.add_field(name=member.name, value='21(blackjack)', inline=True)
-                    else:
-                        embed.add_field(name=member.name, value=str(board[member]), inline=True)
-                await ctx.send(embed=embed)
+                            embed.add_field(name=member.name, value=str(board[member]), inline=True)
+                    await ctx.send(embed=embed)
 
     @commands.command(name="시드포커", help="시드 포커를 신청합니다."
                                         "\n덱에는 1~15까지의 숫자가 있으며,"
@@ -611,141 +622,155 @@ class Game(commands.Cog, name="게임(Game)"):
                                         "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="%시드포커")
     async def seedpoker(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
-        members = []
-        start = False
-        msg = await ctx.send(
-            ctx.author.name + " 님이 시드 포커를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요.")
-        reaction_list = ['✅', '❎']
-        while True:
-            for r in reaction_list:
-                await msg.add_reaction(r)
+        find_id = False
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith(str(ctx.author.id)) is True:
+                find_id = True
+        if find_id is False:
+            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        else:
+            members = []
+            start = False
+            msg = await ctx.send(
+                ctx.author.name + " 님이 시드 포커를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요.")
+            reaction_list = ['✅', '❎']
+            while True:
+                for r in reaction_list:
+                    await msg.add_reaction(r)
 
-            def check(reaction, user):
-                return str(reaction) in reaction_list and reaction.message.id == msg.id and user.bot is False
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user.bot is False
 
-            try:
-                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
-            except asyncio.TimeoutError:
-                await msg.edit(content="시간 초과!", delete_after=2)
-            else:
-                if str(reaction) == '✅':
-                    if user == ctx.author:
-                        members.append(ctx.author)
-                        start = True
-                        break
-                    if user not in members:
-                        members.append(user)
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
                 else:
-                    if user == ctx.author:
-                        await ctx.send("호스트가 시드 포커를 취소했습니다.")
-                        break
-                    if user in members:
-                        members.remove(user)
-                names = [x.name for x in members]
-                await msg.clear_reactions()
-                await msg.edit(content=ctx.author.name + " 님이 시드 포커를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
-                                                         "\n참가자 " + str(names))
-        if start is True:
-            if len(members) < 3:
-                await ctx.send("시드 포커는 3인부터 가능합니다.")
-            elif len(members) > 7:
-                await ctx.send("시드 포커는 최대 7인까지 가능합니다.")
-            else:
-                deck = []
-                for i in range(1, 16):
-                    deck.append(i)
-                seed = []
-                waste = []
-                board = {}
-                for member in members:
-                    a = random.choice(deck)
-                    deck.remove(a)
-                    board[member] = a
-                    member_dm = await member.create_dm()
-                    await member_dm.send(str(a))
-                embed = discord.Embed(title="<시드 포커>", description=members[0].name + " 님 카드를 받을 지, 시드를 추가할 지 선택해주세요.")
-                embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
-                embed.add_field(name='> 시드', value=str(seed), inline=True)
-                embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
-                msg_ = await ctx.send(embed=embed)
-                reaction_list = ['✅', '❎']
-                num = 0
-                while len(deck) > 0:
-                    for r in reaction_list:
-                        await msg_.add_reaction(r)
-
-                    def check(reaction, user):
-                        return str(reaction) in reaction_list and reaction.message.id == msg_.id \
-                               and user == members[num]
-
-                    try:
-                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
-                    except asyncio.TimeoutError:
-                        await msg_.edit(content="시간 초과!", delete_after=2)
+                    if str(reaction) == '✅':
+                        if user == ctx.author:
+                            members.append(ctx.author)
+                            start = True
+                            break
+                        if user not in members:
+                            find_id = False
+                            async for message in log_channel.history(limit=100):
+                                if message.content.startswith(str(user.id)) is True:
+                                    find_id = True
+                                    members.append(user)
+                            if find_id is False:
+                                await ctx.send('토큰 로그에 없는 ID 입니다.')
                     else:
-                        if str(reaction) == '✅':
-                            c = random.choice(deck)
-                            deck.remove(c)
-                            user_dm = await user.create_dm()
-                            await user_dm.send(str(c))
-                            ask = await ctx.send(
-                                user.name + " 님, 카드를 바꾸시겠습니까?")
-                            reaction_list = ['✅', '❎']
-                            for r in reaction_list:
-                                await ask.add_reaction(r)
+                        if user == ctx.author:
+                            await ctx.send("호스트가 시드 포커를 취소했습니다.")
+                            break
+                        if user in members:
+                            members.remove(user)
+                    names = [x.name for x in members]
+                    await msg.clear_reactions()
+                    await msg.edit(content=ctx.author.name + " 님이 시드 포커를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
+                                                             "\n참가자 " + str(names))
+            if start is True:
+                if len(members) < 3:
+                    await ctx.send("시드 포커는 3인부터 가능합니다.")
+                elif len(members) > 7:
+                    await ctx.send("시드 포커는 최대 7인까지 가능합니다.")
+                else:
+                    deck = []
+                    for i in range(1, 16):
+                        deck.append(i)
+                    seed = []
+                    waste = []
+                    board = {}
+                    for member in members:
+                        a = random.choice(deck)
+                        deck.remove(a)
+                        board[member] = a
+                        member_dm = await member.create_dm()
+                        await member_dm.send(str(a))
+                    embed = discord.Embed(title="<시드 포커>",
+                                          description=members[0].name + " 님 카드를 받을 지, 시드를 추가할 지 선택해주세요.")
+                    embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
+                    embed.add_field(name='> 시드', value=str(seed), inline=True)
+                    embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
+                    msg_ = await ctx.send(embed=embed)
+                    reaction_list = ['✅', '❎']
+                    num = 0
+                    while len(deck) > 0:
+                        for r in reaction_list:
+                            await msg_.add_reaction(r)
 
-                            def check(reaction, user_):
-                                return str(
-                                    reaction) in reaction_list and reaction.message.id == ask.id and user_ == user
+                        def check(reaction, user):
+                            return str(reaction) in reaction_list and reaction.message.id == msg_.id \
+                                   and user == members[num]
 
-                            try:
-                                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
-                            except asyncio.TimeoutError:
-                                await ask.edit(content="시간 초과!", delete_after=2)
-                            else:
-                                if str(reaction) == '✅':
-                                    waste.append(board[user])
-                                    board[user] = c
-                                else:
-                                    waste.append(c)
-                                await ask.delete()
+                        try:
+                            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                        except asyncio.TimeoutError:
+                            await msg_.edit(content="시간 초과!", delete_after=2)
                         else:
-                            c = random.choice(deck)
-                            deck.remove(c)
-                            seed.append(c)
-                            seed.sort(reverse=True)
-                            if len(seed) > 3:
-                                waste.append(seed[3])
-                                seed = seed[0:3]
-                        num += 1
-                        if num >= len(members):
-                            num = 0
-                        embed = discord.Embed(title="<시드 포커>",
-                                              description=members[num].name + " 님 카드를 받을 지, 시드를 추가할 지 선택해주세요.")
-                        embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
-                        embed.add_field(name='> 시드', value=str(seed), inline=True)
-                        embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
-                        await msg_.clear_reactions()
-                        await msg_.edit(embed=embed)
-                v = list(board.values())
-                v.sort()
-                while len(seed) < 3:
-                    seed.append(0)
-                for member in members:
-                    if board[member] == v[0]:
-                        board[member] += seed[0]
-                    elif board[member] == v[1]:
-                        board[member] += seed[1]
-                    elif board[member] == v[2]:
-                        board[member] += seed[2]
-                winner = ctx.author
-                for member in members:
-                    if board[member] > board[winner]:
-                        winner = member
-                embed = discord.Embed(title='<시드 포커 결과>', description=winner.name + " 님 우승!")
-                for member in members:
-                    embed.add_field(name=member.name, value=str(board[member]), inline=True)
-                await ctx.send(embed=embed)
+                            if str(reaction) == '✅':
+                                c = random.choice(deck)
+                                deck.remove(c)
+                                user_dm = await user.create_dm()
+                                await user_dm.send(str(c))
+                                ask = await ctx.send(
+                                    user.name + " 님, 카드를 바꾸시겠습니까?")
+                                reaction_list = ['✅', '❎']
+                                for r in reaction_list:
+                                    await ask.add_reaction(r)
+
+                                def check(reaction, user_):
+                                    return str(
+                                        reaction) in reaction_list and reaction.message.id == ask.id and user_ == user
+
+                                try:
+                                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                                except asyncio.TimeoutError:
+                                    await ask.edit(content="시간 초과!", delete_after=2)
+                                else:
+                                    if str(reaction) == '✅':
+                                        waste.append(board[user])
+                                        board[user] = c
+                                    else:
+                                        waste.append(c)
+                                    await ask.delete()
+                            else:
+                                c = random.choice(deck)
+                                deck.remove(c)
+                                seed.append(c)
+                                seed.sort(reverse=True)
+                                if len(seed) > 3:
+                                    waste.append(seed[3])
+                                    seed = seed[0:3]
+                            num += 1
+                            if num >= len(members):
+                                num = 0
+                            embed = discord.Embed(title="<시드 포커>",
+                                                  description=members[num].name + " 님 카드를 받을 지, 시드를 추가할 지 선택해주세요.")
+                            embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
+                            embed.add_field(name='> 시드', value=str(seed), inline=True)
+                            embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
+                            await msg_.clear_reactions()
+                            await msg_.edit(embed=embed)
+                    v = list(board.values())
+                    v.sort()
+                    while len(seed) < 3:
+                        seed.append(0)
+                    for member in members:
+                        if board[member] == v[0]:
+                            board[member] += seed[0]
+                        elif board[member] == v[1]:
+                            board[member] += seed[1]
+                        elif board[member] == v[2]:
+                            board[member] += seed[2]
+                    winner = ctx.author
+                    for member in members:
+                        if board[member] > board[winner]:
+                            winner = member
+                    embed = discord.Embed(title='<시드 포커 결과>', description=winner.name + " 님 우승!")
+                    for member in members:
+                        embed.add_field(name=member.name, value=str(board[member]), inline=True)
+                    await ctx.send(embed=embed)
 
 
 def setup(app):

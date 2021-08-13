@@ -564,9 +564,12 @@ class Game(commands.Cog, name="게임(Game)"):
                 for member in finish_members:
                     member_sum = 0
                     ace = False
+                    bj = False
                     for i in board[member].split():
                         if i[i.rfind(':') + 1:] == 'A':
                             ace = True
+                            if len(board[member].split()) == 2:
+                                bj = True
                             member_sum += 1
                         elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
                             member_sum += 10
@@ -576,9 +579,10 @@ class Game(commands.Cog, name="게임(Game)"):
                         if member_sum <= 11:
                             member_sum += 10
                     if member_sum == 21:
-                        if ace is True:
+                        if bj is True:
                             board[member] = 22
-                        board[member] = 21
+                        else:
+                            board[member] = 21
                     elif member_sum < 21:
                         board[member] = member_sum
                     else:

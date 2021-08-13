@@ -497,6 +497,12 @@ class Game(commands.Cog, name="게임(Game)"):
                 reaction_list = ['✅', '❎']
                 num = 0
                 while len(finish_members) != len(members):
+                    players = []
+                    for x in members:
+                        if x in finish_members:
+                            pass
+                        else:
+                            players.append(x)
                     for r in reaction_list:
                         await msg_.add_reaction(r)
 

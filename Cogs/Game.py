@@ -491,7 +491,10 @@ class Game(commands.Cog, name="게임(Game)"):
                 reaction_list = ['✅', '❎']
                 num = 0
                 while len(finish_members) != len(members):
-                    players = [x for x in members if x not in finish_members]
+                    players = []
+                    for member in members:
+                        if member not in finish_members:
+                            players.append(member)
                     if num >= len(players):
                         num = 0
                     for r in reaction_list:

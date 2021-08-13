@@ -502,7 +502,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
                     def check(reaction, user):
                         return str(reaction) in reaction_list and reaction.message.id == msg_.id\
-                                and user == players[num]
+                                and user.id == players[num].id
 
                     try:
                         reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)

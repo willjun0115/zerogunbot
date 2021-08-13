@@ -655,6 +655,8 @@ class Game(commands.Cog, name="게임(Game)"):
                         await msg_.edit(embed=embed)
                 v = list(board.values())
                 v.sort()
+                while len(seed) == 3:
+                    seed.append(0)
                 for member in members:
                     if board[member] == v[0]:
                         board[member] += seed[0]

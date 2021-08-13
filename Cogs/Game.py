@@ -549,8 +549,11 @@ class Game(commands.Cog, name="게임(Game)"):
                                 players.append(x)
                         if num >= len(players):
                             num = 0
-                        embed = discord.Embed(title="<블랙잭>",
-                                              description=players[num].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                        if len(players) > 0:
+                            embed = discord.Embed(title="<블랙잭>",
+                                                  description=players[num].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                        else:
+                            embed = discord.Embed(title="<블랙잭>", description="모든 플레이어가 선택을 종료했습니다.")
                         for member in members:
                             if member in finish_members:
                                 embed.add_field(name="> " + member.name, value=board[member], inline=True)

@@ -477,7 +477,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
                     def check(reaction, user):
                         return str(reaction) in reaction_list and reaction.message.id == msg_.id\
-                        and user in members and user not in finish_members
+                        and user in [x for x in members if x not in finish_members]
 
                     try:
                         reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
@@ -488,6 +488,21 @@ class Game(commands.Cog, name="게임(Game)"):
                             c = random.choice(deck)
                             deck.remove(c)
                             board[user] = board[user] + ' ' + c
+                            member_sum = 0
+                            ace = False
+                            for i in board[user].split():
+                                if i[i.rfind(':') + 1:] == 'A':
+                                    ace = True
+                                    member_sum += 1
+                                elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
+                                    member_sum += 10
+                                else:
+                                    member_sum += int(i[i.rfind(':') + 1:])
+                            if ace is True:
+                                if member_sum <= 11:
+                                    member_sum += 10
+                            if member_sum > 21:
+                                finish_members.append(user)
                         else:
                             finish_members.append(user)
                         embed = discord.Embed(title="<블랙잭>", description="카드를 더 받을 지, 멈출 지 선택해주세요.")

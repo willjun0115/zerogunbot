@@ -541,6 +541,12 @@ class Game(commands.Cog, name="게임(Game)"):
                             finish_members.append(user)
                             num -= 1
                         num += 1
+                        players = []
+                        for x in members:
+                            if x in finish_members:
+                                pass
+                            else:
+                                players.append(x)
                         if num >= len(players):
                             num = 0
                         embed = discord.Embed(title="<블랙잭>",

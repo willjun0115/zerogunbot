@@ -502,7 +502,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
                     def check(reaction, user):
                         return str(reaction) in reaction_list and reaction.message.id == msg_.id\
-                                and user.id == players[num].id
+                                and user == players[num]
 
                     try:
                         reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
@@ -528,10 +528,10 @@ class Game(commands.Cog, name="게임(Game)"):
                                     member_sum += 10
                             if member_sum >= 21:
                                 finish_members.append(user)
-                                num -= 1
+                                num = num - 1
                         else:
                             finish_members.append(user)
-                            num -= 1
+                            num = num - 1
                         num += 1
                         players = []
                         for x in members:

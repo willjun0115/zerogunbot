@@ -467,16 +467,16 @@ class Game(commands.Cog, name="게임(Game)"):
                     deck.remove(b)
                     board[member] = a + ' ' + b
                     member_sum = 0
-                    ace = False
+                    _ace = False
                     for i in board[member].split():
                         if i[i.rfind(':') + 1:] == 'A':
-                            ace = True
+                            _ace = True
                             member_sum += 1
                         elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
                             member_sum += 10
                         else:
                             member_sum += int(i[i.rfind(':') + 1:])
-                    if ace is True:
+                    if _ace is True:
                         if member_sum <= 11:
                             member_sum += 10
                     if member_sum >= 21:
@@ -487,7 +487,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         pass
                     else:
                         players.append(x)
-                embed = discord.Embed(title="<블랙잭>", description=players[0].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                embed = discord.Embed(title="<블랙잭>", description=players[0].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
                 for member in members:
                     if member in finish_members:
                         embed.add_field(name="> " + member.name, value=board[member], inline=True)
@@ -520,24 +520,24 @@ class Game(commands.Cog, name="게임(Game)"):
                             deck.remove(c)
                             board[user] = board[user] + ' ' + c
                             member_sum = 0
-                            ace = False
+                            ace_ = False
                             for i in board[user].split():
                                 if i[i.rfind(':') + 1:] == 'A':
-                                    ace = True
+                                    ace_ = True
                                     member_sum += 1
                                 elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
                                     member_sum += 10
                                 else:
                                     member_sum += int(i[i.rfind(':') + 1:])
-                            if ace is True:
+                            if ace_ is True:
                                 if member_sum <= 11:
                                     member_sum += 10
                             if member_sum >= 21:
                                 finish_members.append(user)
-                                num = num - 1
+                                num -= 1
                         else:
                             finish_members.append(user)
-                            num = num - 1
+                            num -= 1
                         num += 1
                         players = []
                         for x in members:
@@ -548,7 +548,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         if num >= len(players):
                             num = 0
                         embed = discord.Embed(title="<블랙잭>",
-                                              description=players[num].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                                              description=players[num].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
                         for member in members:
                             if member in finish_members:
                                 embed.add_field(name="> " + member.name, value=board[member], inline=True)

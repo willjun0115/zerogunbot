@@ -467,16 +467,16 @@ class Game(commands.Cog, name="게임(Game)"):
                     deck.remove(b)
                     board[member] = a + ' ' + b
                     member_sum = 0
-                    _ace = False
+                    ace = False
                     for i in board[member].split():
                         if i[i.rfind(':') + 1:] == 'A':
-                            _ace = True
+                            ace = True
                             member_sum += 1
                         elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
                             member_sum += 10
                         else:
                             member_sum += int(i[i.rfind(':') + 1:])
-                    if _ace is True:
+                    if ace is True:
                         if member_sum <= 11:
                             member_sum += 10
                     if member_sum >= 21:
@@ -520,16 +520,16 @@ class Game(commands.Cog, name="게임(Game)"):
                             deck.remove(c)
                             board[user] = board[user] + ' ' + c
                             member_sum = 0
-                            ace_ = False
+                            ace = False
                             for i in board[user].split():
                                 if i[i.rfind(':') + 1:] == 'A':
-                                    ace_ = True
+                                    ace = True
                                     member_sum += 1
                                 elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
                                     member_sum += 10
                                 else:
                                     member_sum += int(i[i.rfind(':') + 1:])
-                            if ace_ is True:
+                            if ace is True:
                                 if member_sum <= 11:
                                     member_sum += 10
                             if member_sum >= 21:
@@ -539,12 +539,6 @@ class Game(commands.Cog, name="게임(Game)"):
                             finish_members.append(user)
                             num -= 1
                         num += 1
-                        players = []
-                        for x in members:
-                            if x in finish_members:
-                                pass
-                            else:
-                                players.append(x)
                         if num >= len(players):
                             num = 0
                         embed = discord.Embed(title="<블랙잭>",

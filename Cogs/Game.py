@@ -459,18 +459,36 @@ class Game(commands.Cog, name="게임(Game)"):
                     for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']:
                         deck.append(i+j)
                 board = {}
+                finish_members = []
                 for member in members:
                     a = random.choice(deck)
                     deck.remove(a)
                     b = random.choice(deck)
                     deck.remove(b)
                     board[member] = a + ' ' + b
+                    member_sum = 0
+                    ace = False
+                    for i in board[member].split():
+                        if i[i.rfind(':') + 1:] == 'A':
+                            ace = True
+                            member_sum += 1
+                        elif i[i.rfind(':') + 1:] in ['J', 'Q', 'K']:
+                            member_sum += 10
+                        else:
+                            member_sum += int(i[i.rfind(':') + 1:])
+                    if ace is True:
+                        if member_sum <= 11:
+                            member_sum += 10
+                    if member_sum >= 21:
+                        finish_members.append(member)
                 embed = discord.Embed(title="<블랙잭>", description=members[0].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
                 for member in members:
-                    embed.add_field(name=member.name, value=board[member], inline=True)
+                    if member in finish_members:
+                        embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                    else:
+                        embed.add_field(name=member.name, value=board[member], inline=True)
                 msg_ = await ctx.send(embed=embed)
                 reaction_list = ['✅', '❎']
-                finish_members = []
                 num = 0
                 while len(finish_members) != len(members):
                     players = [x for x in members if x not in finish_members]

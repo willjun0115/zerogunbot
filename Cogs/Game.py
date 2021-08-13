@@ -490,13 +490,8 @@ class Game(commands.Cog, name="게임(Game)"):
                 msg_ = await ctx.send(embed=embed)
                 reaction_list = ['✅', '❎']
                 num = 0
+                players = [x for x in members if x not in finish_members]
                 while len(finish_members) != len(members):
-                    players = []
-                    for member in members:
-                        if member not in finish_members:
-                            players.append(member)
-                    if num >= len(players):
-                        num = 0
                     for r in reaction_list:
                         await msg_.add_reaction(r)
 
@@ -533,7 +528,11 @@ class Game(commands.Cog, name="게임(Game)"):
                             finish_members.append(user)
                             num -= 1
                         num += 1
-                        embed = discord.Embed(title="<블랙잭>", description=players[num].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                        players = [x for x in members if x not in finish_members]
+                        if num >= len(players):
+                            num = 0
+                        embed = discord.Embed(title="<블랙잭>",
+                                              description=players[num].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
                         for member in members:
                             if member in finish_members:
                                 embed.add_field(name="> " + member.name, value=board[member], inline=True)

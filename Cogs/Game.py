@@ -503,6 +503,8 @@ class Game(commands.Cog, name="게임(Game)"):
                             pass
                         else:
                             players.append(x)
+                    if num >= len(players):
+                        num = 0
                     for r in reaction_list:
                         await msg_.add_reaction(r)
 

@@ -465,19 +465,21 @@ class Game(commands.Cog, name="게임(Game)"):
                     b = random.choice(deck)
                     deck.remove(b)
                     board[member] = a + ' ' + b
-                embed = discord.Embed(title="<블랙잭>", description="카드를 더 받을 지, 멈출 지 선택해주세요.")
+                embed = discord.Embed(title="<블랙잭>", description=members[0].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
                 for member in members:
                     embed.add_field(name=member.name, value=board[member], inline=True)
                 msg_ = await ctx.send(embed=embed)
                 reaction_list = ['✅', '❎']
                 finish_members = []
+                num = 0
                 while len(finish_members) != len(members):
+                    players = [x for x in members if x not in finish_members]
                     for r in reaction_list:
                         await msg_.add_reaction(r)
 
                     def check(reaction, user):
                         return str(reaction) in reaction_list and reaction.message.id == msg_.id\
-                        and user in [x for x in members if x not in finish_members]
+                                and user == players[num]
 
                     try:
                         reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
@@ -503,9 +505,14 @@ class Game(commands.Cog, name="게임(Game)"):
                                     member_sum += 10
                             if member_sum > 21:
                                 finish_members.append(user)
+                                num -= 1
                         else:
                             finish_members.append(user)
-                        embed = discord.Embed(title="<블랙잭>", description="카드를 더 받을 지, 멈출 지 선택해주세요.")
+                            num -= 1
+                        num += 1
+                        if num >= len(players):
+                            num = 0
+                        embed = discord.Embed(title="<블랙잭>", description=players[num].name + "카드를 더 받을 지, 멈출 지 선택해주세요.")
                         for member in members:
                             if member in finish_members:
                                 embed.add_field(name="> " + member.name, value=board[member], inline=True)

@@ -481,7 +481,13 @@ class Game(commands.Cog, name="게임(Game)"):
                             member_sum += 10
                     if member_sum >= 21:
                         finish_members.append(member)
-                embed = discord.Embed(title="<블랙잭>", description=members[0].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                players = []
+                for x in members:
+                    if x in finish_members:
+                        pass
+                    else:
+                        players.append(x)
+                embed = discord.Embed(title="<블랙잭>", description=players[0].name + "님 카드를 더 받을 지, 멈출 지 선택해주세요.")
                 for member in members:
                     if member in finish_members:
                         embed.add_field(name="> " + member.name, value=board[member], inline=True)
@@ -490,10 +496,6 @@ class Game(commands.Cog, name="게임(Game)"):
                 msg_ = await ctx.send(embed=embed)
                 reaction_list = ['✅', '❎']
                 num = 0
-                players = []
-                for x in members:
-                    if x not in finish_members:
-                        players.append(x)
                 while len(finish_members) != len(members):
                     for r in reaction_list:
                         await msg_.add_reaction(r)
@@ -533,7 +535,9 @@ class Game(commands.Cog, name="게임(Game)"):
                         num += 1
                         players = []
                         for x in members:
-                            if x not in finish_members:
+                            if x in finish_members:
+                                pass
+                            else:
                                 players.append(x)
                         if num >= len(players):
                             num = 0

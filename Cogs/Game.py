@@ -572,7 +572,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 await msg.edit(content=ctx.author.name + " 님이 시드 포커를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
                                                          "\n참가자 " + str(names))
         if start is True:
-            if len(members) < 2:
+            if len(members) < 3:
                 await ctx.send("시드 포커는 3인부터 가능합니다.")
             elif len(members) > 7:
                 await ctx.send("시드 포커는 최대 7인까지 가능합니다.")

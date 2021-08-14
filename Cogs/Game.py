@@ -917,8 +917,8 @@ class Game(commands.Cog, name="게임(Game)"):
                     winner = ctx.author
                     embed = discord.Embed(title="<섯다>",
                                           description=members[0].name + " 님 베팅해주세요.")
-                    embed.add_field(name='> 판돈', value=str(coin), inline=True)
-                    embed.add_field(name='> 콜 비용', value=str(call), inline=True)
+                    embed.add_field(name='> 판돈', value=str(coin) + ' :coin:', inline=True)
+                    embed.add_field(name='> 콜 비용', value=str(call) + ' :coin:', inline=True)
                     msg_ = await ctx.send(embed=embed)
                     reaction_list = ['⏏️', '‼️', '✅', '💀']
                     num = 0
@@ -973,7 +973,7 @@ class Game(commands.Cog, name="게임(Game)"):
                             embed = discord.Embed(title="<섯다>",
                                                   description=players[num].name + " 님 베팅해주세요.")
                             embed.add_field(name='> 판돈', value=str(coin) + ' :coin:', inline=True)
-                            embed.add_field(name='> 콜 비용', value=str(call)+ ' :coin:', inline=True)
+                            embed.add_field(name='> 콜 비용', value=str(call) + ' :coin:', inline=True)
                             await msg_.clear_reactions()
                             await msg_.edit(embed=embed)
                     for member in call_members:

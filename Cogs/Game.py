@@ -852,7 +852,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         n = int(hand1[0]) + int(hand2[0])
                         if n > 9:
                             n -= 10
-                        n = str(n)
+                        n = str(n) + '끗'
                         if hand1[0] == '9':
                             if hand2[0] == '4':
                                 n = '구사'

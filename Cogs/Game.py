@@ -837,6 +837,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         deck.append(str(i))
                     deck.append('장')
                     board = {}
+                    leveltable = ['38광땡', '18광땡', '13광땡']
                     for member in members:
                         a = random.choice(deck)
                         deck.remove(a)
@@ -849,18 +850,37 @@ class Game(commands.Cog, name="게임(Game)"):
                         hand = board[member].split()
                         hand1 = hand[0]
                         hand2 = hand[1]
-                        n = int(hand1[0]) + int(hand2[0])
-                        if n > 9:
+                        n = 0
+                        if hand1[0] == '장':
+                            n += 10
+                        else:
+                            n += int(hand1[0])
+                        if hand2[0] == '장':
+                            n += 10
+                        else:
+                            n += int(hand2[0])
+                        while n > 9:
                             n -= 10
                         n = str(n) + '끗'
-                        if hand1[0] == '9':
-                            if hand2[0] == '4':
-                                n = '구사'
-                        elif hand1[0] == '4':
-                            if hand2[0] == '9':
-                                n = '구사'
-                        elif hand1[0] == hand2[0]:
+                        if hand1[0] == hand2[0]:
                             n = hand1[0] + '땡'
+                        if hand1[0] == '9' or hand1[0] == '4':
+                            if int(hand1[0]) + int(hand2[0]) == 13:
+                                n = '구사'
+                        if hand1[0] == '1' or hand2[0] == '1':
+                            if int(hand1[0]) + int(hand2[0]) == 3:
+                                n = '알리'
+                            elif int(hand1[0]) + int(hand2[0]) == 5:
+                                n = '독사'
+                            elif int(hand1[0]) + int(hand2[0]) == 10:
+                                n = '구삥'
+                            elif hand1[0] == '장' or hand2[0] == '장':
+                                n = '장삥'
+                        if hand1[0] == '4' or hand2[0] == '4':
+                            if hand1[0] == '장' or hand2[0] == '장':
+                                n = '장사'
+                            elif int(hand1[0]) + int(hand2[0]) == 10:
+                                n = '세륙'
                         if '8광' in hand:
                             if '3광' in hand:
                                 n = '38광땡'
@@ -913,7 +933,7 @@ class Game(commands.Cog, name="게임(Game)"):
                             await msg_.edit(content="시간 초과!", delete_after=2)
                         else:
                             if str(reaction) == '⏏️':
-                                call += coin//2
+                                call = coin//2
                                 coin += call
                                 call_members = [user]
                             elif str(reaction) == '✅':

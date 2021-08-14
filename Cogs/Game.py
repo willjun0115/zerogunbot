@@ -837,7 +837,16 @@ class Game(commands.Cog, name="게임(Game)"):
                         deck.append(str(i))
                     deck.append('장')
                     board = {}
-                    leveltable = ['38광땡', '18광땡', '13광땡']
+                    specials = ['멍텅구리구사', '구사', '땡잡이', '암행어사']
+                    middles = ['세륙', '장사', '장삥', '구삥', '독사', '알리']
+                    ends = []
+                    for i in range(0, 10):
+                        ends.append(str(i)+'끗')
+                    pairs = []
+                    for i in range(1, 10):
+                        pairs.append(str(i) + '땡')
+                    pairs.append('장땡')
+                    leveltable = specials + middles + pairs + ['13광땡', '18광땡', '38광땡']
                     for member in members:
                         a = random.choice(deck)
                         deck.remove(a)
@@ -904,10 +913,11 @@ class Game(commands.Cog, name="게임(Game)"):
                     call = 1
                     die_members = []
                     call_members = []
+                    winner = ctx.author
                     embed = discord.Embed(title="<섯다>",
                                           description=members[0].name + " 님 베팅해주세요.")
                     embed.add_field(name='> 판돈', value=str(coin), inline=True)
-                    embed.add_field(name='> 콜 비용', value=str(call), inline=True)
+                    embed.add_field(name='> 콜 비용', value=str(call), inline=False)
                     msg_ = await ctx.send(embed=embed)
                     reaction_list = ['⏏️', '✅', '💀']
                     num = 0
@@ -951,14 +961,35 @@ class Game(commands.Cog, name="게임(Game)"):
                                     players.append(x)
                             if num >= len(players):
                                 num = 0
-                            if len(die_members) == members:
+                            if len(players) == 1:
+                                winner = players[0]
                                 break
                             embed = discord.Embed(title="<섯다>",
                                                   description=members[num].name + " 님 베팅해주세요.")
                             embed.add_field(name='> 판돈', value=str(coin), inline=True)
-                            embed.add_field(name='> 콜 비용', value=str(call), inline=True)
+                            embed.add_field(name='> 콜 비용', value=str(call), inline=False)
                             await msg_.clear_reactions()
                             await msg_.edit(embed=embed)
+                    for member in call_members:
+                        m_hand = board[member].split()
+                        w_hand = board[winner].split()
+                        if leveltable.index(m_hand[2]) > leveltable.index(w_hand[2]):
+                            winner = member
+                    w_hand = board[winner].split()
+                    if w_hand[2] in ['13광땡', '18광땡']:
+                        for member in call_members:
+                            m_hand = board[member].split()
+                            if m_hand[2] == '암행어사':
+                                winner = member
+                    elif w_hand[2] in pairs:
+                        for member in call_members:
+                            m_hand = board[member].split()
+                            if m_hand[2] == '땡잡이':
+                                winner = member
+                    embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')
+                    for member in members:
+                        embed.add_field(name=member.name, value=board[member], inline=True)
+                    await ctx.send(embed=embed)
 
 
 def setup(app):

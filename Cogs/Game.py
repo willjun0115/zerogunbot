@@ -956,6 +956,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                 coin += call
                             else:
                                 die_members.append(user)
+                                await ctx.send(user.name + ' 다이')
                                 num -= 1
                             num += 1
                             players = []
@@ -973,8 +974,6 @@ class Game(commands.Cog, name="게임(Game)"):
                                                   description=players[num].name + " 님 베팅해주세요.")
                             embed.add_field(name='> 판돈', value=str(coin) + ' :coin:', inline=True)
                             embed.add_field(name='> 콜 비용', value=str(call)+ ' :coin:', inline=True)
-                            embed.add_field(name=':white_check_mark:', value=str(call_members), inline=False)
-                            embed.add_field(name=':skull:', value=str(die_members), inline=True)
                             await msg_.clear_reactions()
                             await msg_.edit(embed=embed)
                     for member in call_members:

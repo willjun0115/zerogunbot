@@ -846,7 +846,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     for i in range(1, 10):
                         pairs.append(str(i) + '땡')
                     pairs.append('장땡')
-                    leveltable = specials + middles + pairs + ['13광땡', '18광땡', '38광땡']
+                    leveltable = specials + ends + middles + pairs + ['13광땡', '18광땡', '38광땡']
                     for member in members:
                         a = random.choice(deck)
                         deck.remove(a)

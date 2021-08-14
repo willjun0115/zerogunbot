@@ -772,6 +772,171 @@ class Game(commands.Cog, name="게임(Game)"):
                         embed.add_field(name=member.name, value=str(board[member]), inline=True)
                     await ctx.send(embed=embed)
 
+    @commands.command(name="섯다", help="섯다를 신청합니다."
+                                        "\n시작하면 참가자마다 두 장의 패를 받습니다."
+                                        "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
+                                        "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
+                                        "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%섯다")
+    async def seotda(self, ctx):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        find_id = False
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith(str(ctx.author.id)) is True:
+                find_id = True
+        if find_id is False:
+            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        else:
+            members = []
+            start = False
+            msg = await ctx.send(
+                ctx.author.name + " 님이 섯다를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요.")
+            reaction_list = ['✅', '❎']
+            while True:
+                for r in reaction_list:
+                    await msg.add_reaction(r)
+
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user.bot is False
+
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
+                else:
+                    if str(reaction) == '✅':
+                        if user == ctx.author:
+                            members.append(ctx.author)
+                            start = True
+                            break
+                        if user not in members:
+                            find_id = False
+                            async for message in log_channel.history(limit=100):
+                                if message.content.startswith(str(user.id)) is True:
+                                    find_id = True
+                                    members.append(user)
+                            if find_id is False:
+                                await ctx.send('토큰 로그에 없는 ID 입니다.')
+                    else:
+                        if user == ctx.author:
+                            await ctx.send("호스트가 섯다를 취소했습니다.")
+                            break
+                        if user in members:
+                            members.remove(user)
+                    names = [x.name for x in members]
+                    await msg.clear_reactions()
+                    await msg.edit(content=ctx.author.name + " 님이 섯다를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
+                                                             "\n참가자 " + str(names))
+            if start is True:
+                if len(members) < 2:
+                    await ctx.send("섯다는 혼자할 수 없습니다.")
+                elif len(members) > 5:
+                    await ctx.send("섯다는 최대 5인까지 가능합니다.")
+                else:
+                    deck = ['1광', '2열끗', '3광', '4열끗', '5열끗', '6열끗', '7열끗', '8광', '9열끗', '장열끗']
+                    for i in range(1, 10):
+                        deck.append(str(i))
+                    deck.append('장')
+                    board = {}
+                    for member in members:
+                        a = random.choice(deck)
+                        deck.remove(a)
+                        board[member] = a
+                    for member in members:
+                        b = random.choice(deck)
+                        deck.remove(b)
+                        board[member] = board[member] + ' ' + b
+                    for member in members:
+                        hand = board[member].split()
+                        hand1 = hand[0]
+                        hand2 = hand[1]
+                        n = int(hand1[0]) + int(hand2[0])
+                        if n > 9:
+                            n -= 10
+                        n = str(n)
+                        if hand1[0] == '9':
+                            if hand2[0] == '4':
+                                n = '구사'
+                        elif hand1[0] == '4':
+                            if hand2[0] == '9':
+                                n = '구사'
+                        elif hand1[0] == hand2[0]:
+                            n = hand1[0] + '땡'
+                        if '8광' in hand:
+                            if '3광' in hand:
+                                n = '38광땡'
+                            elif '1광' in hand:
+                                n = '18광땡'
+                        elif '1광' in hand:
+                            if '3광' in hand:
+                                n = '13광땡'
+                        elif '7열끗' in hand:
+                            if '3광' in hand:
+                                n = '땡잡이'
+                            elif '4열끗' in hand:
+                                n = '암행어사'
+                        elif '9열끗' in hand:
+                            if '4열끗' in hand:
+                                n = '멍텅구리구사'
+                        board[member] = board[member] + ' ' + n
+                        member_dm = await member.create_dm()
+                        await member_dm.send(board[member])
+                    coin = len(members)
+                    call = 1
+                    die_members = []
+                    call_members = []
+                    embed = discord.Embed(title="<섯다>",
+                                          description=members[0].name + " 님 베팅해주세요.")
+                    embed.add_field(name='> 판돈', value=str(coin), inline=True)
+                    embed.add_field(name='> 콜 비용', value=str(call), inline=True)
+                    msg_ = await ctx.send(embed=embed)
+                    reaction_list = ['⏏️', '✅', '💀']
+                    num = 0
+                    while len(call_members) != len(members):
+                        players = []
+                        for x in members:
+                            if x in die_members:
+                                pass
+                            else:
+                                players.append(x)
+                        if num >= len(players):
+                            num = 0
+                        for r in reaction_list:
+                            await msg_.add_reaction(r)
+
+                        def check(reaction, user):
+                            return str(reaction) in reaction_list and reaction.message.id == msg_.id \
+                                   and user == players[num]
+
+                        try:
+                            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                        except asyncio.TimeoutError:
+                            await msg_.edit(content="시간 초과!", delete_after=2)
+                        else:
+                            if str(reaction) == '⏏️':
+                                call += coin//2
+                                coin += call
+                                call_members = [user]
+                            elif str(reaction) == '✅':
+                                call_members.append(user)
+                                coin += call
+                            else:
+                                die_members.append(user)
+                                num -= 1
+                            num += 1
+                            players = []
+                            for x in members:
+                                if x in die_members:
+                                    pass
+                                else:
+                                    players.append(x)
+                            if num >= len(players):
+                                num = 0
+                            embed = discord.Embed(title="<섯다>",
+                                                  description=members[num].name + " 님 베팅해주세요.")
+                            embed.add_field(name='> 판돈', value=str(coin), inline=True)
+                            await msg_.clear_reactions()
+                            await msg_.edit(embed=embed)
+
 
 def setup(app):
     app.add_cog(Game(app))

@@ -334,7 +334,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     member_call = False
                     msg_ = await ctx.send(ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
                                                                                   "\n 베팅 토큰: " + str(coin))
-                    reaction_list = ['🔱', '✅', '💀']
+                    reaction_list = ['⏏️', '✅', '💀']
                     while True:
                         for r in reaction_list:
                             await msg_.add_reaction(r)
@@ -348,7 +348,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         except asyncio.TimeoutError:
                             await msg_.edit(content="시간 초과!", delete_after=2)
                         else:
-                            if str(reaction) == '🔱':
+                            if str(reaction) == '⏏️':
                                 author_call = False
                                 member_call = False
                                 coin += 1
@@ -773,10 +773,10 @@ class Game(commands.Cog, name="게임(Game)"):
                     await ctx.send(embed=embed)
 
     @commands.command(name="섯다", help="섯다를 신청합니다."
-                                        "\n시작하면 참가자마다 두 장의 패를 받습니다."
-                                        "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
-                                        "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
-                                        "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%섯다")
+                                      "\n시작하면 참가자마다 두 장의 패를 받습니다."
+                                      "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
+                                      "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
+                                      "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%섯다")
     async def seotda(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
@@ -931,9 +931,12 @@ class Game(commands.Cog, name="게임(Game)"):
                                     players.append(x)
                             if num >= len(players):
                                 num = 0
+                            if len(die_members) == members:
+                                break
                             embed = discord.Embed(title="<섯다>",
                                                   description=members[num].name + " 님 베팅해주세요.")
                             embed.add_field(name='> 판돈', value=str(coin), inline=True)
+                            embed.add_field(name='> 콜 비용', value=str(call), inline=True)
                             await msg_.clear_reactions()
                             await msg_.edit(embed=embed)
 

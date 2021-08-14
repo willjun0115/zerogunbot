@@ -908,8 +908,10 @@ class Game(commands.Cog, name="게임(Game)"):
                             if '4열끗' in hand:
                                 n = '멍텅구리구사'
                         board[member] = board[member] + ' ' + n
+                    for member in members:
+                        hand = board[member].split()
                         member_dm = await member.create_dm()
-                        await member_dm.send(board[member])
+                        await member_dm.send(hand[0] + ' , ' + hand[1])
                     coin = len(members)
                     call = 0
                     die_members = []
@@ -994,7 +996,9 @@ class Game(commands.Cog, name="게임(Game)"):
                                 winner = member
                     embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')
                     for member in members:
-                        embed.add_field(name=member.name, value=board[member], inline=True)
+                        hand = board[member].split()
+                        embed.add_field(name=member.name, value=hand[0] + ' , ' + hand[1]
+                                        + ' (' + hand[2] + ')', inline=True)
                     await ctx.send(embed=embed)
 
 

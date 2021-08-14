@@ -988,10 +988,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                 winner = member
                     embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')
                     for member in members:
-                        if member == members[0]:
-                            embed.add_field(name=member.name, value=board[member], inline=False)
-                        else:
-                            embed.add_field(name=member.name, value=board[member], inline=True)
+                        embed.add_field(name=member.name, value=board[member], inline=True)
                     await ctx.send(embed=embed)
 
 

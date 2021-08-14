@@ -775,6 +775,7 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="섯다", help="섯다를 신청합니다."
                                       "\n시작하면 참가자마다 두 장의 패를 받습니다."
                                       "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
+                                      "⏏️: 하프, ‼️: 따당, ✅: 콜(체크), 💀: 다이"
                                       "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
                                       "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%섯다")
     async def seotda(self, ctx):
@@ -910,7 +911,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         member_dm = await member.create_dm()
                         await member_dm.send(board[member])
                     coin = len(members)
-                    call = 1
+                    call = 0
                     die_members = []
                     call_members = []
                     winner = ctx.author
@@ -919,7 +920,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     embed.add_field(name='> 판돈', value=str(coin), inline=True)
                     embed.add_field(name='> 콜 비용', value=str(call), inline=True)
                     msg_ = await ctx.send(embed=embed)
-                    reaction_list = ['⏏️', '✅', '💀']
+                    reaction_list = ['⏏️', '‼️', '✅', '💀']
                     num = 0
                     while len(call_members) != len(members):
                         players = []
@@ -945,7 +946,11 @@ class Game(commands.Cog, name="게임(Game)"):
                             if str(reaction) == '⏏️':
                                 call = coin//2
                                 coin += call
-                                call_members = [user]
+                                call_members = []
+                            elif str(reaction) == '‼️':
+                                call = call * 2
+                                coin += call
+                                call_members = []
                             elif str(reaction) == '✅':
                                 call_members.append(user)
                                 coin += call
@@ -965,9 +970,11 @@ class Game(commands.Cog, name="게임(Game)"):
                                 winner = players[0]
                                 break
                             embed = discord.Embed(title="<섯다>",
-                                                  description=members[num].name + " 님 베팅해주세요.")
-                            embed.add_field(name='> 판돈', value=str(coin), inline=True)
-                            embed.add_field(name='> 콜 비용', value=str(call), inline=True)
+                                                  description=players[num].name + " 님 베팅해주세요.")
+                            embed.add_field(name='> 판돈', value=str(coin) + ' :coin:', inline=True)
+                            embed.add_field(name='> 콜 비용', value=str(call)+ ' :coin:', inline=True)
+                            embed.add_field(name=':white_check_mark:', value=str(call_members), inline=False)
+                            embed.add_field(name=':skull:', value=str(die_members), inline=True)
                             await msg_.clear_reactions()
                             await msg_.edit(embed=embed)
                     for member in call_members:

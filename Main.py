@@ -26,8 +26,6 @@ async def on_ready():
 
 @app.event
 async def on_message(message):
-    ch = message.channel
-    gu = message.guild
     if message.author.bot:
         return None
     else:

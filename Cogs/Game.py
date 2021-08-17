@@ -35,7 +35,7 @@ class Game(commands.Cog, name="게임(Game)"):
         find_id = False
         async for message in log_channel.history(limit=100):
             if message.content.startswith(str(ctx.author.id)) is True:
-                coin = int(message.content[19:])
+                coin = int(message.content[19:message.content.index('$')])
                 find_id = True
                 msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
                 reaction_list = ['✊', '✌️', '🖐️']
@@ -92,7 +92,8 @@ class Game(commands.Cog, name="게임(Game)"):
                             await ctx.send(':hand_splayed:')
                             await ctx.send('비겼네요.')
                             coin += 0
-                    await message.edit(content=message.content[:19]+str(coin))
+                    await message.edit(content=message.content[:19] + str(coin) +
+                                               message.content[message.content.index('$')])
                 break
         if find_id is False:
             await ctx.send('토큰 로그에 없는 ID 입니다.')

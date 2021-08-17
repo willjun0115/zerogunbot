@@ -118,57 +118,35 @@ class Game(commands.Cog, name="게임(Game)"):
                     if str(reaction) == '✅':
                         rand = random.random()
                         embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
+                        win = 0
+                        lose = 0
                         lv = ctx.author.top_role.position
-                        if lv == get(ctx.guild.roles, name="이용제한").position:
-                            if rand <= 0.1:
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="이용제한"))
-                                embed.add_field(name="해제", value="+", inline=True)
-                            else:
-                                embed.add_field(name="유지", value="=", inline=True)
-                        elif lv >= get(ctx.guild.roles, name="창씨개명").position:
-                            embed.add_field(name="-", value="이미 최고 등급입니다.", inline=True)
+                        if lv >= get(ctx.guild.roles, name="창씨개명").position:
+                            win = 0
+                            lose = 0
                         elif lv == get(ctx.guild.roles, name="음성 통제").position:
-                            if rand <= 0.025:
-                                await ctx.author.add_roles(get(ctx.guild.roles, name="창씨개명"))
-                                embed.add_field(name="승급", value="+", inline=True)
-                            elif rand >= 0.85:
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="음성 통제"))
-                                embed.add_field(name="강등", value="-", inline=True)
-                            else:
-                                embed.add_field(name="유지", value="=", inline=True)
+                            win = 0.025
+                            lose = 0.15
                         elif lv == get(ctx.guild.roles, name="언론 통제").position:
-                            if rand <= 0.05:
-                                await ctx.author.add_roles(get(ctx.guild.roles, name="음성 통제"))
-                                embed.add_field(name="승급", value="+", inline=True)
-                            elif rand >= 0.9:
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="언론 통제"))
-                                embed.add_field(name="강등", value="-", inline=True)
-                            else:
-                                embed.add_field(name="유지", value="=", inline=True)
+                            win = 0.05
+                            lose = 0.1
                         elif lv == get(ctx.guild.roles, name="이모티콘 관리").position:
-                            if rand <= 0.075:
-                                await ctx.author.add_roles(get(ctx.guild.roles, name="언론 통제"))
-                                embed.add_field(name="승급", value="+", inline=True)
-                            elif rand >= 0.925:
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-                                embed.add_field(name="강등", value="-", inline=True)
-                            else:
-                                embed.add_field(name="유지", value="=", inline=True)
+                            win = 0.075
+                            lose = 0.075
                         elif lv == get(ctx.guild.roles, name="DJ").position:
-                            if rand <= 0.1:
-                                await ctx.author.add_roles(get(ctx.guild.roles, name="이모티콘 관리"))
-                                embed.add_field(name="승급", value="+", inline=True)
-                            elif rand >= 0.95:
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name="DJ"))
-                                embed.add_field(name="강등", value="-", inline=True)
-                            else:
-                                embed.add_field(name="유지", value="=", inline=True)
+                            win = 0.1
+                            lose = 0.05
                         elif lv == get(ctx.guild.roles, name="언랭").position:
-                            if rand <= 0.2:
-                                await ctx.author.add_roles(get(ctx.guild.roles, name="DJ"))
-                                embed.add_field(name="승급", value="+", inline=True)
-                            else:
-                                embed.add_field(name="유지", value="=", inline=True)
+                            win = 0.2
+                            lose = 0
+                        if rand <= win:
+                            await ctx.author.add_roles(ctx.gulid.roles[ctx.guild.roles.index(ctx.author.top_role) + 1])
+                            embed.add_field(name="승급", value="+", inline=True)
+                        elif rand >= 1 - lose:
+                            await ctx.author.remove_roles(ctx.author.top_role)
+                            embed.add_field(name="강등", value="-", inline=True)
+                        else:
+                            embed.add_field(name="유지", value="=", inline=True)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
@@ -195,59 +173,29 @@ class Game(commands.Cog, name="게임(Game)"):
         if ctx.channel == my_channel:
             await ctx.message.delete()
             rand = random.random()
+            win = 0
             embed = discord.Embed(title="<리폿 결과>", description="대상: " + member.name + " 님")
             lv = member.top_role.position
             if lv == get(ctx.guild.roles, name="관리자").position:
-                embed.add_field(name="신고 미접수", value="관리자는 신고할 수 없습니다.", inline=True)
-            elif lv == get(ctx.guild.roles, name="이용제한").position:
-                embed.add_field(name="신고 미접수", value="이미 이용제한 중인 사용자입니다.", inline=True)
+                win = 0
             elif lv == get(ctx.guild.roles, name="창씨개명").position:
-                if rand <= 0.05:
-                    await member.remove_roles(member.top_role)
-                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
-                    embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
-                                    inline=True)
-                else:
-                    embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
+                win = 5
             elif lv == get(ctx.guild.roles, name="음성 통제").position:
-                if rand <= 0.04:
-                    await member.remove_roles(member.top_role)
-                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
-                    embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
-                                    inline=True)
-                else:
-                    embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
+                win = 4
             elif lv == get(ctx.guild.roles, name="언론 통제").position:
-                if rand <= 0.03:
-                    await member.remove_roles(member.top_role)
-                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
-                    embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
-                                    inline=True)
-                else:
-                    embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
+                win = 3
             elif lv == get(ctx.guild.roles, name="이모티콘 관리").position:
-                if rand <= 0.02:
-                    await member.remove_roles(member.top_role)
-                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
-                    embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
-                                    inline=True)
-                else:
-                    embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
+                win = 2
             elif lv == get(ctx.guild.roles, name="DJ").position:
-                if rand <= 0.01:
-                    await member.remove_roles(member.top_role)
-                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
-                    embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
-                                    inline=True)
-                else:
-                    embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
+                win = 1
             elif lv == get(ctx.guild.roles, name="언랭").position:
-                if rand <= 0:
-                    await member.add_roles(get(ctx.guild.roles, name="이용제한"))
-                    embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + "님이 이용제한에 걸립니다.",
-                                    inline=True)
-                else:
-                    embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
+                win = 0
+            if rand <= win * 0.01:
+                await member.remove_roles(member.top_role)
+                embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + " 님이 강등됩니다.",
+                                inline=True)
+            else:
+                embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             await ctx.send(embed=embed)
 
     @commands.command(name="토큰", help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.", usage="%토큰")
@@ -256,23 +204,54 @@ class Game(commands.Cog, name="게임(Game)"):
         find_id = False
         async for message in log_channel.history(limit=100):
             if message.content.startswith(str(ctx.author.id)) is True:
-                coin = int(message.content[19:])
+                coin = int(message.content[19:message.content.index('$')])
                 find_id = True
                 await ctx.send(str(coin)+' :coin:')
                 break
         if find_id is False:
-            await log_channel.send(str(ctx.author.id)+';0')
+            await log_channel.send(str(ctx.author.id)+';0$0!')
             await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.has_permissions(administrator=True)
-    @commands.command(name="토큰설정", help="해당 멤버의 토큰 로그를 편집합니다. (관리자 권한)", usage="%토큰로그 @ ~")
+    @commands.command(name="토큰설정", help="해당 멤버의 토큰을 설정합니다. (관리자 권한)", usage="%토큰설정 @ ~")
     async def edittoken(self, ctx, member: discord.Member, num):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
         async for message in log_channel.history(limit=100):
             if message.content.startswith(str(member.id)) is True:
                 find_id = True
-                await message.edit(content=message.content[:19] + str(num))
+                await message.edit(content=message.content[:19] + str(num) + message.content[message.content.index('$'):])
+                await ctx.send('토큰 로그를 업데이트했습니다.')
+                break
+        if find_id is False:
+            await ctx.send('토큰 로그에 없는 ID 입니다.')
+
+    @commands.has_permissions(administrator=True)
+    @commands.command(name="토큰증감", help="해당 멤버의 토큰을 증가 및 감소시킵니다. (관리자 권한)", usage="%토큰증감 @ ~")
+    async def givetoken(self, ctx, member: discord.Member, num):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        find_id = False
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith(str(member.id)) is True:
+                find_id = True
+                coin = int(message.content[19:message.content.index('$')])
+                await message.edit(
+                    content=message.content[:19] + str(coin + num) + message.content[message.content.index('$'):])
+                await ctx.send('토큰 로그를 업데이트했습니다.')
+                break
+        if find_id is False:
+            await ctx.send('토큰 로그에 없는 ID 입니다.')
+
+    @commands.has_permissions(administrator=True)
+    @commands.command(name="토큰편집", help="해당 멤버의 토큰 로그를 편집합니다. (관리자 권한)", usage="%토큰편집 @ ~")
+    async def edittokenlog(self, ctx, member: discord.Member, *, args):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        find_id = False
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith(str(member.id)) is True:
+                find_id = True
+                await message.edit(
+                    content=message.content[:19] + str(args))
                 await ctx.send('토큰 로그를 업데이트했습니다.')
                 break
         if find_id is False:
@@ -292,11 +271,11 @@ class Game(commands.Cog, name="게임(Game)"):
         async for message in log_channel.history(limit=100):
             if message.content.startswith(str(ctx.author.id)) is True:
                 author_log = message
-                author_coin = int(message.content[19:])
+                author_coin = int(message.content[19:message.content.index('$')])
                 find_id += 1
             elif message.content.startswith(str(member.id)) is True:
                 member_log = message
-                member_coin = int(message.content[19:])
+                member_coin = int(message.content[19:message.content.index('$')])
                 find_id += 1
         if find_id < 2:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
@@ -361,13 +340,17 @@ class Game(commands.Cog, name="게임(Game)"):
                                     await ctx.send(member.name + " 콜")
                             else:
                                 if user == ctx.author:
-                                    await author_log.edit(content=author_log.content[:19] + str(author_coin - 1))
-                                    await member_log.edit(content=member_log.content[:19] + str(member_coin + 1))
+                                    await author_log.edit(content=author_log.content[:19] + str(author_coin - 1) +
+                                                          author_log.content[author_log.content.index('$')])
+                                    await member_log.edit(content=member_log.content[:19] + str(member_coin + 1) +
+                                                          member_log.content[member_log.content.index('$')])
                                     await ctx.send(ctx.author.name + " 다이")
                                     await msg_.delete()
                                 else:
-                                    await author_log.edit(content=author_log.content[:19] + str(author_coin + 1))
-                                    await member_log.edit(content=member_log.content[:19] + str(member_coin - 1))
+                                    await author_log.edit(content=author_log.content[:19] + str(author_coin + 1) +
+                                                          author_log.content[author_log.content.index('$')])
+                                    await member_log.edit(content=member_log.content[:19] + str(member_coin - 1) +
+                                                          member_log.content[member_log.content.index('$')])
                                     await ctx.send(member.name + " 다이")
                                     await msg_.delete()
                                 break
@@ -393,12 +376,16 @@ class Game(commands.Cog, name="게임(Game)"):
                     if author_call is True:
                         if member_call is True:
                             if author_num > member_num:
-                                await author_log.edit(content=author_log.content[:19] + str(author_coin + coin))
-                                await member_log.edit(content=member_log.content[:19] + str(member_coin - coin))
+                                await author_log.edit(content=author_log.content[:19] + str(author_coin + coin) +
+                                                      author_log.content[author_log.content.index('$'):])
+                                await member_log.edit(content=member_log.content[:19] + str(member_coin - coin) +
+                                                      member_log.content[member_log.content.index('$'):])
                                 await ctx.send(ctx.author.name + ' 승!')
                             elif author_num < member_num:
-                                await author_log.edit(content=author_log.content[:19] + str(author_coin - coin))
-                                await member_log.edit(content=member_log.content[:19] + str(member_coin + coin))
+                                await author_log.edit(content=author_log.content[:19] + str(author_coin - coin) +
+                                                      author_log.content[author_log.content.index('$'):])
+                                await member_log.edit(content=member_log.content[:19] + str(member_coin + coin) +
+                                                      member_log.content[member_log.content.index('$'):])
                                 await ctx.send(member.name + ' 승!')
                             else:
                                 await ctx.send("무승부")

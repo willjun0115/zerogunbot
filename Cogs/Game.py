@@ -92,7 +92,7 @@ class Game(commands.Cog, name="게임(Game)"):
                             await ctx.send(':hand_splayed:')
                             await ctx.send('비겼네요.')
                             coin += 0
-                    await message.edit(content=message.content[:19] + str(coin) + message.content[message.content.index('$')])
+                    await message.edit(content=message.content[:19] + str(coin) + message.content[message.content.index('$'):])
                 break
         if find_id is False:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
@@ -341,16 +341,16 @@ class Game(commands.Cog, name="게임(Game)"):
                             else:
                                 if user == ctx.author:
                                     await author_log.edit(content=author_log.content[:19] + str(author_coin - 1) +
-                                                          author_log.content[author_log.content.index('$')])
+                                                          author_log.content[author_log.content.index('$'):])
                                     await member_log.edit(content=member_log.content[:19] + str(member_coin + 1) +
-                                                          member_log.content[member_log.content.index('$')])
+                                                          member_log.content[member_log.content.index('$'):])
                                     await ctx.send(ctx.author.name + " 다이")
                                     await msg_.delete()
                                 else:
                                     await author_log.edit(content=author_log.content[:19] + str(author_coin + 1) +
-                                                          author_log.content[author_log.content.index('$')])
+                                                          author_log.content[author_log.content.index('$'):])
                                     await member_log.edit(content=member_log.content[:19] + str(member_coin - 1) +
-                                                          member_log.content[member_log.content.index('$')])
+                                                          member_log.content[member_log.content.index('$'):])
                                     await ctx.send(member.name + " 다이")
                                     await msg_.delete()
                                 break

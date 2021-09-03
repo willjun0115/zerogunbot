@@ -120,23 +120,23 @@ class Game(commands.Cog, name="게임(Game)"):
                         embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
                         win = 0
                         lose = 0
-                        lv = ctx.author.top_role.position
-                        if lv >= get(ctx.guild.roles, name="창씨개명").position:
+                        lv = ctx.author.top_role
+                        if lv == get(ctx.guild.roles, name="창씨개명"):
                             win = 0
                             lose = 0
-                        elif lv == get(ctx.guild.roles, name="음성 통제").position:
+                        elif lv == get(ctx.guild.roles, name="음성 통제"):
                             win = 0.025
                             lose = 0.15
-                        elif lv == get(ctx.guild.roles, name="언론 통제").position:
+                        elif lv == get(ctx.guild.roles, name="언론 통제"):
                             win = 0.05
                             lose = 0.1
-                        elif lv == get(ctx.guild.roles, name="이모티콘 관리").position:
+                        elif lv == get(ctx.guild.roles, name="이모티콘 관리"):
                             win = 0.075
                             lose = 0.075
-                        elif lv == get(ctx.guild.roles, name="DJ").position:
+                        elif lv == get(ctx.guild.roles, name="DJ"):
                             win = 0.1
                             lose = 0.05
-                        elif lv == get(ctx.guild.roles, name="언랭").position:
+                        elif lv == get(ctx.guild.roles, name="언랭"):
                             win = 0.2
                             lose = 0
                         if rand <= win:

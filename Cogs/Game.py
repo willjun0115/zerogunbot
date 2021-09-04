@@ -118,12 +118,12 @@ class Game(commands.Cog, name="게임(Game)"):
                     if str(reaction) == '✅':
                         rand = random.random()
                         embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
-                        win = 0
-                        lose = 0
+                        win = 0.0
+                        lose = 0.0
                         lv = ctx.author.top_role
                         if lv == get(ctx.guild.roles, name="창씨개명"):
-                            win = 0
-                            lose = 0
+                            win = 0.0
+                            lose = 0.0
                         elif lv == get(ctx.guild.roles, name="음성 통제"):
                             win = 0.025
                             lose = 0.15
@@ -138,11 +138,11 @@ class Game(commands.Cog, name="게임(Game)"):
                             lose = 0.05
                         elif lv == get(ctx.guild.roles, name="언랭"):
                             win = 0.2
-                            lose = 0
+                            lose = 0.0
                         if rand <= win:
                             await ctx.author.add_roles(ctx.gulid.roles[ctx.guild.roles.index(ctx.author.top_role) + 1])
                             embed.add_field(name="승급", value="+", inline=True)
-                        elif rand >= 1 - lose:
+                        elif rand >= 1.0 - lose:
                             await ctx.author.remove_roles(ctx.author.top_role)
                             embed.add_field(name="강등", value="-", inline=True)
                         else:

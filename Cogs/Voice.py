@@ -14,14 +14,14 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(name="연결", help="음성 채널에 연결합니다.", usage="%연결")
     async def join(self, ctx):
-        vchannel = ctx.message.author.voice.channel
+        channel = ctx.message.author.voice.channel
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
-            await voice.move_to(vchannel)
+            await voice.move_to(channel)
         else:
-            voice = await vchannel.connect()
+            voice = await channel.connect()
             voice.stop()
-            await ctx.send(str(vchannel.name) + ' 채널에 연결합니다.')
+            await ctx.send(str(channel.name) + ' 채널에 연결합니다.')
 
     @commands.command(name="퇴장", help="음성 채널을 나갑니다.", usage="%퇴장")
     async def leave(self, ctx):

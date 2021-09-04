@@ -22,7 +22,10 @@ class Voice(commands.Cog, name="음성(Voice)"):
             voice = await channel.connect()
             await ctx.send(str(channel.name) + ' 채널에 연결합니다.')
 
-    @commands.command(name="퇴장", help="음성 채널을 나갑니다.", usage="%퇴장")
+    @commands.command(
+        name="퇴장", aliases=["연결해제", "연결끊기"],
+        help="음성 채널을 나갑니다.", usage="%퇴장, %연결해제, %연결끊기"
+    )
     async def leave(self, ctx):
         await ctx.guild.voice_client.disconnect()
         await ctx.send("연결을 끊습니다.")

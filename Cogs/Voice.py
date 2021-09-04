@@ -19,7 +19,6 @@ class Voice(commands.Cog, name="음성(Voice)"):
         if voice and voice.is_connected():
             await voice.move_to(channel)
         else:
-            await ctx.guild.change_voice_state(channel=channel)
             voice = await channel.connect()
             await ctx.send(str(channel.name) + ' 채널에 연결합니다.')
 

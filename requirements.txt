@@ -6,3 +6,4 @@ openpyxl
 discord
 discord.py[voice]
 ffmpeg
+PyNaCl

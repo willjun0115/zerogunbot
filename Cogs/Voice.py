@@ -29,13 +29,12 @@ class Voice(commands.Cog, name="음성(Voice)"):
         await ctx.message.author.move_to(channel)
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
 
-    @commands.command(name="재생", help="잠수방으로 이동합니다.", usage="%재생")
-    async def play(self, ctx):
+    @commands.command(name="에어맨", help="에어맨이 쓰러지지 않습니다.", usage="%에어맨")
+    async def airman(self, ctx):
         channel = ctx.message.author.voice.channel
         await ctx.guild.change_voice_state(channel=channel)
         vc = await channel.connect()
-        vc.play(discord.FFmpegPCMAudio("에어맨이 쓰러지지 않아.mp3"))
-        await channel.play()
+        vc.play(discord.FFmpegPCMAudio("audiosources/에어맨이 쓰러지지 않아.mp3"))
 
 
 def setup(app):

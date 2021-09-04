@@ -9,12 +9,15 @@ class Tool(commands.Cog, name="도구(Tool)"):
     def __init__(self, app):
         self.app = app
 
-    @commands.command(name="도움말", help="도움말을 불러옵니다.", usage="%도움말, %도움말 ~")
+    @commands.command(
+        name="도움말", aliases=["help"],
+        help="도움말을 불러옵니다.", usage="%도움말, %도움말 ~, %help, %help ~"
+    )
     async def help_command(self, ctx, func=None):
         if func is None:
             embed = discord.Embed(title="도움말", description="접두사는 % 입니다.")
             cog_list = ["도구(Tool)", "채팅(Chat)", "게임(Game)", "음성(Voice)"]
-            embed.add_field(name="> 시스템(System)", value="load\nunload\nreload", inline=True)
+            embed.add_field(name="> 시스템(System)", value="로드\n언로드\n리로드", inline=True)
             for x in cog_list:
                 cog_data = self.app.get_cog(x)
                 command_list = cog_data.get_commands()
@@ -37,29 +40,31 @@ class Tool(commands.Cog, name="도구(Tool)"):
                             break
                         else:
                             command_notfound = True
-                            if func == 'load':
+                            if func == '로드':
                                 embed = discord.Embed(title=f"명령어 : load", description='명령어 카테고리를 불러옵니다.')
-                                embed.add_field(name="사용법", value='%load ~')
+                                embed.add_field(name="사용법", value='%로드 ~, %load ~')
                                 await ctx.send(embed=embed)
                                 command_notfound = False
                                 break
-                            if func == 'unload':
+                            if func == '언로드':
                                 embed = discord.Embed(title=f"명령어 : unload", description='불러온 명령어 카테고리를 제거합니다.')
-                                embed.add_field(name="사용법", value='%unload ~')
+                                embed.add_field(name="사용법", value='%언로드 ~, %unload ~')
                                 await ctx.send(embed=embed)
                                 command_notfound = False
                                 break
-                            if func == 'reload':
+                            if func == '리로드':
                                 embed = discord.Embed(title=f"명령어 : reload", description='명령어 카테고리를 다시 불러옵니다.')
-                                embed.add_field(name="사용법", value='%reload, %reload ~')
+                                embed.add_field(name="사용법", value='%리로드, %리로드 ~, %reload, %reload ~')
                                 await ctx.send(embed=embed)
                                 command_notfound = False
                                 break
             if command_notfound is True:
                 await ctx.send('명령어를 찾을 수 없습니다.')
 
-    @commands.command(name='인코드', help='입력받은 문자열을 인코딩해 출력합니다.',
-                      usage='%인코드 ~', pass_context=True)
+    @commands.command(
+        name='인코드', aliases=["encode"],
+        help='입력받은 문자열을 인코딩해 출력합니다.', usage='%인코드 ~, %encode ~', pass_context=True
+    )
     async def chat_encode(self, ctx, *, args):
         await ctx.message.delete()
         code = ""
@@ -70,8 +75,10 @@ class Tool(commands.Cog, name="도구(Tool)"):
             code = code + cc
         await ctx.send(str(code))
 
-    @commands.command(name='디코드', help='0군봇이 인코딩한 코드를 입력받아 디코드해 출력합니다.',
-                      usage='%디코드 ~', pass_context=True)
+    @commands.command(
+        name='디코드', aliases=["decode"],
+        help='0군봇이 인코딩한 코드를 입력받아 디코드해 출력합니다.', usage='%디코드 ~, %decode ~', pass_context=True
+    )
     async def chat_decode(self, ctx, *, code):
         await ctx.message.delete()
         args = ""
@@ -82,8 +89,11 @@ class Tool(commands.Cog, name="도구(Tool)"):
             args = args + cc
         await ctx.send(str(args))
 
-    @commands.command(name='프라이빗인코드', help='입력받은 문자열을 자신만 디코드할 수 있는 코드로 인코딩해 출력합니다.',
-                      usage='%프라이빗인코드 ~', pass_context=True)
+    @commands.command(
+        name='프라이빗인코드', aliases=["privateencode"],
+        help='입력받은 문자열을 자신만 디코드할 수 있는 코드로 인코딩해 출력합니다.',
+        usage='%프라이빗인코드 ~, %privateencode ~', pass_context=True
+    )
     async def private_encode(self, ctx, *, args):
         await ctx.message.delete()
         id = str(ctx.author.id)
@@ -103,8 +113,11 @@ class Tool(commands.Cog, name="도구(Tool)"):
         code = idcode + ";" + code
         await ctx.send(str(code))
 
-    @commands.command(name='프라이빗디코드', help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
-                      usage='%프라이빗디코드 ~', pass_context=True)
+    @commands.command(
+        name='프라이빗디코드', aliases=["privatedecode"],
+        help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
+        usage='%프라이빗디코드 ~, %privatedecode ~', pass_context=True
+    )
     async def private_decode(self, ctx, *, code):
         await ctx.message.delete()
         id = str(ctx.author.id)

@@ -11,7 +11,10 @@ class Chat(commands.Cog, name="채팅(Chat)"):
     def __init__(self, app):
         self.app = app
 
-    @commands.command(name="안녕", help="짧은 인사를 건넵니다.", usage="%안녕")
+    @commands.command(
+        name="안녕", aliases=["인사", "hello", "hi"],
+        help="짧은 인사를 건넵니다.", usage="%안녕, %인사, %hi, %hello"
+    )
     async def hello(self, ctx):
         what_message = random.randint(1, 3)
         if what_message == 1:
@@ -21,17 +24,26 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         else:
             await ctx.channel.send(ctx.author.name + '님, 안녕하세요!')
 
-    @commands.command(name="말하기", help="입력값을 채팅에 전송합니다.", usage="%말하기 ~", pass_context=True)
+    @commands.command(
+        name="말하기", aliases=["say"],
+        help="입력값을 채팅에 전송합니다.", usage="%말하기 ~, %say ~", pass_context=True
+    )
     async def _say(self, ctx, *, args):
         await ctx.message.delete()
         await ctx.send(args)
 
-    @commands.command(name="tts", help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="%tts ~", pass_context=True)
+    @commands.command(
+        name="tts", aliases=["TTS"],
+        help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="%tts ~, %TTS ~", pass_context=True
+    )
     async def _say_tts(self, ctx, *, args):
         await ctx.message.delete()
         await ctx.send(args, tts=True)
 
-    @commands.command(name="타이머챗", help="잠시 후 사라지는 채팅을 전송합니다.", usage="%타이머챗 ~", pass_context=True)
+    @commands.command(
+        name="타이머챗", aliases=["timerchat"],
+        help="잠시 후 사라지는 채팅을 전송합니다.", usage="%타이머챗 ~, %timerchat ~", pass_context=True
+    )
     async def _say_timer(self, ctx, *, args):
         await ctx.message.delete()
         msg = await ctx.send(":clock12: " + args)
@@ -46,7 +58,10 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await asyncio.sleep(1)
         await msg.edit(content=':boom: ', delete_after=1)
 
-    @commands.command(name="청소", help="숫자만큼 채팅을 지웁니다.", usage="%청소 ~", pass_context=True)
+    @commands.command(
+        name="청소", aliases=["지우기", "clear", "purge"],
+        help="숫자만큼 채팅을 지웁니다.", usage="%청소 ~, %지우기 ~, %clear ~, %purge ~", pass_context=True
+    )
     async def clean(self, ctx, num):
         await ctx.message.delete()
         member = ctx.message.author
@@ -55,13 +70,17 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
-    @commands.command(name='패드립', help="저희 봇에 그런 기능은 없습니다?", usage="%패드립")
+    @commands.command(
+        name='패드립', help="저희 봇에 그런 기능은 없습니다?", usage="%패드립"
+    )
     async def fdr(self, ctx):
         msg = await ctx.send("느금마")
         await asyncio.sleep(1)
         await msg.edit(content='저는 그런 말 못해요 ㅠㅠ')
 
-    @commands.command(name='엄마삭제', help="입력값의 엄마를 삭제합니다.", usage="%엄마삭제 ~", pass_context=True)
+    @commands.command(
+        name='엄마삭제', help="입력값의 엄마를 삭제합니다.", usage="%엄마삭제 ~", pass_context=True
+    )
     async def delete_mom_(self, ctx, *, args):
         msg = await ctx.send("\"" + args + "\"님의 엄마 삭제 중...  0% :clock12: ")
         await asyncio.sleep(1)
@@ -75,7 +94,9 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await asyncio.sleep(2)
         await msg.edit(content=":white_check_mark: \"" + args + "\"님의 엄마이(가) 삭제되었습니다.")
 
-    @commands.command(name="엄마검색", help="입력값의 엄마를 검색합니다.", usage="%엄마검색 ~", pass_context=True)
+    @commands.command(
+        name="엄마검색", help="입력값의 엄마를 검색합니다.", usage="%엄마검색 ~", pass_context=True
+    )
     async def search_mom_(self, ctx, *, args):
         msg = await ctx.send(":mag_right: \"" + args + "\"님의 엄마 검색 중.")
         await asyncio.sleep(1)

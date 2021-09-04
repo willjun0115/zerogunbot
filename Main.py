@@ -35,21 +35,21 @@ async def on_message(message):
 
 
 @commands.has_permissions(administrator=True)
-@app.command(name="load")
+@app.command(name="로드", aliases=["load"])
 async def load_commands(ctx, extension):
     app.load_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 로드했습니다.")
 
 
 @commands.has_permissions(administrator=True)
-@app.command(name="unload")
+@app.command(name="언로드", aliases=["unload"])
 async def unload_commands(ctx, extension):
     app.unload_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 언로드했습니다.")
 
 
 @commands.has_permissions(administrator=True)
-@app.command(name="reload")
+@app.command(name="리로드", aliases=["reload"])
 async def reload_commands(ctx, extension=None):
     if extension is None:
         for file_name in os.listdir("Cogs"):

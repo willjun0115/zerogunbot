@@ -34,11 +34,8 @@ class Voice(commands.Cog, name="음성(Voice)"):
         channel = ctx.message.author.voice.channel
         await ctx.guild.change_voice_state(channel=channel)
         vc = await channel.connect()
-        player = vc.create_ffmpeg_player('audiosources/에어맨이 쓰러지지 않아.mp3')
-        player.start()
-        while not player.is_done():
-            await asyncio.sleep(1)
-        player.stop()
+        if not vc.is_playing():
+            vc.play(discord.FFmpegPCMAudio('audiosources/에어맨이 쓰러지지 않아.mp3'))
 
 
 def setup(app):

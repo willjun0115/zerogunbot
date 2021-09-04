@@ -30,8 +30,8 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(name="잠수", help="잠수방으로 이동합니다.", usage="%잠수")
     async def submerge(self, ctx):
-        channel = ctx.guild.get_channel(760198518987685949)
-        await ctx.message.author.move_to(channel)
+        afkchannel = ctx.guild.get_channel(760198518987685949)
+        await ctx.message.author.move_to(afkchannel)
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
 
     @commands.command(name="에어맨", help="에어맨이 쓰러지지 않습니다.", usage="%에어맨")

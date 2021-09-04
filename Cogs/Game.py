@@ -140,10 +140,10 @@ class Game(commands.Cog, name="게임(Game)"):
                             win = 0.2
                             lose = 0.0
                         if rand <= win:
-                            await ctx.author.add_roles(ctx.gulid.roles[ctx.guild.roles.index(ctx.author.top_role) + 1])
+                            await ctx.author.add_roles(ctx.gulid.roles[ctx.guild.roles.index(toprole) + 1])
                             embed.add_field(name="승급", value="+", inline=True)
                         elif rand >= 1.0 - lose:
-                            await ctx.author.remove_roles(ctx.author.top_role)
+                            await ctx.author.remove_roles(toprole)
                             embed.add_field(name="강등", value="-", inline=True)
                         else:
                             embed.add_field(name="유지", value="=", inline=True)
@@ -155,8 +155,11 @@ class Game(commands.Cog, name="게임(Game)"):
         else:
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
-    @commands.command(name="가챠확률", help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%가챠확률")
-    async def gacha_p(self, ctx):
+    @commands.command(
+        name="가챠확률", aliases=["가챠정보"],
+        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%가챠확률, %가챠정보"
+    )
+    async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="승급 확률 % (강등 확률 %)")
         embed.add_field(name="> 이용제한", value="10%", inline=False)
         embed.add_field(name="> 음성 통제", value="2.5% (15%)", inline=False)
@@ -166,8 +169,11 @@ class Game(commands.Cog, name="게임(Game)"):
         embed.add_field(name="> 언랭", value="20%", inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(name="리폿", help="부적절한 사용자를 신고합니다.\n확률적으로 강등되며, 이용제한에 걸립니다."
-                                      "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="%리폿 @")
+    @commands.command(
+        name="리폿", aliases=["신고", "report"],
+        help="부적절한 사용자를 신고합니다.\n확률적으로 강등되며, 이용제한에 걸립니다."
+             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="%리폿 @, %신고 @, %report @"
+    )
     async def report(self, ctx, member: discord.Member):
         my_channel = ctx.guild.get_channel(872938926019575879)
         if ctx.channel == my_channel:
@@ -178,6 +184,8 @@ class Game(commands.Cog, name="게임(Game)"):
             lv = member.top_role.position
             if lv == get(ctx.guild.roles, name="관리자").position:
                 win = 0
+                embed.add_field(name="관리자는 신고할 수 없습니다.", value=ctx.author.name + " 님, 맞을래요?",
+                                inline=True)
             elif lv == get(ctx.guild.roles, name="창씨개명").position:
                 win = 5
             elif lv == get(ctx.guild.roles, name="음성 통제").position:

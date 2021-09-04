@@ -5,6 +5,7 @@ from discord.utils import get
 from discord.ext import commands
 from discord import FFmpegPCMAudio
 import openpyxl
+import os
 
 
 class Voice(commands.Cog, name="음성(Voice)"):
@@ -48,7 +49,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
     async def airman(self, ctx):
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
-            source = FFmpegPCMAudio(executable="ffmpeg/bin/ffmpeg.exe", source="airman.mp3")
+            source = FFmpegPCMAudio(source="airman.mp3")
             voice.play(source)
 
 

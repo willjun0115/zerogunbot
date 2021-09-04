@@ -37,7 +37,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
     async def airman(self, ctx):
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
-            source = FFmpegPCMAudio(executable="ffmpeg/bin/ffmpeg.exe", source="audiosources/airman.mp3")
+            source = FFmpegPCMAudio(executable="ffmpeg/bin/ffmpeg.exe", source="airman.mp3")
             voice.play(source)
 
 

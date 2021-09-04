@@ -1,7 +1,8 @@
+pip
 asyncio
 discord.py
 Cogs
 openpyxl
 discord
-discord.py[voice] ~= 1.4.0
+discord.py[voice]
 ffmpeg

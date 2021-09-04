@@ -3,6 +3,7 @@ import random
 import asyncio
 from discord.utils import get
 from discord.ext import commands
+from discord import FFmpegPCMAudio
 import openpyxl
 
 
@@ -12,16 +13,20 @@ class Voice(commands.Cog, name="음성(Voice)"):
         self.app = app
 
     @commands.command(name="연결", help="음성 채널에 연결합니다.", usage="%연결")
-    async def connect(self, ctx):
-        channel = ctx.message.author.voice.channel
-        await ctx.guild.change_voice_state(channel=channel)
-        await ctx.send(str(channel.name) + ' 채널에 연결합니다.')
-        await channel.connect()
+    async def join(self, ctx):
+        vchannel = ctx.message.author.voice.channel
+        voice = get(self.app.voice_clients, guild=ctx.guild)
+        if voice and voice.is_connected():
+            await voice.move_to(vchannel)
+        else:
+            voice = await vchannel.connect()
+            voice.stop()
+            await ctx.send(str(vchannel.name) + ' 채널에 연결합니다.')
 
     @commands.command(name="퇴장", help="음성 채널을 나갑니다.", usage="%퇴장")
-    async def disconnect(self, ctx):
-        channel = ctx.message.author.voice.channel
-        await channel.disconnect()
+    async def leave(self, ctx):
+        await ctx.guild.voice_client.disconnect()
+        await ctx.send("연결을 끊습니다.")
 
     @commands.command(name="잠수", help="잠수방으로 이동합니다.", usage="%잠수")
     async def submerge(self, ctx):
@@ -31,11 +36,10 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(name="에어맨", help="에어맨이 쓰러지지 않습니다.", usage="%에어맨")
     async def airman(self, ctx):
-        channel = ctx.message.author.voice.channel
-        await ctx.guild.change_voice_state(channel=channel)
-        vc = await channel.connect()
-        if not vc.is_playing():
-            vc.play(discord.FFmpegPCMAudio('audiosources/에어맨이 쓰러지지 않아.mp3'))
+        voice = get(self.app.voice_clients, guild=ctx.guild)
+        if voice and voice.is_connected():
+            source = FFmpegPCMAudio(executable="ffmpeg/bin/ffmpeg.exe", source="audiosources/airman.mp3")
+            voice.play(source)
 
 
 def setup(app):

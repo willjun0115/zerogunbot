@@ -20,7 +20,6 @@ class Voice(commands.Cog, name="음성(Voice)"):
             await voice.move_to(channel)
         else:
             voice = await channel.connect()
-            voice.stop()
             await ctx.send(str(channel.name) + ' 채널에 연결합니다.')
 
     @commands.command(name="퇴장", help="음성 채널을 나갑니다.", usage="%퇴장")

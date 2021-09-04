@@ -29,7 +29,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
     @commands.command(name="tts", help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="%tts ~", pass_context=True)
     async def _say_tts(self, ctx, *, args):
         await ctx.message.delete()
-        await ctx.send(args, tts=True, reason='tts')
+        await ctx.send(args, tts=True)
 
     @commands.command(name="타이머챗", help="잠시 후 사라지는 채팅을 전송합니다.", usage="%타이머챗 ~", pass_context=True)
     async def _say_timer(self, ctx, *, args):

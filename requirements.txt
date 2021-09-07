@@ -9,4 +9,4 @@ ffmpeg
 PyNaCl
 youtube_dl
 ctypes
-os
+opuslib

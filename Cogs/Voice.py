@@ -6,6 +6,7 @@ from discord.ext import commands
 from discord import FFmpegPCMAudio
 import openpyxl
 import os
+import youtube_dl
 
 
 class Voice(commands.Cog, name="음성(Voice)"):
@@ -50,6 +51,35 @@ class Voice(commands.Cog, name="음성(Voice)"):
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             source = FFmpegPCMAudio(source="airman.mp3")
+            voice.play(source)
+
+    @commands.command(
+        name="재생", aliases=["play"],
+        help="유튜브 url을 통해 음악을 재생합니다.", usage="%재생", pass_context=True
+    )
+    async def play(self, ctx, url: str):
+        voice = get(self.app.voice_clients, guild=ctx.guild)
+        if voice and voice.is_connected():
+            try:
+                if os.path.isfile("song.mp3"):
+                    os.remove("song.mp3")
+            except PermissionError:
+                await ctx.send("현재 음악이 재생 중입니다. 끝날때까지 기다리시거나, 음악을 중지해주세요.")
+
+            ydl_opt = {
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+            }
+            with youtube_dl.YoutubeDL(ydl_opt) as ydl:
+                ydl.download([url])
+            for file in os.listdir('./'):
+                if file.endswith(".mp3"):
+                    os.rename(file, "song.mp3")
+            source = FFmpegPCMAudio(source="song.mp3")
             voice.play(source)
 
 

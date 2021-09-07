@@ -85,6 +85,15 @@ class Voice(commands.Cog, name="음성(Voice)"):
         if voice and voice.is_connected():
             voice.stop()
 
+    @commands.command(
+        name="재생목록", aliases=["queue"],
+        help="재생 목록을 비웁니다.", usage="%재생목록, %queue"
+    )
+    async def queue(self, ctx):
+        for file in os.listdir('./'):
+            if file.endswith(".mp3"):
+                os.remove(file)
+
 
 def setup(app):
     app.add_cog(Voice(app))

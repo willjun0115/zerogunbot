@@ -11,9 +11,6 @@ app = commands.Bot(command_prefix=prefix)
 
 token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"
 
-if not discord.opus.is_loaded():
-    discord.opus.load_opus('opus.dll')
-
 for filename in os.listdir("Cogs"):
     if filename.endswith(".py"):
         app.load_extension(f"Cogs.{filename[:-3]}")

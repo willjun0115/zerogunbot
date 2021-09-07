@@ -71,7 +71,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
                 for file in os.listdir('./'):
                     if file.endswith(".mp3"):
                         os.rename(file, "song.mp3")
-                await msg.edit("재생 시작")
+                await msg.edit(content="재생 시작")
                 source = FFmpegPCMAudio(source="song.mp3")
                 voice.play(source)
 

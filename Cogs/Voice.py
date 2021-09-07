@@ -45,17 +45,8 @@ class Voice(commands.Cog, name="음성(Voice)"):
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
 
     @commands.command(
-        name="에어맨", help="에어맨이 쓰러지지 않습니다.", usage="%에어맨"
-    )
-    async def airman(self, ctx):
-        voice = get(self.app.voice_clients, guild=ctx.guild)
-        if voice and voice.is_connected():
-            source = FFmpegPCMAudio(source="airman.mp3")
-            voice.play(source)
-
-    @commands.command(
         name="재생", aliases=["play"],
-        help="유튜브 url을 통해 음악을 재생합니다.", usage="%재생", pass_context=True
+        help="유튜브 url을 통해 음악을 재생합니다.", usage="%재생 ~, %play ~", pass_context=True
     )
     async def play(self, ctx, url: str):
         voice = get(self.app.voice_clients, guild=ctx.guild)
@@ -65,22 +56,33 @@ class Voice(commands.Cog, name="음성(Voice)"):
                     os.remove("song.mp3")
             except PermissionError:
                 await ctx.send("현재 음악이 재생 중입니다. 끝날때까지 기다리시거나, 음악을 중지해주세요.")
+            else:
+                msg = await ctx.send("재생 준비 중...")
+                ydl_opt = {
+                    'format': 'bestaudio/best',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '192'
+                    }]
+                }
+                with youtube_dl.YoutubeDL(ydl_opt) as ydl:
+                    ydl.download([url])
+                for file in os.listdir('./'):
+                    if file.endswith(".mp3"):
+                        os.rename(file, "song.mp3")
+                await msg.edit("재생 시작")
+                source = FFmpegPCMAudio(source="song.mp3")
+                voice.play(source)
 
-            ydl_opt = {
-                'format': 'bestaudio/best',
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                }],
-            }
-            with youtube_dl.YoutubeDL(ydl_opt) as ydl:
-                ydl.download([url])
-            for file in os.listdir('./'):
-                if file.endswith(".mp3"):
-                    os.rename(file, "song.mp3")
-            source = FFmpegPCMAudio(source="song.mp3")
-            voice.play(source)
+    @commands.command(
+        name="정지", aliases=["stop"],
+        help="음악 재생을 정지합니다.", usage="%정지, %stop"
+    )
+    async def stop(self, ctx):
+        voice = get(self.app.voice_clients, guild=ctx.guild)
+        if voice and voice.is_connected():
+            voice.stop()
 
 
 def setup(app):

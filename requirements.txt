@@ -8,5 +8,4 @@ discord.py[voice]
 ffmpeg
 PyNaCl
 youtube_dl
-ctypes
 opuslib

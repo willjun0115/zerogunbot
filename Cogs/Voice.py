@@ -7,6 +7,7 @@ from discord import FFmpegPCMAudio
 import openpyxl
 import os
 import youtube_dl
+import opuslib
 
 
 class Voice(commands.Cog, name="음성(Voice)"):

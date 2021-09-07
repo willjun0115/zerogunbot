@@ -9,4 +9,3 @@ ffmpeg
 PyNaCl
 youtube_dl
 opuslib
-os

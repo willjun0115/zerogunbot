@@ -61,6 +61,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
                 msg = await ctx.send("재생 준비 중...")
                 ydl_opt = {
                     'format': 'bestaudio/best',
+                    'noplaylist': True,
                     'postprocessors': [{
                         'key': 'FFmpegExtractAudio',
                         'preferredcodec': 'mp3',

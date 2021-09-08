@@ -53,8 +53,8 @@ class Voice(commands.Cog, name="음성(Voice)"):
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             try:
-                if os.path.isfile("song.mp3"):
-                    os.remove("song.mp3")
+                if os.path.isfile("0.mp3"):
+                    os.remove("0.mp3")
             except PermissionError:
                 await ctx.send("현재 음악이 재생 중입니다. 끝날때까지 기다리시거나, 음악을 중지해주세요.")
             else:
@@ -72,10 +72,10 @@ class Voice(commands.Cog, name="음성(Voice)"):
                     ydl.download([url])
                 for file in os.listdir('./'):
                     if file.endswith(".mp3"):
-                        os.rename(file, "song.mp3")
+                        os.rename(file, "0.mp3")
                 await msg.edit(content="재생 시작")
-                source = FFmpegPCMAudio(source="song.mp3")
-                voice.play(source)
+                source = FFmpegPCMAudio(source="0.mp3")
+                voice.play(source, after=lambda e: voice.stop())
 
     @commands.command(
         name="정지", aliases=["stop"],

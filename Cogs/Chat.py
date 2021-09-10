@@ -29,43 +29,51 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         help="입력값을 채팅에 전송합니다.", usage="%말하기 ~, %say ~", pass_context=True
     )
     async def _say(self, ctx, *, args):
-        await ctx.message.delete()
-        await ctx.send(args)
+        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
+            await ctx.message.delete()
+            await ctx.send(args)
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
         name="tts", aliases=["TTS"],
         help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="%tts ~, %TTS ~", pass_context=True
     )
     async def _say_tts(self, ctx, *, args):
-        await ctx.message.delete()
-        await ctx.send(args, tts=True)
+        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
+            await ctx.message.delete()
+            await ctx.send(args, tts=True)
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
         name="타이머챗", aliases=["timerchat"],
         help="잠시 후 사라지는 채팅을 전송합니다.", usage="%타이머챗 ~, %timerchat ~", pass_context=True
     )
     async def _say_timer(self, ctx, *, args):
-        await ctx.message.delete()
-        msg = await ctx.send(":clock12: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock3: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock6: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock9: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock12: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=':boom: ', delete_after=1)
+        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
+            await ctx.message.delete()
+            msg = await ctx.send(":clock12: " + args)
+            await asyncio.sleep(1)
+            await msg.edit(content=":clock3: " + args)
+            await asyncio.sleep(1)
+            await msg.edit(content=":clock6: " + args)
+            await asyncio.sleep(1)
+            await msg.edit(content=":clock9: " + args)
+            await asyncio.sleep(1)
+            await msg.edit(content=":clock12: " + args)
+            await asyncio.sleep(1)
+            await msg.edit(content=':boom: ', delete_after=1)
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
         name="청소", aliases=["지우기", "clear", "purge"],
         help="숫자만큼 채팅을 지웁니다.", usage="%청소 ~, %지우기 ~, %clear ~, %purge ~", pass_context=True
     )
     async def clean(self, ctx, num):
-        await ctx.message.delete()
-        member = ctx.message.author
-        if get(ctx.guild.roles, name='언론 통제') in member.roles:
+        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
+            await ctx.message.delete()
             await ctx.channel.purge(limit=int(num))
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")

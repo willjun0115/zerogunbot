@@ -47,7 +47,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name="타이머챗", aliases=["timerchat"],
+        name="타이머챗", aliases=["timerchat", "tc"],
         help="잠시 후 사라지는 채팅을 전송합니다.", usage="%* str(args)", pass_context=True
     )
     async def _say_timer(self, ctx, *, args):
@@ -79,7 +79,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name='패드립', aliases=[],
+        name='패드립', aliases=["mb"],
         help="저희 봇에 그런 기능은 없습니다?", usage="%*"
     )
     async def fdr(self, ctx):
@@ -88,7 +88,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await msg.edit(content='저는 그런 말 못해요 ㅠㅠ')
 
     @commands.command(
-        name='엄마삭제', aliases=[],
+        name='엄마삭제', aliases=["md"],
         help="입력값의 엄마를 삭제합니다.", usage="%* str(args)", pass_context=True
     )
     async def delete_mom_(self, ctx, *, args):
@@ -105,7 +105,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await msg.edit(content=":white_check_mark: \"" + args + "\"님의 엄마이(가) 삭제되었습니다.")
 
     @commands.command(
-        name="엄마검색", aliases=[],
+        name="엄마검색", aliases=["ms"],
         help="입력값의 엄마를 검색합니다.", usage="%* str(args)", pass_context=True
     )
     async def search_mom_(self, ctx, *, args):

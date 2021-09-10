@@ -36,7 +36,7 @@ class Game(commands.Cog, name="게임(Game)"):
             await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.command(
-        name="도박", aliases=[],
+        name="도박", aliases=["gamble"],
         help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%* int()", pass_context=int()
     )
     async def gamble(self, ctx, args):
@@ -125,7 +125,7 @@ class Game(commands.Cog, name="게임(Game)"):
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
     @commands.command(
-        name="가챠", aliases=[],
+        name="가챠", aliases=["gacha"],
         help="확률적으로 권한이 승급합니다.\n강등될 수도 있습니다.", usage="%*"
     )
     async def gacha(self, ctx):
@@ -186,7 +186,7 @@ class Game(commands.Cog, name="게임(Game)"):
             await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
     @commands.command(
-        name="가챠확률", aliases=["가챠정보"],
+        name="가챠확률", aliases=["가챠정보", "gachainfo"],
         help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%*"
     )
     async def gacha_info(self, ctx):
@@ -237,7 +237,7 @@ class Game(commands.Cog, name="게임(Game)"):
             await ctx.send(embed=embed)
 
     @commands.command(
-        name="인디언포커", aliases=[],
+        name="인디언포커", aliases=["IndianPoker"],
         help="인디언 포커를 신청합니다."
              "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
              "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
@@ -355,14 +355,14 @@ class Game(commands.Cog, name="게임(Game)"):
                                 await ctx.send("무승부")
 
     @commands.command(
-        name="블랙잭", aliases=[],
+        name="블랙잭", aliases=["Blackjack"],
         help="블랙잭을 신청합니다."
-                                       "\nA는 1 or 11, J,Q,K는 10으로 계산하며,"
-                                       "\n패의 합이 21에 가장 가까운 사람이 승리합니다."
-                                       "\n21를 초과하면 0점으로 처리됩니다."
-                                       "\n시작하면 참가자마다 두 장의 카드를 받습니다."
-                                       "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
-                                       "\n승자를 정합니다.", usage="%*"
+             "\nA는 1 or 11, J,Q,K는 10으로 계산하며,"
+             "\n패의 합이 21에 가장 가까운 사람이 승리합니다."
+             "\n21를 초과하면 0점으로 처리됩니다."
+             "\n시작하면 참가자마다 두 장의 카드를 받습니다."
+             "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
+             "\n승자를 정합니다.", usage="%*"
     )
     async def blackjack(self, ctx):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
@@ -553,13 +553,13 @@ class Game(commands.Cog, name="게임(Game)"):
                     embed = discord.Embed(title="<블랙잭 결과>", description=winner.name + ' 우승!')
                     for member in members:
                         if board[member] == 22:
-                            embed.add_field(name=member.name, value='21(blackjack)', inline=True)
+                            embed.add_field(name=member.name, value='21(Blackjack)', inline=True)
                         else:
                             embed.add_field(name=member.name, value=str(board[member]), inline=True)
                     await ctx.send(embed=embed)
 
     @commands.command(
-        name="시드포커", aliases=[],
+        name="시드포커", aliases=["SeedPoker"],
         help="시드 포커를 신청합니다."
              "\n덱에는 1~15까지의 숫자가 있으며,"
              "\n시작하면 참가자마다 한 장의 카드를 받습니다."
@@ -718,7 +718,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     await ctx.send(embed=embed)
 
     @commands.command(
-        name="섯다", aliases=[],
+        name="섯다", aliases=["섰다"],
         help="섯다를 신청합니다."
              "\n시작하면 참가자마다 두 장의 패를 받습니다."
              "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."

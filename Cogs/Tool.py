@@ -10,7 +10,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         self.app = app
 
     @commands.command(
-        name="도움말", aliases=[],
+        name="도움말", aliases=["?"],
         help="도움말을 불러옵니다.", usage="%*, %* str(command)"
     )
     async def help_command(self, ctx, func=None):
@@ -73,7 +73,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
 
     @commands.has_permissions(administrator=True)
     @commands.command(
-        name="로그편집", aliases=["editlog"],
+        name="로그편집", aliases=["editlog", "edit"],
         help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%* str(식별자) @ int()"
     )
     async def edit_log(self, ctx, selector, member: discord.Member, val: int):
@@ -90,7 +90,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
             await ctx.send("식별자는 1글자여야 합니다.")
 
     @commands.command(
-        name='인코드', aliases=["encode"],
+        name='인코드', aliases=["encode", "enc"],
         help='입력받은 문자열을 인코딩해 출력합니다.', usage='%* str(args)', pass_context=True
     )
     async def chat_encode(self, ctx, *, args):
@@ -104,7 +104,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         await ctx.send(str(code))
 
     @commands.command(
-        name='디코드', aliases=["decode"],
+        name='디코드', aliases=["decode", "dec"],
         help='0군봇이 인코딩한 코드를 입력받아 디코드해 출력합니다.', usage='%* str(args)', pass_context=True
     )
     async def chat_decode(self, ctx, *, code):
@@ -118,7 +118,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         await ctx.send(str(args))
 
     @commands.command(
-        name='프라이빗인코드', aliases=["privateencode"],
+        name='프라이빗인코드', aliases=["privateencode", "privenc"],
         help='입력받은 문자열을 자신만 디코드할 수 있는 코드로 인코딩해 출력합니다.',
         usage='%* str(args)', pass_context=True
     )
@@ -142,7 +142,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         await ctx.send(str(code))
 
     @commands.command(
-        name='프라이빗디코드', aliases=["privatedecode"],
+        name='프라이빗디코드', aliases=["privatedecode", "privdec"],
         help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
         usage='%* str(args)', pass_context=True
     )

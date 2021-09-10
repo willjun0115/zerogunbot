@@ -32,7 +32,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name="퇴장", aliases=["연결해제", "연결끊기", "disconnect", "leave"],
+        name="퇴장", aliases=["연결해제", "연결끊기", "disconnect", "dc", "leave"],
         help="음성 채널을 나갑니다.", usage="%*"
     )
     async def leave(self, ctx):
@@ -52,7 +52,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
 
     @commands.command(
-        name="재생", aliases=["play"],
+        name="재생", aliases=["play", "p"],
         help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url)", pass_context=True
     )
     async def play(self, ctx, url: str):
@@ -87,7 +87,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name="정지", aliases=["stop"],
+        name="정지", aliases=["stop", "s"],
         help="음악 재생을 정지합니다.", usage="%*"
     )
     async def stop(self, ctx):

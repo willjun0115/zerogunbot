@@ -20,6 +20,21 @@ class Game(commands.Cog, name="게임(Game)"):
                 break
         return find
 
+    @commands.command(
+        name="토큰", aliases=["코인", "token", "coin", "$"],
+        help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.",
+        usage="%토큰, %코인, %token, %coin, %$"
+    )
+    async def check_token(self, ctx):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is not None:
+            coin = int(log.content[20:])
+            await ctx.send(str(coin) + ' :coin:')
+        else:
+            await log_channel.send('$' + str(ctx.author.id) + ';0')
+            await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
+
     @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int())
     async def gamble(self, ctx, args):
         args = int(args)
@@ -166,7 +181,6 @@ class Game(commands.Cog, name="게임(Game)"):
     )
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="승급 확률 % (강등 확률 %)")
-        embed.add_field(name="> 이용제한", value="10%", inline=False)
         embed.add_field(name="> 음성 통제", value="2.5% (15%)", inline=False)
         embed.add_field(name="> 언론 통제", value="5% (10%)", inline=False)
         embed.add_field(name="> 이모티콘 관리", value="7.5% (7.5%)", inline=False)
@@ -190,7 +204,7 @@ class Game(commands.Cog, name="게임(Game)"):
             if lv == get(ctx.guild.roles, name="관리자").position:
                 win = 0
                 embed.add_field(name="관리자는 신고할 수 없습니다.", value=ctx.author.name + " 님, 맞을래요?",
-                                inline=True)
+                                inline=False)
             elif lv == get(ctx.guild.roles, name="창씨개명").position:
                 win = 5
             elif lv == get(ctx.guild.roles, name="음성 통제").position:
@@ -212,60 +226,19 @@ class Game(commands.Cog, name="게임(Game)"):
                 embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             await ctx.send(embed=embed)
 
-    @commands.command(name="토큰", help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.", usage="%토큰")
-    async def checktoken(self, ctx):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        log = await self.find_log(ctx, '$', ctx.author.id)
-        if log is not None:
-            coin = int(log.content[20:])
-            await ctx.send(str(coin)+' :coin:')
-        else:
-            await log_channel.send('$'+str(ctx.author.id)+';0')
-            await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
-
-    @commands.has_permissions(administrator=True)
-    @commands.command(name="토큰설정", help="해당 멤버의 토큰을 설정합니다. (관리자 권한)", usage="%토큰설정 @ ~")
-    async def edittoken(self, ctx, member: discord.Member, num):
-        log = await self.find_log(ctx, '$', member.id)
-        if log is not None:
-            await log.edit(content=log.content[:20] + str(num))
-            await ctx.send('토큰 로그를 업데이트했습니다.')
-        else:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
-
-    @commands.has_permissions(administrator=True)
-    @commands.command(name="토큰증감", help="해당 멤버의 토큰을 증가 및 감소시킵니다. (관리자 권한)", usage="%토큰증감 @ ~")
-    async def givetoken(self, ctx, member: discord.Member, num):
-        log = await self.find_log(ctx, '$', member.id)
-        if log is not None:
-            coin = int(log.content[20:])
-            await log.edit(content=log.content[:20] + str(coin + num))
-            await ctx.send('토큰 로그를 업데이트했습니다.')
-        else:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
-
     @commands.command(name="인디언포커", help="인디언 포커를 신청합니다."
                                          "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
                                          "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
                                          "\n숫자가 높은 쪽이 이깁니다.", usage="%인디언포커 @")
     async def indianpoker(self, ctx, member: discord.Member):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = 0
-        author_log = None
-        member_log = None
-        author_coin = 0
-        member_coin = 0
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(ctx.author.id)) is True:
-                author_log = message
-                author_coin = int(message.content[20:message.content.index('$')])
-                find_id += 1
-            elif message.content.startswith('$' + str(member.id)) is True:
-                member_log = message
-                member_coin = int(message.content[20:message.content.index('$')])
-                find_id += 1
-        if find_id < 2:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        author_log = await self.find_log(ctx, '$', ctx.author.id)
+        member_log = await self.find_log(ctx, '$', member.id)
+        author_coin = author_log.content[20:]
+        member_coin = member_log.content[20:]
+        if author_log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+        elif member_log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
             msg = await ctx.send(
                 ctx.author.name + " 님이 " + member.name + " 님에게 인디언 포커를 신청합니다.\n수락하려면 :white_check_mark: 을 눌러주세요.")
@@ -327,17 +300,13 @@ class Game(commands.Cog, name="게임(Game)"):
                                     await ctx.send(member.name + " 콜")
                             else:
                                 if user == ctx.author:
-                                    await author_log.edit(content=author_log.content[:19] + str(author_coin - 1) +
-                                                          author_log.content[author_log.content.index('$'):])
-                                    await member_log.edit(content=member_log.content[:19] + str(member_coin + 1) +
-                                                          member_log.content[member_log.content.index('$'):])
+                                    await author_log.edit(content=author_log.content[:20] + str(author_coin - 1))
+                                    await member_log.edit(content=member_log.content[:20] + str(member_coin + 1))
                                     await ctx.send(ctx.author.name + " 다이")
                                     await msg_.delete()
                                 else:
-                                    await author_log.edit(content=author_log.content[:19] + str(author_coin + 1) +
-                                                          author_log.content[author_log.content.index('$'):])
-                                    await member_log.edit(content=member_log.content[:19] + str(member_coin - 1) +
-                                                          member_log.content[member_log.content.index('$'):])
+                                    await author_log.edit(content=author_log.content[:20] + str(author_coin + 1))
+                                    await member_log.edit(content=member_log.content[:20] + str(member_coin - 1))
                                     await ctx.send(member.name + " 다이")
                                     await msg_.delete()
                                 break
@@ -348,8 +317,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                     break
                             await msg_.clear_reactions()
                             await msg_.edit(content=ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
-                                                                                            "\n 베팅 토큰: " + str(
-                                coin))
+                                                                                             "\n 베팅 토큰: " + str(coin))
                     if author_card[author_card.rfind(':') + 1:] == 'A':
                         author_num = 1
                     else:
@@ -381,13 +349,9 @@ class Game(commands.Cog, name="게임(Game)"):
                                        "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
                                        "\n승자를 정합니다.", usage="%블랙잭")
     async def blackjack(self, ctx):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(ctx.author.id)) is True:
-                find_id = True
-        if find_id is False:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        author_log = await self.find_log(ctx, '$', ctx.author.id)
+        if author_log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
             members = []
             start = False
@@ -412,23 +376,20 @@ class Game(commands.Cog, name="게임(Game)"):
                             start = True
                             break
                         if user not in members:
-                            find_id = False
-                            async for message in log_channel.history(limit=100):
-                                if message.content.startswith('$' + str(user.id)) is True:
-                                    find_id = True
-                                    members.append(user)
-                            if find_id is False:
-                                await ctx.send('토큰 로그에 없는 ID 입니다.')
+                            member_log = await self.find_log(ctx, '$', user.id)
+                            if member_log is None:
+                                await ctx.send('로그에서 ID를 찾지 못했습니다.')
+                            else:
+                                members.append(user)
                     else:
                         if user == ctx.author:
                             await ctx.send("호스트가 블랙잭을 취소했습니다.")
                             break
                         if user in members:
                             members.remove(user)
-                    names = [x.name for x in members]
                     await msg.clear_reactions()
                     await msg.edit(content=ctx.author.name + " 님이 블랙잭을 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
-                                                             "\n참가자 " + str(names))
+                                                             "\n참가자 : " + ' '.join([x.name for x in members]))
             if start is True:
                 if len(members) < 2:
                     await ctx.send("블랙잭은 혼자할 수 없습니다.")
@@ -591,13 +552,9 @@ class Game(commands.Cog, name="게임(Game)"):
                                         "\n순서대로 시드 카드를 줍니다."
                                         "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="%시드포커")
     async def seedpoker(self, ctx):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(ctx.author.id)) is True:
-                find_id = True
-        if find_id is False:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        author_log = await self.find_log(ctx, '$', ctx.author.id)
+        if author_log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
             members = []
             start = False
@@ -622,23 +579,20 @@ class Game(commands.Cog, name="게임(Game)"):
                             start = True
                             break
                         if user not in members:
-                            find_id = False
-                            async for message in log_channel.history(limit=100):
-                                if message.content.startswith('$' + str(user.id)) is True:
-                                    find_id = True
-                                    members.append(user)
-                            if find_id is False:
-                                await ctx.send('토큰 로그에 없는 ID 입니다.')
+                            member_log = await self.find_log(ctx, '$', user.id)
+                            if member_log is None:
+                                await ctx.send('로그에서 ID를 찾지 못했습니다.')
+                            else:
+                                members.append(user)
                     else:
                         if user == ctx.author:
                             await ctx.send("호스트가 시드 포커를 취소했습니다.")
                             break
                         if user in members:
                             members.remove(user)
-                    names = [x.name for x in members]
                     await msg.clear_reactions()
                     await msg.edit(content=ctx.author.name + " 님이 시드 포커를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
-                                                             "\n참가자 " + str(names))
+                                                             "\n참가자 : " + ' '.join([x.name for x in members]))
             if start is True:
                 if len(members) < 3:
                     await ctx.send("시드 포커는 3인부터 가능합니다.")
@@ -733,11 +687,13 @@ class Game(commands.Cog, name="게임(Game)"):
                             board[member] += seed[1]
                         elif board[member] == v[2]:
                             board[member] += seed[2]
-                    winner = ctx.author
+                    winners = [ctx.author]
                     for member in members:
-                        if board[member] > board[winner]:
-                            winner = member
-                    embed = discord.Embed(title='<시드 포커 결과>', description=winner.name + " 님 우승!")
+                        if board[member] > board[winners[0]]:
+                            winners = [member]
+                        elif board[member] == board[winners[0]]:
+                            winners.append(member)
+                    embed = discord.Embed(title='<시드 포커 결과>', description=' '.join([x.name for x in winners]) + " 님 우승!")
                     for member in members:
                         embed.add_field(name=member.name, value=str(board[member]), inline=True)
                     await ctx.send(embed=embed)
@@ -793,10 +749,9 @@ class Game(commands.Cog, name="게임(Game)"):
                             break
                         if user in members:
                             members.remove(user)
-                    names = [x.name for x in members]
                     await msg.clear_reactions()
                     await msg.edit(content=ctx.author.name + " 님이 섯다를 신청합니다.\n참가하려면 :white_check_mark: 을 눌러주세요."
-                                                             "\n참가자 " + str(names))
+                                                             "\n참가자 : " + ' '.join([x.name for x in members]))
             if start is True:
                 if len(members) < 2:
                     await ctx.send("섯다는 혼자할 수 없습니다.")

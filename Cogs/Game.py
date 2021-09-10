@@ -11,7 +11,7 @@ class Game(commands.Cog, name="게임(Game)"):
     def __init__(self, app):
         self.app = app
 
-    def find_log(self, ctx, member):
+    async def find_log(self, ctx, member):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find = None
         async for message in log_channel.history(limit=100):
@@ -40,7 +40,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.", usage="%가위바위보")
     async def rock_scissors_paper(self, ctx):
-        found = self.find_log(ctx, ctx.author)
+        found = await self.find_log(ctx, ctx.author)
         if found is not None:
             coin = int(found.content[:20])
             msg = await ctx.send("아래 반응 중 하나를 골라보세요.")

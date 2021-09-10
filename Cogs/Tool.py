@@ -43,19 +43,19 @@ class Tool(commands.Cog, name="도구(Tool)"):
                             command_notfound = True
                             if func == 'load':
                                 embed = discord.Embed(title=f"명령어 : load", description='명령어 카테고리를 불러옵니다.')
-                                embed.add_field(name="사용법", value='%로드 ~, %load ~')
+                                embed.add_field(name="사용법", value='%* ~')
                                 await ctx.send(embed=embed)
                                 command_notfound = False
                                 break
                             if func == 'unload':
                                 embed = discord.Embed(title=f"명령어 : unload", description='불러온 명령어 카테고리를 제거합니다.')
-                                embed.add_field(name="사용법", value='%언로드 ~, %unload ~')
+                                embed.add_field(name="사용법", value='%* ~')
                                 await ctx.send(embed=embed)
                                 command_notfound = False
                                 break
                             if func == 'reload':
                                 embed = discord.Embed(title=f"명령어 : reload", description='명령어 카테고리를 다시 불러옵니다.')
-                                embed.add_field(name="사용법", value='%리로드, %리로드 ~, %reload, %reload ~')
+                                embed.add_field(name="사용법", value='%*, %* ~')
                                 await ctx.send(embed=embed)
                                 command_notfound = False
                                 break

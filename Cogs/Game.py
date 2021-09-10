@@ -134,7 +134,7 @@ class Game(commands.Cog, name="게임(Game)"):
         if log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
-            coin = log.content[20:]
+            coin = int(log.content[20:])
             if ctx.channel == my_channel:
                 if ctx.author.top_role.position >= get(ctx.guild.roles, name="언랭").position:
                     msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
@@ -244,8 +244,8 @@ class Game(commands.Cog, name="게임(Game)"):
     async def indian_poker(self, ctx, member: discord.Member):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
         member_log = await self.find_log(ctx, '$', member.id)
-        author_coin = author_log.content[20:]
-        member_coin = member_log.content[20:]
+        author_coin = int(author_log.content[20:])
+        member_coin = int(member_log.content[20:])
         if author_log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
         elif member_log is None:

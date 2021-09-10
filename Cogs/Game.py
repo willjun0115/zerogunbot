@@ -35,7 +35,10 @@ class Game(commands.Cog, name="게임(Game)"):
             await log_channel.send('$' + str(ctx.author.id) + ';0')
             await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
-    @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int())
+    @commands.command(
+        name="도박",
+        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int()
+    )
     async def gamble(self, ctx, args):
         args = int(args)
         if args > 50:
@@ -53,7 +56,11 @@ class Game(commands.Cog, name="게임(Game)"):
             else:
                 await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
 
-    @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.", usage="%가위바위보")
+    @commands.command(
+        name="가위바위보", aliases=["가바보", "rsp"],
+        help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.",
+        usage="%가위바위보, %가바보, %rsp"
+    )
     async def rock_scissors_paper(self, ctx):
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is not None:

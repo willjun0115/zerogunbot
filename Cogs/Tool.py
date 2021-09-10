@@ -34,6 +34,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
                         if title.name == func:
                             cmd = self.app.get_command(title.name)
                             embed = discord.Embed(title=f"명령어 : {cmd}", description=cmd.help)
+                            embed.add_field(name="대체 명령어", value=cmd.aliases)
                             embed.add_field(name="사용법", value=cmd.usage)
                             await ctx.send(embed=embed)
                             command_notfound = False
@@ -73,7 +74,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="로그편집", aliases=["editlog"],
-        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%editlog (식별자) @ ~"
+        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%로그편집 (식별자) @ ~, %editlog \""
     )
     async def edit_log(self, ctx, selector, member: discord.Member, *, args):
         log_channel = ctx.guild.get_channel(874970985307201546)

@@ -199,7 +199,8 @@ class Game(commands.Cog, name="게임(Game)"):
             elif lv == get(ctx.guild.roles, name="언랭").position:
                 win = 0
             if rand <= win * 0.01:
-                await member.remove_roles(member, member.top_role)
+                await member.remove_roles(member, member.top_role,
+                                          reason=f"{ctx.author.name} 님의 신고로 {member.name} 님이 제재받았습니다.")
                 embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + " 님이 강등됩니다.",
                                 inline=True)
             else:

@@ -10,6 +10,13 @@ class Game(commands.Cog, name="게임(Game)"):
 
     def __init__(self, app):
         self.app = app
+        self.roles = {
+            "창씨개명": (0.0, 0.5),
+            "음성 통제": (0.5, 1.5),
+            "언론 통제": (1.5, 3.0),
+            "이모티콘 관리": (3.0, 8.0),
+            "DJ": (8.0, 20.0)
+        }
 
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(874970985307201546)
@@ -136,49 +143,37 @@ class Game(commands.Cog, name="게임(Game)"):
         else:
             coin = int(log.content[20:])
             if ctx.channel == my_channel:
-                if ctx.author.top_role.position >= get(ctx.guild.roles, name="언랭").position:
-                    msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
-                    reaction_list = ['✅', '❎']
-                    for r in reaction_list:
-                        await msg.add_reaction(r)
+                msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
+                reaction_list = ['✅', '❎']
+                for r in reaction_list:
+                    await msg.add_reaction(r)
 
-                    def check(reaction, user):
-                        return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
 
-                    try:
-                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
-                    except asyncio.TimeoutError:
-                        await msg.edit(content="시간 초과!", delete_after=2)
-                    else:
-                        if str(reaction) == '✅':
-                            embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
-                            prize = None
-                            rand = random.randint(1, 100)
-                            if rand <= 0.5:
-                                prize = '창씨개명'
-                                await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                            elif 0.5 < rand <= 1.5:
-                                prize = '음성 통제'
-                                await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                            elif 1.5 < rand <= 3:
-                                prize = '언론 통제'
-                                await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                            elif 3 < rand <= 8:
-                                prize = '이모티콘 관리'
-                                await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                            elif 8 < rand <= 20:
-                                prize = 'DJ'
-                                await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                            else:
-                                prize_coin = random.randint(1, 5)
-                                await log.edit(content=log.content[:20] + str(coin + prize_coin))
-                                prize = str(prize_coin) + " :coin:"
-                            embed.add_field(name="> " + str(prize), value='획득!', inline=False)
-                            await ctx.send(embed=embed)
-                        else:
-                            await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
                 else:
-                    await ctx.send(":no_entry: 권한이 없습니다.")
+                    if str(reaction) == '✅':
+                        embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
+                        prize = None
+                        rand = random.random() * 100
+                        if 0 <= rand < 20:
+                            for role in self.roles.keys():
+                                prob = self.roles[role]
+                                if prob[0] <= rand < prob[1]:
+                                    prize = role
+                                    await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
+                        else:
+                            prize_coin = random.randint(1, 5)
+                            await log.edit(content=log.content[:20] + str(coin + prize_coin))
+                            prize = str(prize_coin) + " :coin:"
+                        embed.add_field(name="> " + str(prize), value='획득!', inline=False)
+                        await ctx.send(embed=embed)
+                    else:
+                        await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
             else:
                 await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
@@ -188,12 +183,10 @@ class Game(commands.Cog, name="게임(Game)"):
     )
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="()")
-        embed.add_field(name="> 창씨개명", value="0.5%", inline=False)
-        embed.add_field(name="> 음성 통제", value="1%", inline=False)
-        embed.add_field(name="> 언론 통제", value="1.5%", inline=False)
-        embed.add_field(name="> 이모티콘 관리", value="5%", inline=False)
-        embed.add_field(name="> DJ", value="12%", inline=False)
-        embed.add_field(name="> 1~5 :coin:", value="80%", inline=False)
+        for role in self.roles.keys():
+            prob = self.roles[role]
+            embed.add_field(name="> " + role, value=str(prob[1]-prob[0])+'%', inline=False)
+        embed.add_field(name="> 1~5 :coin:", value='80%', inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(

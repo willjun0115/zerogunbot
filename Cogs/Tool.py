@@ -73,12 +73,14 @@ class Tool(commands.Cog, name="도구(Tool)"):
     @commands.has_permissions(administrator=True)
     @commands.command(name="로그편집", help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%로그편집 (selector) @ ~")
     async def edit_log(self, ctx, selector, member: discord.Member, *, args):
+        log_channel = ctx.guild.get_channel(874970985307201546)
         log = await self.find_log(ctx, selector, member.id)
         if log is not None:
             await log.edit(content=log.content[:20] + str(args))
             await ctx.send('로그를 업데이트했습니다.')
         else:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await log_channel.send(selector + str(member.id) + ';0')
+            await ctx.send('로그에 ' + member.name + ' 님의 ID를 기록했습니다.')
 
     @commands.command(
         name='인코드', aliases=["encode"],

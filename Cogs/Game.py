@@ -705,13 +705,9 @@ class Game(commands.Cog, name="게임(Game)"):
                                       "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
                                       "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%섯다")
     async def seotda(self, ctx):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(ctx.author.id)) is True:
-                find_id = True
-        if find_id is False:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        author_log = await self.find_log(ctx, '$', ctx.author.id)
+        if author_log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
             members = []
             start = False
@@ -736,13 +732,11 @@ class Game(commands.Cog, name="게임(Game)"):
                             start = True
                             break
                         if user not in members:
-                            find_id = False
-                            async for message in log_channel.history(limit=100):
-                                if message.content.startswith('$' + str(user.id)) is True:
-                                    find_id = True
-                                    members.append(user)
-                            if find_id is False:
-                                await ctx.send('토큰 로그에 없는 ID 입니다.')
+                            member_log = await self.find_log(ctx, '$', user.id)
+                            if member_log is None:
+                                await ctx.send('로그에서 ID를 찾지 못했습니다.')
+                            else:
+                                members.append(user)
                     else:
                         if user == ctx.author:
                             await ctx.send("호스트가 섯다를 취소했습니다.")

@@ -42,7 +42,7 @@ class Game(commands.Cog, name="게임(Game)"):
     async def rock_scissors_paper(self, ctx):
         found = await self.find_log(ctx, ctx.author)
         if found is not None:
-            coin = int(found.content[:20])
+            coin = int(found.content[20:])
             msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
             reaction_list = ['✊', '✌️', '🖐️']
             for r in reaction_list:

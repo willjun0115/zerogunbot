@@ -11,11 +11,11 @@ class Game(commands.Cog, name="게임(Game)"):
     def __init__(self, app):
         self.app = app
 
-    async def find_log(self, ctx, member):
+    async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find = None
         async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(member.id)) is True:
+            if message.content.startswith(selector + str(id)) is True:
                 find = message
                 break
         return find
@@ -40,9 +40,9 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.", usage="%가위바위보")
     async def rock_scissors_paper(self, ctx):
-        found = await self.find_log(ctx, ctx.author)
-        if found is not None:
-            coin = int(found.content[20:])
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is not None:
+            coin = int(log.content[20:])
             msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
             reaction_list = ['✊', '✌️', '🖐️']
             for r in reaction_list:
@@ -98,7 +98,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         await ctx.send(':hand_splayed:')
                         await ctx.send('비겼네요.')
                         coin += 0
-                await found.edit(content=found.content[:20] + str(coin))
+                await log.edit(content=log.content[:20] + str(coin))
         else:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
@@ -215,46 +215,34 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="토큰", help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.", usage="%토큰")
     async def checktoken(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(ctx.author.id)) is True:
-                coin = int(message.content[20:])
-                find_id = True
-                await ctx.send(str(coin)+' :coin:')
-                break
-        if find_id is False:
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is not None:
+            coin = int(log.content[20:])
+            await ctx.send(str(coin)+' :coin:')
+        else:
             await log_channel.send('$'+str(ctx.author.id)+';0')
             await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.has_permissions(administrator=True)
     @commands.command(name="토큰설정", help="해당 멤버의 토큰을 설정합니다. (관리자 권한)", usage="%토큰설정 @ ~")
     async def edittoken(self, ctx, member: discord.Member, num):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(member.id)) is True:
-                find_id = True
-                await message.edit(content=message.content[:20] + str(num))
-                await ctx.send('토큰 로그를 업데이트했습니다.')
-                break
-        if find_id is False:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        log = await self.find_log(ctx, '$', member.id)
+        if log is not None:
+            await log.edit(content=log.content[:20] + str(num))
+            await ctx.send('토큰 로그를 업데이트했습니다.')
+        else:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
     @commands.has_permissions(administrator=True)
     @commands.command(name="토큰증감", help="해당 멤버의 토큰을 증가 및 감소시킵니다. (관리자 권한)", usage="%토큰증감 @ ~")
     async def givetoken(self, ctx, member: discord.Member, num):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith('$' + str(member.id)) is True:
-                find_id = True
-                coin = int(message.content[20:])
-                await message.edit(
-                    content=message.content[:20] + str(coin + num))
-                await ctx.send('토큰 로그를 업데이트했습니다.')
-                break
-        if find_id is False:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
+        log = await self.find_log(ctx, '$', member.id)
+        if log is not None:
+            coin = int(log.content[20:])
+            await log.edit(content=log.content[:20] + str(coin + num))
+            await ctx.send('토큰 로그를 업데이트했습니다.')
+        else:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
     @commands.command(name="인디언포커", help="인디언 포커를 신청합니다."
                                          "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"

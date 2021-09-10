@@ -140,10 +140,10 @@ class Game(commands.Cog, name="게임(Game)"):
                             win = 0.2
                             lose = 0.0
                         if rand <= win:
-                            await ctx.author.add_roles([ctx.gulid.roles[ctx.guild.roles.index(toprole) + 1]])
+                            await self.app.add_roles(ctx.author, ctx.gulid.roles[ctx.guild.roles.index(toprole) + 1])
                             embed.add_field(name="승급", value="+", inline=True)
                         elif rand >= 1.0 - lose:
-                            await ctx.author.remove_roles([toprole])
+                            await self.app.remove_roles(ctx.author, toprole)
                             embed.add_field(name="강등", value="-", inline=True)
                         else:
                             embed.add_field(name="유지", value="=", inline=True)
@@ -199,7 +199,7 @@ class Game(commands.Cog, name="게임(Game)"):
             elif lv == get(ctx.guild.roles, name="언랭").position:
                 win = 0
             if rand <= win * 0.01:
-                await member.remove_roles([member.top_role])
+                await member.remove_roles(member, member.top_role)
                 embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + " 님이 강등됩니다.",
                                 inline=True)
             else:

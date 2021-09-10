@@ -79,7 +79,8 @@ class Chat(commands.Cog, name="채팅(Chat)"):
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name='패드립', help="저희 봇에 그런 기능은 없습니다?", usage="%*"
+        name='패드립', aliases=[],
+        help="저희 봇에 그런 기능은 없습니다?", usage="%*"
     )
     async def fdr(self, ctx):
         msg = await ctx.send("느금마")
@@ -87,7 +88,8 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await msg.edit(content='저는 그런 말 못해요 ㅠㅠ')
 
     @commands.command(
-        name='엄마삭제', help="입력값의 엄마를 삭제합니다.", usage="%* str(args)", pass_context=True
+        name='엄마삭제', aliases=[],
+        help="입력값의 엄마를 삭제합니다.", usage="%* str(args)", pass_context=True
     )
     async def delete_mom_(self, ctx, *, args):
         msg = await ctx.send("\"" + args + "\"님의 엄마 삭제 중...  0% :clock12: ")
@@ -103,7 +105,8 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         await msg.edit(content=":white_check_mark: \"" + args + "\"님의 엄마이(가) 삭제되었습니다.")
 
     @commands.command(
-        name="엄마검색", help="입력값의 엄마를 검색합니다.", usage="%* str(args)", pass_context=True
+        name="엄마검색", aliases=[],
+        help="입력값의 엄마를 검색합니다.", usage="%* str(args)", pass_context=True
     )
     async def search_mom_(self, ctx, *, args):
         msg = await ctx.send(":mag_right: \"" + args + "\"님의 엄마 검색 중.")

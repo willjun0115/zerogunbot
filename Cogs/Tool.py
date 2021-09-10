@@ -10,7 +10,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         self.app = app
 
     @commands.command(
-        name="도움말",
+        name="도움말", aliases=[],
         help="도움말을 불러옵니다.", usage="%*, %* str(command)"
     )
     async def help_command(self, ctx, func=None):

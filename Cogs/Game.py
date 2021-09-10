@@ -126,7 +126,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(
         name="가챠", aliases=["gacha"],
-        help="확률적으로 권한이 승급합니다.\n강등될 수도 있습니다.", usage="%*"
+        help="확률적으로 역할을 얻습니다.\n자세한 정보는 %가챠확률을 참고해주세요.", usage="%*"
     )
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
@@ -146,37 +146,12 @@ class Game(commands.Cog, name="게임(Game)"):
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     if str(reaction) == '✅':
-                        rand = random.random()
                         embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
-                        win = 0.0
-                        lose = 0.0
-                        toprole = ctx.author.top_role
-                        if toprole == get(ctx.guild.roles, name="창씨개명"):
-                            win = 0.0
-                            lose = 0.0
-                        elif toprole == get(ctx.guild.roles, name="음성 통제"):
-                            win = 0.025
-                            lose = 0.15
-                        elif toprole == get(ctx.guild.roles, name="언론 통제"):
-                            win = 0.05
-                            lose = 0.1
-                        elif toprole == get(ctx.guild.roles, name="이모티콘 관리"):
-                            win = 0.075
-                            lose = 0.075
-                        elif toprole == get(ctx.guild.roles, name="DJ"):
-                            win = 0.1
-                            lose = 0.05
-                        elif toprole == get(ctx.guild.roles, name="언랭"):
-                            win = 0.2
-                            lose = 0.0
-                        if rand <= win:
-                            await self.app.add_roles(ctx.author, ctx.gulid.roles[ctx.guild.roles.index(toprole) + 1])
-                            embed.add_field(name="승급", value="+", inline=True)
-                        elif rand >= 1.0 - lose:
-                            await self.app.remove_roles(ctx.author, toprole)
-                            embed.add_field(name="강등", value="-", inline=True)
-                        else:
-                            embed.add_field(name="유지", value="=", inline=True)
+                        result = '-'
+                        if random.random() <= 0.2:
+                            result = '+'
+                            await ctx.author.add_roles(get(ctx.guild.roles, name="DJ"))
+                        embed.add_field(name="> " + "DJ", value=result, inline=False)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
@@ -190,12 +165,8 @@ class Game(commands.Cog, name="게임(Game)"):
         help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%*"
     )
     async def gacha_info(self, ctx):
-        embed = discord.Embed(title="<가챠 확률 정보>", description="승급 확률 % (강등 확률 %)")
-        embed.add_field(name="> 음성 통제", value="2.5% (15%)", inline=False)
-        embed.add_field(name="> 언론 통제", value="5% (10%)", inline=False)
-        embed.add_field(name="> 이모티콘 관리", value="7.5% (7.5%)", inline=False)
-        embed.add_field(name="> DJ", value="10% (5%)", inline=False)
-        embed.add_field(name="> 언랭", value="20%", inline=False)
+        embed = discord.Embed(title="<가챠 확률 정보>", description="()")
+        embed.add_field(name="> DJ", value="20%", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(

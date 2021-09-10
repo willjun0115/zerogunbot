@@ -17,7 +17,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(
         name="연결", aliases=["connect", "join"],
-        help="음성 채널에 연결합니다.", usage="%연결, %connect, %join"
+        help="음성 채널에 연결합니다.", usage="%*"
     )
     async def join(self, ctx):
         if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
@@ -33,7 +33,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(
         name="퇴장", aliases=["연결해제", "연결끊기", "disconnect", "leave"],
-        help="음성 채널을 나갑니다.", usage="%퇴장, %연결해제, %연결끊기, %disconnect, %leave"
+        help="음성 채널을 나갑니다.", usage="%*"
     )
     async def leave(self, ctx):
         if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
@@ -44,7 +44,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(
         name="잠수", aliases=["afk"],
-        help="잠수방으로 이동합니다.", usage="%잠수, %afk"
+        help="잠수방으로 이동합니다.", usage="%*"
     )
     async def submerge(self, ctx):
         afkchannel = ctx.guild.get_channel(760198518987685949)
@@ -53,7 +53,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(
         name="재생", aliases=["play"],
-        help="유튜브 url을 통해 음악을 재생합니다.", usage="%재생 ~, %play ~", pass_context=True
+        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url)", pass_context=True
     )
     async def play(self, ctx, url: str):
         if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
@@ -88,7 +88,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(
         name="정지", aliases=["stop"],
-        help="음악 재생을 정지합니다.", usage="%정지, %stop"
+        help="음악 재생을 정지합니다.", usage="%*"
     )
     async def stop(self, ctx):
         if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
@@ -100,7 +100,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(
         name="queueclear", aliases=["qc"],
-        help="재생 목록을 비웁니다.", usage="%queueclear, %qc"
+        help="재생 목록을 비웁니다.", usage="%*"
     )
     async def queue(self, ctx):
         if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:

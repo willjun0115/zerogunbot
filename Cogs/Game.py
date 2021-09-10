@@ -23,7 +23,7 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(
         name="토큰", aliases=["코인", "token", "coin", "$"],
         help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.",
-        usage="%토큰, %코인, %token, %coin, %$"
+        usage="%*"
     )
     async def check_token(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
@@ -37,7 +37,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(
         name="도박",
-        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int()
+        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%* int()", pass_context=int()
     )
     async def gamble(self, ctx, args):
         args = int(args)
@@ -59,7 +59,7 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(
         name="가위바위보", aliases=["가바보", "rsp"],
         help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.",
-        usage="%가위바위보, %가바보, %rsp"
+        usage="%*"
     )
     async def rock_scissors_paper(self, ctx):
         log = await self.find_log(ctx, '$', ctx.author.id)
@@ -124,7 +124,9 @@ class Game(commands.Cog, name="게임(Game)"):
         else:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
-    @commands.command(name="가챠", help="확률적으로 권한이 승급합니다.\n강등될 수도 있습니다.", usage="%가챠")
+    @commands.command(
+        name="가챠", help="확률적으로 권한이 승급합니다.\n강등될 수도 있습니다.", usage="%*"
+    )
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(811849095031029762)
         if ctx.channel == my_channel:
@@ -184,7 +186,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(
         name="가챠확률", aliases=["가챠정보"],
-        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%가챠확률, %가챠정보"
+        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%*"
     )
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="승급 확률 % (강등 확률 %)")
@@ -198,7 +200,7 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(
         name="리폿", aliases=["신고", "report"],
         help="부적절한 사용자를 신고합니다.\n확률적으로 강등되며, 이용제한에 걸립니다."
-             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="%리폿 @, %신고 @, %report @"
+             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="%* @"
     )
     async def report(self, ctx, member: discord.Member):
         my_channel = ctx.guild.get_channel(872938926019575879)
@@ -236,7 +238,7 @@ class Game(commands.Cog, name="게임(Game)"):
     @commands.command(name="인디언포커", help="인디언 포커를 신청합니다."
                                          "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
                                          "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
-                                         "\n숫자가 높은 쪽이 이깁니다.", usage="%인디언포커 @")
+                                         "\n숫자가 높은 쪽이 이깁니다.", usage="%*")
     async def indianpoker(self, ctx, member: discord.Member):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
         member_log = await self.find_log(ctx, '$', member.id)
@@ -354,7 +356,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                        "\n21를 초과하면 0점으로 처리됩니다."
                                        "\n시작하면 참가자마다 두 장의 카드를 받습니다."
                                        "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
-                                       "\n승자를 정합니다.", usage="%블랙잭")
+                                       "\n승자를 정합니다.", usage="%*")
     async def blackjack(self, ctx):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
         if author_log is None:
@@ -557,7 +559,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                         "\n시드를 추가하면 시드에 새 카드를 추가합니다."
                                         "\n덱에 있는 카드를 모두 쓰고 나면, 패가 가장 낮은 멤버에게"
                                         "\n순서대로 시드 카드를 줍니다."
-                                        "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="%시드포커")
+                                        "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="%*")
     async def seedpoker(self, ctx):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
         if author_log is None:
@@ -710,7 +712,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                       "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
                                       "⏏️: 하프, ‼️: 따당, ✅: 콜(체크), 💀: 다이"
                                       "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
-                                      "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%섯다")
+                                      "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%*")
     async def seotda(self, ctx):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
         if author_log is None:

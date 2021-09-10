@@ -11,6 +11,15 @@ class Game(commands.Cog, name="게임(Game)"):
     def __init__(self, app):
         self.app = app
 
+    def find_log(self, ctx, member):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        find = None
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith('$' + str(member.id)) is True:
+                find = message
+                break
+        return find
+
     @commands.command(name="도박", help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%도박 ~", pass_context=int())
     async def gamble(self, ctx, args):
         args = int(args)
@@ -31,71 +40,67 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(name="가위바위보", help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.", usage="%가위바위보")
     async def rock_scissors_paper(self, ctx):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(ctx.author.id)) is True:
-                coin = int(message.content[19:message.content.index('$')])
-                find_id = True
-                msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
-                reaction_list = ['✊', '✌️', '🖐️']
-                for r in reaction_list:
-                    await msg.add_reaction(r)
+        found = self.find_log(ctx, ctx.author)
+        if found is not None:
+            coin = int(found.content[:20])
+            msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
+            reaction_list = ['✊', '✌️', '🖐️']
+            for r in reaction_list:
+                await msg.add_reaction(r)
 
-                def check(reaction, user):
-                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+            def check(reaction, user):
+                return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
 
-                try:
-                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
-                except asyncio.TimeoutError:
-                    await msg.edit(content="시간 초과!", delete_after=2)
-                else:
-                    if str(reaction) == '✊':
-                        bot_react = random.randint(0, 2)
-                        if bot_react == 0:
-                            await ctx.send(':fist:')
-                            await ctx.send('비겼네요.')
-                            coin += 0
-                        elif bot_react == 1:
-                            await ctx.send(':v:')
-                            await ctx.send('제가 졌네요.')
-                            coin += 1
-                        elif bot_react == 2:
-                            await ctx.send(':hand_splayed:')
-                            await ctx.send('제가 이겼네요!')
-                            coin -= 1
-                    elif str(reaction) == '✌️':
-                        bot_react = random.randint(0, 2)
-                        if bot_react == 0:
-                            await ctx.send(':fist:')
-                            await ctx.send('제가 이겼네요!')
-                            coin -= 1
-                        elif bot_react == 1:
-                            await ctx.send(':v:')
-                            await ctx.send('비겼네요.')
-                            coin += 0
-                        elif bot_react == 2:
-                            await ctx.send(':hand_splayed:')
-                            await ctx.send('제가 졌네요.')
-                            coin += 1
-                    elif str(reaction) == '🖐️':
-                        bot_react = random.randint(0, 2)
-                        if bot_react == 0:
-                            await ctx.send(':fist:')
-                            await ctx.send('제가 졌네요.')
-                            coin += 1
-                        elif bot_react == 1:
-                            await ctx.send(':v:')
-                            await ctx.send('제가 이겼네요!')
-                            coin -= 1
-                        elif bot_react == 2:
-                            await ctx.send(':hand_splayed:')
-                            await ctx.send('비겼네요.')
-                            coin += 0
-                    await message.edit(content=message.content[:19] + str(coin) + message.content[message.content.index('$'):])
-                break
-        if find_id is False:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
+            try:
+                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
+            except asyncio.TimeoutError:
+                await msg.edit(content="시간 초과!", delete_after=2)
+            else:
+                if str(reaction) == '✊':
+                    bot_react = random.randint(0, 2)
+                    if bot_react == 0:
+                        await ctx.send(':fist:')
+                        await ctx.send('비겼네요.')
+                        coin += 0
+                    elif bot_react == 1:
+                        await ctx.send(':v:')
+                        await ctx.send('제가 졌네요.')
+                        coin += 1
+                    elif bot_react == 2:
+                        await ctx.send(':hand_splayed:')
+                        await ctx.send('제가 이겼네요!')
+                        coin -= 1
+                elif str(reaction) == '✌️':
+                    bot_react = random.randint(0, 2)
+                    if bot_react == 0:
+                        await ctx.send(':fist:')
+                        await ctx.send('제가 이겼네요!')
+                        coin -= 1
+                    elif bot_react == 1:
+                        await ctx.send(':v:')
+                        await ctx.send('비겼네요.')
+                        coin += 0
+                    elif bot_react == 2:
+                        await ctx.send(':hand_splayed:')
+                        await ctx.send('제가 졌네요.')
+                        coin += 1
+                elif str(reaction) == '🖐️':
+                    bot_react = random.randint(0, 2)
+                    if bot_react == 0:
+                        await ctx.send(':fist:')
+                        await ctx.send('제가 졌네요.')
+                        coin += 1
+                    elif bot_react == 1:
+                        await ctx.send(':v:')
+                        await ctx.send('제가 이겼네요!')
+                        coin -= 1
+                    elif bot_react == 2:
+                        await ctx.send(':hand_splayed:')
+                        await ctx.send('비겼네요.')
+                        coin += 0
+                await found.edit(content=found.content[:20] + str(coin))
+        else:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
     @commands.command(name="가챠", help="확률적으로 권한이 승급합니다.\n강등될 수도 있습니다.", usage="%가챠")
     async def gacha(self, ctx):
@@ -212,13 +217,13 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(ctx.author.id)) is True:
-                coin = int(message.content[19:message.content.index('$')])
+            if message.content.startswith('$' + str(ctx.author.id)) is True:
+                coin = int(message.content[20:])
                 find_id = True
                 await ctx.send(str(coin)+' :coin:')
                 break
         if find_id is False:
-            await log_channel.send(str(ctx.author.id)+';0$0!')
+            await log_channel.send('$'+str(ctx.author.id)+';0')
             await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.has_permissions(administrator=True)
@@ -227,9 +232,9 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(member.id)) is True:
+            if message.content.startswith('$' + str(member.id)) is True:
                 find_id = True
-                await message.edit(content=message.content[:19] + str(num) + message.content[message.content.index('$'):])
+                await message.edit(content=message.content[:20] + str(num))
                 await ctx.send('토큰 로그를 업데이트했습니다.')
                 break
         if find_id is False:
@@ -241,26 +246,11 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(member.id)) is True:
+            if message.content.startswith('$' + str(member.id)) is True:
                 find_id = True
-                coin = int(message.content[19:message.content.index('$')])
+                coin = int(message.content[20:])
                 await message.edit(
-                    content=message.content[:19] + str(coin + num) + message.content[message.content.index('$'):])
-                await ctx.send('토큰 로그를 업데이트했습니다.')
-                break
-        if find_id is False:
-            await ctx.send('토큰 로그에 없는 ID 입니다.')
-
-    @commands.has_permissions(administrator=True)
-    @commands.command(name="토큰편집", help="해당 멤버의 토큰 로그를 편집합니다. (관리자 권한)", usage="%토큰편집 @ ~")
-    async def edittokenlog(self, ctx, member: discord.Member, *, args):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find_id = False
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(member.id)) is True:
-                find_id = True
-                await message.edit(
-                    content=message.content[:19] + str(args))
+                    content=message.content[:20] + str(coin + num))
                 await ctx.send('토큰 로그를 업데이트했습니다.')
                 break
         if find_id is False:
@@ -278,13 +268,13 @@ class Game(commands.Cog, name="게임(Game)"):
         author_coin = 0
         member_coin = 0
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(ctx.author.id)) is True:
+            if message.content.startswith('$' + str(ctx.author.id)) is True:
                 author_log = message
-                author_coin = int(message.content[19:message.content.index('$')])
+                author_coin = int(message.content[20:message.content.index('$')])
                 find_id += 1
-            elif message.content.startswith(str(member.id)) is True:
+            elif message.content.startswith('$' + str(member.id)) is True:
                 member_log = message
-                member_coin = int(message.content[19:message.content.index('$')])
+                member_coin = int(message.content[20:message.content.index('$')])
                 find_id += 1
         if find_id < 2:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
@@ -385,16 +375,12 @@ class Game(commands.Cog, name="게임(Game)"):
                     if author_call is True:
                         if member_call is True:
                             if author_num > member_num:
-                                await author_log.edit(content=author_log.content[:19] + str(author_coin + coin) +
-                                                      author_log.content[author_log.content.index('$'):])
-                                await member_log.edit(content=member_log.content[:19] + str(member_coin - coin) +
-                                                      member_log.content[member_log.content.index('$'):])
+                                await author_log.edit(content=author_log.content[:20] + str(author_coin + coin))
+                                await member_log.edit(content=member_log.content[:20] + str(member_coin - coin))
                                 await ctx.send(ctx.author.name + ' 승!')
                             elif author_num < member_num:
-                                await author_log.edit(content=author_log.content[:19] + str(author_coin - coin) +
-                                                      author_log.content[author_log.content.index('$'):])
-                                await member_log.edit(content=member_log.content[:19] + str(member_coin + coin) +
-                                                      member_log.content[member_log.content.index('$'):])
+                                await author_log.edit(content=author_log.content[:20] + str(author_coin - coin))
+                                await member_log.edit(content=member_log.content[:20] + str(member_coin + coin))
                                 await ctx.send(member.name + ' 승!')
                             else:
                                 await ctx.send("무승부")
@@ -410,7 +396,7 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(ctx.author.id)) is True:
+            if message.content.startswith('$' + str(ctx.author.id)) is True:
                 find_id = True
         if find_id is False:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
@@ -440,7 +426,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         if user not in members:
                             find_id = False
                             async for message in log_channel.history(limit=100):
-                                if message.content.startswith(str(user.id)) is True:
+                                if message.content.startswith('$' + str(user.id)) is True:
                                     find_id = True
                                     members.append(user)
                             if find_id is False:
@@ -620,7 +606,7 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(ctx.author.id)) is True:
+            if message.content.startswith('$' + str(ctx.author.id)) is True:
                 find_id = True
         if find_id is False:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
@@ -650,7 +636,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         if user not in members:
                             find_id = False
                             async for message in log_channel.history(limit=100):
-                                if message.content.startswith(str(user.id)) is True:
+                                if message.content.startswith('$' + str(user.id)) is True:
                                     find_id = True
                                     members.append(user)
                             if find_id is False:
@@ -778,7 +764,7 @@ class Game(commands.Cog, name="게임(Game)"):
         log_channel = ctx.guild.get_channel(874970985307201546)
         find_id = False
         async for message in log_channel.history(limit=100):
-            if message.content.startswith(str(ctx.author.id)) is True:
+            if message.content.startswith('$' + str(ctx.author.id)) is True:
                 find_id = True
         if find_id is False:
             await ctx.send('토큰 로그에 없는 ID 입니다.')
@@ -808,7 +794,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         if user not in members:
                             find_id = False
                             async for message in log_channel.history(limit=100):
-                                if message.content.startswith(str(user.id)) is True:
+                                if message.content.startswith('$' + str(user.id)) is True:
                                     find_id = True
                                     members.append(user)
                             if find_id is False:

@@ -83,48 +83,27 @@ class Game(commands.Cog, name="게임(Game)"):
             except asyncio.TimeoutError:
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
+                hand = [':fist:', ':v:', ':hand_splayed:']
+                bot_react = random.choice(hand)
+                user_react = None
+                await ctx.send(bot_react)
                 if str(reaction) == '✊':
-                    bot_react = random.randint(0, 2)
-                    if bot_react == 0:
-                        await ctx.send(':fist:')
-                        await ctx.send('비겼네요.')
-                        coin += 0
-                    elif bot_react == 1:
-                        await ctx.send(':v:')
-                        await ctx.send('제가 졌네요.')
-                        coin += 1
-                    elif bot_react == 2:
-                        await ctx.send(':hand_splayed:')
-                        await ctx.send('제가 이겼네요!')
-                        coin -= 1
+                    user_react = ':fist:'
                 elif str(reaction) == '✌️':
-                    bot_react = random.randint(0, 2)
-                    if bot_react == 0:
-                        await ctx.send(':fist:')
-                        await ctx.send('제가 이겼네요!')
-                        coin -= 1
-                    elif bot_react == 1:
-                        await ctx.send(':v:')
-                        await ctx.send('비겼네요.')
-                        coin += 0
-                    elif bot_react == 2:
-                        await ctx.send(':hand_splayed:')
-                        await ctx.send('제가 졌네요.')
-                        coin += 1
+                    user_react = ':v:'
                 elif str(reaction) == '🖐️':
-                    bot_react = random.randint(0, 2)
-                    if bot_react == 0:
-                        await ctx.send(':fist:')
-                        await ctx.send('제가 졌네요.')
-                        coin += 1
-                    elif bot_react == 1:
-                        await ctx.send(':v:')
-                        await ctx.send('제가 이겼네요!')
-                        coin -= 1
-                    elif bot_react == 2:
-                        await ctx.send(':hand_splayed:')
-                        await ctx.send('비겼네요.')
-                        coin += 0
+                    user_react = ':hand_splayed:'
+                i = hand.index(user_react) + 1
+                if i > 2:
+                    i = 0
+                if bot_react == user_react:
+                    await ctx.send('비겼네요.')
+                elif bot_react == hand[i]:
+                    await ctx.send(ctx.author.name + ' 님 승리!')
+                    coin += 1
+                else:
+                    await ctx.send(ctx.author.name + ' 님 패배')
+                    coin -= 1
                 await log.edit(content=log.content[:20] + str(coin))
         else:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')

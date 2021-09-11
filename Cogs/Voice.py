@@ -20,7 +20,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
         help="음성 채널에 연결합니다.", usage="%*"
     )
     async def join(self, ctx):
-        if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             channel = ctx.message.author.voice.channel
             voice = get(self.app.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
@@ -36,7 +36,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
         help="음성 채널을 나갑니다.", usage="%*"
     )
     async def leave(self, ctx):
-        if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             await ctx.guild.voice_client.disconnect()
             await ctx.send("연결을 끊습니다.")
         else:
@@ -56,7 +56,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
         help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url)", pass_context=True
     )
     async def play(self, ctx, url: str):
-        if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             voice = get(self.app.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
                 try:
@@ -91,7 +91,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
         help="음악 재생을 정지합니다.", usage="%*"
     )
     async def stop(self, ctx):
-        if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             voice = get(self.app.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
                 voice.stop()
@@ -103,7 +103,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
         help="재생 목록을 비웁니다.", usage="%*"
     )
     async def queue(self, ctx):
-        if get(ctx.guild.roles, name='음성 통제') in ctx.message.author.roles:
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             for file in os.listdir('./'):
                 if file.endswith(".mp3"):
                     os.remove(file)

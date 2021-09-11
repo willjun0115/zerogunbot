@@ -160,6 +160,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     if str(reaction) == '✅':
                         embed = discord.Embed(title="<:video_game:  가챠 결과>", description=ctx.author.name + " 님의 결과")
                         prize = None
+                        result = '획득!'
                         rand = random.random() * 100
                         margin_role = self.roles["DJ"]
                         least = margin_role[1]
@@ -177,11 +178,12 @@ class Game(commands.Cog, name="게임(Game)"):
                             role = random.choice(ctx.author.roles)
                             await ctx.author.remove_roles(role)
                             prize = role.name
+                            result = '손실 :x:'
                         else:
                             prize_coin = random.randint(1, 5)
                             await log.edit(content=log.content[:20] + str(coin + prize_coin))
                             prize = str(prize_coin) + " :coin:"
-                        embed.add_field(name=str(prize), value='획득!', inline=False)
+                        embed.add_field(name=str(prize), value=result, inline=False)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")

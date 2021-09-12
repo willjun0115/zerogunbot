@@ -210,9 +210,11 @@ class Game(commands.Cog, name="게임(Game)"):
                 members[member] = int(member_log.content[20:])
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         n = 1
+        winner = members[0]
+        embed.add_field(name=f"> {n} " + winner[0].name + " :crown:", value=str(winner[1]), inline=False)
         for member in members:
-            embed.add_field(name=f"> {n} " + member[0].name, value=str(member[1]), inline=False)
             n += 1
+            embed.add_field(name=f"> {n} " + member[0].name, value=str(member[1]), inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(

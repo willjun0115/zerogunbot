@@ -32,7 +32,7 @@ class Game(commands.Cog, name="게임(Game)"):
     async def calc_prize(self, ctx, coin, members, winners):
         for member in members:
             if member in winners:
-                prize = int(len(members) // len(winners)) * int(coin)
+                prize = int(len(members-1) // len(winners)) * int(coin)
             else:
                 prize = -1 * int(coin)
             member_log = await self.find_log(ctx, '$', member.id)

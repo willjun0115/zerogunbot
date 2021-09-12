@@ -211,7 +211,7 @@ class Game(commands.Cog, name="게임(Game)"):
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         n = 1
         for member in members:
-            embed.add_field(name=f"> {n}" + member[0].name, value=member[1], inline=False)
+            embed.add_field(name=f"> {n} " + member[0].name, value=member[1], inline=False)
             n += 1
         await ctx.send(embed=embed)
 

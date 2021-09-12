@@ -207,7 +207,7 @@ class Game(commands.Cog, name="게임(Game)"):
             if message.content.startswith('$') is True:
                 member = await ctx.guild.fetch_member(int(message.content[1:19]))
                 member_log = await self.find_log(ctx, '$', member.id)
-                members[member] = member_log.content[20:]
+                members[member] = int(member_log.content[20:])
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         n = 1
         for member in members:

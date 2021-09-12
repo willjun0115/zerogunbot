@@ -161,10 +161,18 @@ class Game(commands.Cog, name="게임(Game)"):
                                     else:
                                         await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                         elif rand >= 95.0:
-                            role = random.choice(ctx.author.roles)
-                            await ctx.author.remove_roles(role)
-                            prize = role.name
-                            result = '손실 :x:'
+                            roles = []
+                            for role in self.roles.keys():
+                                if get(ctx.guild.roles, name=role) in ctx.author.roles:
+                                    roles.append(role)
+                            if len(roles) > 0:
+                                role = random.choice(roles)
+                                await ctx.author.remove_roles(get(ctx.guild.roles, name=role))
+                                prize = role
+                                result = '손실 :x:'
+                            else:
+                                prize = "None"
+                                result = '-'
                         else:
                             prize_coin = random.randint(1, 5)
                             await log.edit(content=log.content[:20] + str(coin + prize_coin))

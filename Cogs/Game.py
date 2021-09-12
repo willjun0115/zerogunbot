@@ -568,10 +568,11 @@ class Game(commands.Cog, name="게임(Game)"):
                             board[member] = 0
                     winners = [finish_members[0]]
                     for member in finish_members:
-                        if board[member] == board[winners[0]]:
-                            winners.append(member)
-                        elif board[member] > board[winners[0]]:
-                            winners = [member]
+                        if member not in winners:
+                            if board[member] == board[winners[0]]:
+                                winners.append(member)
+                            elif board[member] > board[winners[0]]:
+                                winners = [member]
                     await self.calc_prize(ctx, 1, finish_members, winners)
                     embed = discord.Embed(
                         title="<블랙잭 결과>",
@@ -831,7 +832,8 @@ class Game(commands.Cog, name="게임(Game)"):
                         deck.remove(b)
                         board[member] = a + ' ' + b
                     for member in members:
-                        hand = board[member].split()
+                        hands = board[member]
+                        hand = hands.split()
                         hand1 = hand[0]
                         hand2 = hand[1]
                         n = 0

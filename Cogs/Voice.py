@@ -53,8 +53,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     @commands.command(
         name="재생", aliases=["play", "p"],
-        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url)",
-        reason="url was played", pass_context=True
+        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url)", pass_context=True
     )
     async def play(self, ctx, url: str):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:

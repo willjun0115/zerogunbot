@@ -4,6 +4,7 @@ import asyncio
 from discord.utils import get
 from discord.ext import commands
 import openpyxl
+import operator
 
 
 class Game(commands.Cog, name="게임(Game)"):
@@ -161,11 +162,8 @@ class Game(commands.Cog, name="게임(Game)"):
                                     else:
                                         await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                         elif rand >= 95.0:
-                            roles = []
-                            for role in self.roles.keys():
-                                if get(ctx.guild.roles, name=role) in ctx.author.roles:
-                                    roles.append(role)
-                            if len(roles) > 0:
+                            roles = ctx.author.roles[1:]
+                            if len(roles) > 1:
                                 role = random.choice(roles)
                                 await ctx.author.remove_roles(get(ctx.guild.roles, name=role))
                                 prize = role
@@ -195,6 +193,26 @@ class Game(commands.Cog, name="게임(Game)"):
             embed.add_field(name="> " + role, value=str(data[1]-data[0])+f'% ({data[2]} :coin:)', inline=False)
         embed.add_field(name="> 보유 역할 중 1개 손실", value='5%', inline=False)
         embed.add_field(name="> 1~5 :coin:", value='(Rest)%', inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.command(
+        name="토큰순위", aliases=["토큰랭크", "순위표", "랭크표", "rank"],
+        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%*"
+    )
+    async def token_rank(self, ctx):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        members = {}
+        embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith('$') is True:
+                member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                member_log = await self.find_log(ctx, '$', member.id)
+                members[member] = member_log.content[20:]
+        members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+        n = 1
+        for member in members:
+            embed.add_field(name=f"> {n}" + member[0].name, value=member[1], inline=False)
+            n += 1
         await ctx.send(embed=embed)
 
     @commands.command(

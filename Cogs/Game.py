@@ -32,7 +32,7 @@ class Game(commands.Cog, name="게임(Game)"):
     async def calc_prize(self, ctx, coin, members, winners):
         for member in members:
             if member in winners:
-                prize = int(len(members-1) // len(winners)) * int(coin)
+                prize = int((len(members)-1) // len(winners)) * int(coin)
             else:
                 prize = -1 * int(coin)
             member_log = await self.find_log(ctx, '$', member.id)
@@ -576,7 +576,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     embed = discord.Embed(
                         title="<블랙잭 결과>",
                         description=', '.join([x.name for x in winners]) +
-                                    f' 님 우승! (상금: {len(finish_members) // len(winners)} :coin:)'
+                                    f' 님 우승! (상금: {(len(finish_members)-1) // len(winners)} :coin:)'
                     )
                     for member in members:
                         if board[member] == 22:

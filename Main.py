@@ -7,7 +7,7 @@ import ctypes
 import ctypes.util
 
 prefix = '%'
-app = commands.Bot(command_prefix=prefix)
+app = commands.Bot(command_prefix=prefix, help_command=None)
 
 token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"
 
@@ -75,5 +75,4 @@ async def on_command_error(ctx, error):
         await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
 
-app.remove_command("help")
 app.run(token)

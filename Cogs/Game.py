@@ -814,7 +814,7 @@ class Game(commands.Cog, name="게임(Game)"):
                     board = {}
                     pay = {}
                     for member in members:
-                        pay[member] = -1
+                        pay[member] = 1
                     specials = ['멍텅구리구사', '구사', '땡잡이', '암행어사']
                     middles = ['세륙', '장사', '장삥', '구삥', '독사', '알리']
                     ends = []
@@ -897,7 +897,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                           description=f'{str(coin)} :coin: (콜 비용: {str(call)})')
                     for member in members:
                         embed.add_field(name='> ' + member.name,
-                                        value=str(-1 * pay[member]) + ' :coin:', inline=True)
+                                        value=str(pay[member]) + ' :coin:', inline=True)
                     msg_ = await ctx.send(content=members[0].mention + " 님 베팅해주세요.", embed=embed)
                     reaction_list = ['⏏️', '‼️', '✅', '💀']
                     num = 0
@@ -956,7 +956,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                                   description=f'{str(coin)} :coin: (콜 비용: {str(call)})')
                             for member in members:
                                 embed.add_field(name='> ' + member.name,
-                                                value=str(-1 * pay[member]) + ' :coin:', inline=True)
+                                                value=str(pay[member]) + ' :coin:', inline=True)
                             await msg_.clear_reactions()
                             await msg_.edit(content=players[num].mention + " 님 베팅해주세요.", embed=embed)
                     for member in call_members:
@@ -977,10 +977,10 @@ class Game(commands.Cog, name="게임(Game)"):
                                 winner = member
                     for member in members:
                         if member == winner:
-                            pay[member] += coin
+                            pay[member] -= coin
                         member_log = await self.find_log(ctx, '$', member.id)
                         member_coin = int(member_log.content[20:])
-                        await member_log.edit(content=member_log.content[:20] + str(member_coin + pay[member]))
+                        await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
                     embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')
                     for member in members:
                         hand = board[member].split()

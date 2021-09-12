@@ -975,7 +975,7 @@ class Game(commands.Cog, name="게임(Game)"):
                             m_hand = board[member].split()
                             if m_hand[2] == '땡잡이':
                                 winner = member
-                    for member in members:
+                    for member in call_members:
                         if member == winner:
                             pay[member] -= coin
                         member_log = await self.find_log(ctx, '$', member.id)

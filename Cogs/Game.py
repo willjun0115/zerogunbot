@@ -212,9 +212,11 @@ class Game(commands.Cog, name="게임(Game)"):
         n = 1
         winner = members[0]
         embed.add_field(name=f"> {n} " + winner[0].name + " :crown:", value=str(winner[1]), inline=False)
-        for member in members:
+        for member in members[1:]:
             n += 1
             embed.add_field(name=f"> {n} " + member[0].name, value=str(member[1]), inline=False)
+            if n >= 10:
+                break
         await ctx.send(embed=embed)
 
     @commands.command(

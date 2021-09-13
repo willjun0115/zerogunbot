@@ -164,7 +164,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         elif rand >= 95.0:
                             roles = ctx.author.roles[1:]
                             if len(roles) > 1:
-                                role = random.choice(roles)
+                                role = random.choice(roles[1:])
                                 await ctx.author.remove_roles(get(ctx.guild.roles, name=role))
                                 prize = role
                                 result = '손실 :x:'

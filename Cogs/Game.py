@@ -120,7 +120,7 @@ class Game(commands.Cog, name="게임(Game)"):
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
     @commands.command(
-        name="가챠", aliases=["gacha"],
+        name="가챠", aliases=["ㄱㅊ", "gacha", "G"],
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="%*"
     )
     async def gacha(self, ctx):
@@ -184,7 +184,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
     @commands.command(
-        name="가챠정보", aliases=["가챠확률", "gachainfo"],
+        name="가챠정보", aliases=["가챠확률", "gachainfo", "Ginfo"],
         help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%*"
     )
     async def gacha_info(self, ctx):
@@ -833,8 +833,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         deck.remove(b)
                         board[member] = a + ' ' + b
                     for member in members:
-                        hands = board[member]
-                        hand = hands.split()
+                        hand = board[member].split()
                         hand1 = hand[0]
                         hand2 = hand[1]
                         n = 0

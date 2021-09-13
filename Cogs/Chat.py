@@ -12,7 +12,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         self.app = app
 
     @commands.command(
-        name="안녕", aliases=["인사", "hello", "hi"],
+        name="안녕", aliases=["인사", "ㅎㅇ", "hello", "hi"],
         help="짧은 인사를 건넵니다.", usage="%*"
     )
     async def hello(self, ctx):

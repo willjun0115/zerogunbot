@@ -89,14 +89,6 @@ class Tool(commands.Cog, name="도구(Tool)"):
         else:
             await ctx.send("식별자는 1글자여야 합니다.")
 
-    @commands.has_permissions(administrator=True)
-    @commands.command(
-        name="실행", aliases=["exec", "exe"],
-        help="파이썬 코드를 실행합니다. (관리자 권한)", usage="%* str()"
-    )
-    async def exec_str(self, ctx, code: str):
-        exec(code)
-
     @commands.command(
         name='인코드', aliases=["encode", "enc"],
         help='입력받은 문자열을 인코딩해 출력합니다.', usage='%* str()', pass_context=True

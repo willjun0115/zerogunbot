@@ -262,7 +262,7 @@ class Game(commands.Cog, name="게임(Game)"):
         help="인디언 포커를 신청합니다."
              "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
              "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
-             "\n숫자가 높은 쪽이 이깁니다.", usage="%*"
+             "\n숫자가 높은 쪽이 이깁니다.", usage="%* @"
     )
     async def indian_poker(self, ctx, member: discord.Member):
         author_log = await self.find_log(ctx, '$', ctx.author.id)

@@ -9,6 +9,15 @@ class Tool(commands.Cog, name="도구(Tool)"):
     def __init__(self, app):
         self.app = app
 
+    async def find_log(self, ctx, selector, id):
+        log_channel = ctx.guild.get_channel(874970985307201546)
+        find = None
+        async for message in log_channel.history(limit=100):
+            if message.content.startswith(selector + str(id)) is True:
+                find = message
+                break
+        return find
+
     @commands.command(
         name="도움말", aliases=["help", "?"],
         help="도움말을 불러옵니다.", usage="%*, %* str(command)"
@@ -62,15 +71,6 @@ class Tool(commands.Cog, name="도구(Tool)"):
             if command_notfound is True:
                 await ctx.send('명령어를 찾을 수 없습니다.')
 
-    async def find_log(self, ctx, selector, id):
-        log_channel = ctx.guild.get_channel(874970985307201546)
-        find = None
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith(selector + str(id)) is True:
-                find = message
-                break
-        return find
-
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="로그편집", aliases=["editlog", "edit"],
@@ -89,9 +89,17 @@ class Tool(commands.Cog, name="도구(Tool)"):
         else:
             await ctx.send("식별자는 1글자여야 합니다.")
 
+    @commands.has_permissions(administrator=True)
+    @commands.command(
+        name="실행", aliases=["exec", "exe"],
+        help="파이썬 코드를 실행합니다. (관리자 권한)", usage="%* str()"
+    )
+    async def exec_str(self, ctx, code: str):
+        exec(code)
+
     @commands.command(
         name='인코드', aliases=["encode", "enc"],
-        help='입력받은 문자열을 인코딩해 출력합니다.', usage='%* str(args)', pass_context=True
+        help='입력받은 문자열을 인코딩해 출력합니다.', usage='%* str()', pass_context=True
     )
     async def chat_encode(self, ctx, *, args):
         await ctx.message.delete()
@@ -105,7 +113,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
 
     @commands.command(
         name='디코드', aliases=["decode", "dec"],
-        help='0군봇이 인코딩한 코드를 입력받아 디코드해 출력합니다.', usage='%* str(args)', pass_context=True
+        help='0군봇이 인코딩한 코드를 입력받아 디코드해 출력합니다.', usage='%* str(code)', pass_context=True
     )
     async def chat_decode(self, ctx, *, code):
         await ctx.message.delete()
@@ -120,7 +128,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
     @commands.command(
         name='프라이빗인코드', aliases=["privateencode", "privenc"],
         help='입력받은 문자열을 자신만 디코드할 수 있는 코드로 인코딩해 출력합니다.',
-        usage='%* str(args)', pass_context=True
+        usage='%* str()', pass_context=True
     )
     async def private_encode(self, ctx, *, args):
         await ctx.message.delete()
@@ -144,7 +152,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
     @commands.command(
         name='프라이빗디코드', aliases=["privatedecode", "privdec"],
         help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
-        usage='%* str(args)', pass_context=True
+        usage='%* str(code)', pass_context=True
     )
     async def private_decode(self, ctx, *, code):
         await ctx.message.delete()

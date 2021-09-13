@@ -26,7 +26,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
 
     @commands.command(
         name="말하기", aliases=["say"],
-        help="입력값을 채팅에 전송합니다.", usage="%* str(args)", pass_context=True
+        help="입력값을 채팅에 전송합니다.", usage="%* str()", pass_context=True
     )
     async def _say(self, ctx, *, args):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
@@ -37,7 +37,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
 
     @commands.command(
         name="tts", aliases=["TTS"],
-        help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="%* str(args)", pass_context=True
+        help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="%* str()", pass_context=True
     )
     async def _say_tts(self, ctx, *, args):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
@@ -48,7 +48,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
 
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tc"],
-        help="잠시 후 사라지는 채팅을 전송합니다.", usage="%* str(args)", pass_context=True
+        help="잠시 후 사라지는 채팅을 전송합니다.", usage="%* str()", pass_context=True
     )
     async def _say_timer(self, ctx, *, args):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
@@ -89,7 +89,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
 
     @commands.command(
         name='엄마삭제', aliases=["md"],
-        help="입력값의 엄마를 삭제합니다.", usage="%* str(args)", pass_context=True
+        help="입력값의 엄마를 삭제합니다.", usage="%* str()", pass_context=True
     )
     async def delete_mom_(self, ctx, *, args):
         msg = await ctx.send("\"" + args + "\"님의 엄마 삭제 중...  0% :clock12: ")
@@ -106,7 +106,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
 
     @commands.command(
         name="엄마검색", aliases=["ms"],
-        help="입력값의 엄마를 검색합니다.", usage="%* str(args)", pass_context=True
+        help="입력값의 엄마를 검색합니다.", usage="%* str()", pass_context=True
     )
     async def search_mom_(self, ctx, *, args):
         msg = await ctx.send(":mag_right: \"" + args + "\"님의 엄마 검색 중.")

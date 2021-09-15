@@ -194,32 +194,42 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(
         name="토큰순위", aliases=["토큰랭크", "순위표", "랭크표", "rank"],
-        help="서버 내 토큰 보유 순위를 10위까지 조회합니다.", usage="%*"
+        help="서버 내 토큰 보유 순위를 조회합니다.", usage="%*, %* @"
     )
-    async def token_rank(self, ctx):
+    async def token_rank(self, ctx, member: discord.Member=None):
         log_channel = ctx.guild.get_channel(874970985307201546)
         msg = await ctx.send("로그를 조회 중입니다... :mag:")
-        members = {}
         embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
+        members = {}
         async for message in log_channel.history(limit=100):
             if message.content.startswith('$') is True:
-                member = await ctx.guild.fetch_member(int(message.content[1:19]))
-                member_log = await self.find_log(ctx, '$', member.id)
-                members[member] = int(member_log.content[20:])
+                mem = await ctx.guild.fetch_member(int(message.content[1:19]))
+                member_log = await self.find_log(ctx, '$', mem.id)
+                members[mem] = int(member_log.content[20:])
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
-        n = 1
-        winner = members[0]
-        names = ""
-        coins = ""
-        for member in members[1:]:
-            n += 1
-            names += f"{n}. {member[0].name} \n"
-            coins += str(member[1]) + "\n"
-            if n >= 10:
-                break
-        embed.add_field(name=f"1. " + winner[0].name + " :crown:", value=names, inline=True)
-        embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
-        await msg.edit(content=None, embed=embed)
+        if member is None:
+            n = 1
+            winner = members[0]
+            names = ""
+            coins = ""
+            for md in members[1:]:
+                n += 1
+                names += f"{n}. {md[0].name} \n"
+                coins += str(md[1]) + "\n"
+                if n >= 10:
+                    break
+            embed.add_field(name=f"1. " + winner[0].name + " :crown:", value=names, inline=True)
+            embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
+            await msg.edit(content=None, embed=embed)
+        else:
+            log = await self.find_log(ctx, '$', member.id)
+            if log is not None:
+                coin = log.content[20:]
+                mem_coin = (member, coin)
+                embed.add_field(name=f"{str(members.index(mem_coin))}위", value=f"{member.name} {str(coin)} :coin:")
+                await msg.edit(content=None, embed=embed)
+            else:
+                await msg.edit(content='로그에서 ID를 찾지 못했습니다.')
 
     @commands.command(
         name="리폿", aliases=["신고", "report"],

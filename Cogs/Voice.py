@@ -98,18 +98,6 @@ class Voice(commands.Cog, name="음성(Voice)"):
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
-    @commands.command(
-        name="queueclear", aliases=["qc"],
-        help="재생 목록을 비웁니다.", usage="%*"
-    )
-    async def queue(self, ctx):
-        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            for file in os.listdir('./'):
-                if file.endswith(".mp3"):
-                    os.remove(file)
-        else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
-
 
 def setup(app):
     app.add_cog(Voice(app))

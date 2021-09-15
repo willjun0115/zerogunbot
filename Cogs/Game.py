@@ -186,7 +186,7 @@ class Game(commands.Cog, name="게임(Game)"):
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="확률(%) (중복 시 얻는 코인)")
         for role in self.rolelst.keys():
-            data = self.rolelst[role]
+            data = self.rolelst.get(role)
             embed.add_field(name="> " + role, value=str(data[1]-data[0])+f'% ({data[2]} :coin:)', inline=False)
         embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
         embed.add_field(name="> 1~5 :coin:", value='(Rest)%', inline=False)

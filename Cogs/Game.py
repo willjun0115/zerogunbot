@@ -199,7 +199,6 @@ class Game(commands.Cog, name="게임(Game)"):
     async def token_rank(self, ctx, member: discord.Member=None):
         log_channel = ctx.guild.get_channel(874970985307201546)
         msg = await ctx.send("로그를 조회 중입니다... :mag:")
-        embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
         members = {}
         async for message in log_channel.history(limit=100):
             if message.content.startswith('$') is True:
@@ -208,6 +207,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 members[mem] = int(member_log.content[20:])
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         if member is None:
+            embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
             n = 1
             winner = members[0]
             names = ""
@@ -222,11 +222,12 @@ class Game(commands.Cog, name="게임(Game)"):
             embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
             await msg.edit(content=None, embed=embed)
         else:
+            embed = discord.Embed(title="<토큰 랭킹>", description=member.name + " 님의 토큰 순위")
             log = await self.find_log(ctx, '$', member.id)
             if log is not None:
                 coin = int(log.content[20:])
                 mem_coin = (member, coin)
-                embed.add_field(name=f"{str(members.index(mem_coin))}위", value=f"{member.name} {str(coin)} :coin:")
+                embed.add_field(name=f"{str(members.index(mem_coin))}위", value=f"{str(coin)} :coin:")
                 await msg.edit(content=None, embed=embed)
             else:
                 await msg.edit(content='로그에서 ID를 찾지 못했습니다.')

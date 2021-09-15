@@ -209,12 +209,16 @@ class Game(commands.Cog, name="게임(Game)"):
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         n = 1
         winner = members[0]
-        embed.add_field(name=f"> {n} " + winner[0].name + " :crown:", value=str(winner[1]), inline=False)
+        names = ""
+        coins = ""
         for member in members[1:]:
             n += 1
-            embed.add_field(name=f"> {n} " + member[0].name, value=str(member[1]), inline=False)
+            names += f"{n}. {member[0].name} \n"
+            coins += str(member[1]) + "\n"
             if n >= 10:
                 break
+        embed.add_field(name=f"1. " + winner[0].name + " :crown:", value=names, inline=True)
+        embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
         await ctx.send(embed=embed)
 
     @commands.command(

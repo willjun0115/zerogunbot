@@ -199,6 +199,7 @@ class Game(commands.Cog, name="게임(Game)"):
     )
     async def token_rank(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)
+        msg = await ctx.send("로그를 조회 중입니다... :mag:")
         members = {}
         embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
         async for message in log_channel.history(limit=100):
@@ -219,7 +220,7 @@ class Game(commands.Cog, name="게임(Game)"):
                 break
         embed.add_field(name=f"1. " + winner[0].name + " :crown:", value=names, inline=True)
         embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
-        await ctx.send(embed=embed)
+        await msg.edit(content=None, embed=embed)
 
     @commands.command(
         name="리폿", aliases=["신고", "report"],

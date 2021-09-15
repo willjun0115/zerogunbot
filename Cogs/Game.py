@@ -161,21 +161,18 @@ class Game(commands.Cog, name="게임(Game)"):
                                         await log.edit(content=log.content[:20] + str(coin + data[2]))
                                     else:
                                         await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                        elif rand >= 95.0:
+                        else:
                             member = ctx.guild.fetch_member(ctx.author.id)
-                            roles = member.roles[1:]
-                            if len(roles) > 1:
-                                role = random.choice(roles[1:])
-                                await ctx.author.remove_roles(get(ctx.guild.roles, name=role))
-                                prize = role
+                            roles = member.roles[2:]
+                            if rand >= 100.0 - (len(roles) * 2):
+                                role = random.choice(roles)
+                                await ctx.author.remove_roles(role)
+                                prize = role.name
                                 result = '손실 :x:'
                             else:
-                                prize = "None"
-                                result = '-'
-                        else:
-                            prize_coin = random.randint(1, 5)
-                            await log.edit(content=log.content[:20] + str(coin + prize_coin))
-                            prize = str(prize_coin) + " :coin:"
+                                prize_coin = random.randint(1, 5)
+                                await log.edit(content=log.content[:20] + str(coin + prize_coin))
+                                prize = str(prize_coin) + " :coin:"
                         embed.add_field(name=str(prize), value=result, inline=False)
                         await ctx.send(embed=embed)
                     else:
@@ -192,7 +189,7 @@ class Game(commands.Cog, name="게임(Game)"):
         for role in self.roles.keys():
             data = self.roles[role]
             embed.add_field(name="> " + role, value=str(data[1]-data[0])+f'% ({data[2]} :coin:)', inline=False)
-        embed.add_field(name="> 보유 역할 중 1개 손실", value='5%', inline=False)
+        embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
         embed.add_field(name="> 1~5 :coin:", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)
 
@@ -833,7 +830,7 @@ class Game(commands.Cog, name="게임(Game)"):
                         deck.remove(b)
                         board[member] = a + ' ' + b
                     for member in members:
-                        hand = board[member].split()
+                        hand = board.get(member).split()
                         hand1 = hand[0]
                         hand2 = hand[1]
                         n = 0

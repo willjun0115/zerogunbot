@@ -195,7 +195,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
     @commands.command(
         name="토큰순위", aliases=["토큰랭크", "순위표", "랭크표", "rank"],
-        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%*"
+        help="서버 내 토큰 보유 순위를 10위까지 조회합니다.", usage="%*"
     )
     async def token_rank(self, ctx):
         log_channel = ctx.guild.get_channel(874970985307201546)

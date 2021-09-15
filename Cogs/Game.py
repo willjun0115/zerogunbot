@@ -11,7 +11,7 @@ class Game(commands.Cog, name="게임(Game)"):
 
     def __init__(self, app):
         self.app = app
-        self.roles = {
+        self.rolelst = {
             "창씨개명": (0.0, 0.1, 50),
             "강제 이동": (0.1, 0.6, 25),
             "침묵": (0.6, 1.5, 15),
@@ -149,11 +149,11 @@ class Game(commands.Cog, name="게임(Game)"):
                         prize = None
                         result = '획득!'
                         rand = random.random() * 100
-                        margin_role = self.roles["DJ"]
+                        margin_role = self.rolelst["DJ"]
                         least = margin_role[1]
                         if 0.0 <= rand < least:
-                            for role in self.roles.keys():
-                                data = self.roles[role]
+                            for role in self.rolelst.keys():
+                                data = self.rolelst[role]
                                 if data[0] <= rand < data[1]:
                                     prize = role
                                     if get(ctx.guild.roles, name=prize) in ctx.author.roles:
@@ -162,8 +162,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                     else:
                                         await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                         else:
-                            member = ctx.guild.fetch_member(ctx.author.id)
-                            roles = member.roles[2:]
+                            roles = ctx.author.roles[2:]
                             if rand >= 100.0 - (len(roles) * 2):
                                 role = random.choice(roles)
                                 await ctx.author.remove_roles(role)
@@ -186,8 +185,8 @@ class Game(commands.Cog, name="게임(Game)"):
     )
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="확률(%) (중복 시 얻는 코인)")
-        for role in self.roles.keys():
-            data = self.roles[role]
+        for role in self.rolelst.keys():
+            data = self.rolelst[role]
             embed.add_field(name="> " + role, value=str(data[1]-data[0])+f'% ({data[2]} :coin:)', inline=False)
         embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
         embed.add_field(name="> 1~5 :coin:", value='(Rest)%', inline=False)

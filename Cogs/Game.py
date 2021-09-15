@@ -224,7 +224,7 @@ class Game(commands.Cog, name="게임(Game)"):
         else:
             log = await self.find_log(ctx, '$', member.id)
             if log is not None:
-                coin = log.content[20:]
+                coin = int(log.content[20:])
                 mem_coin = (member, coin)
                 embed.add_field(name=f"{str(members.index(mem_coin))}위", value=f"{member.name} {str(coin)} :coin:")
                 await msg.edit(content=None, embed=embed)

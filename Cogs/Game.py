@@ -479,13 +479,13 @@ class Game(commands.Cog, name="게임(Game)"):
                             pass
                         else:
                             players.append(x)
-                    embed = discord.Embed(title="<블랙잭>", description=players[0].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                    embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members))} :coin:")
                     for member in members:
                         if member in finish_members:
                             embed.add_field(name="> " + member.name, value=board[member], inline=True)
                         else:
                             embed.add_field(name=member.name, value=board[member], inline=True)
-                    msg_ = await ctx.send(embed=embed)
+                    msg_ = await ctx.send(content=players[0].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
                     reaction_list = ['✅', '❎']
                     num = 0
                     while len(finish_members) != len(members):
@@ -543,7 +543,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                 num = 0
                             if len(players) > 0:
                                 embed = discord.Embed(title="<블랙잭>",
-                                                      description=players[num].name + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.")
+                                                      description=f"{str(len(members))} :coin:")
                             else:
                                 embed = discord.Embed(title="<블랙잭>", description="모든 플레이어가 선택을 종료했습니다.")
                             for member in members:
@@ -552,7 +552,7 @@ class Game(commands.Cog, name="게임(Game)"):
                                 else:
                                     embed.add_field(name=member.name, value=board[member], inline=True)
                             await msg_.clear_reactions()
-                            await msg_.edit(embed=embed)
+                            await msg_.edit(content=players[num].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
                     for member in finish_members:
                         member_sum = 0
                         ace = False
@@ -672,11 +672,11 @@ class Game(commands.Cog, name="게임(Game)"):
                         member_dm = await member.create_dm()
                         await member_dm.send(str(a))
                     embed = discord.Embed(title="<시드 포커>",
-                                          description=members[0].name + " 님 카드를 받을 지, 시드를 추가할 지 선택해주세요.")
+                                          description=f"{str(len(members))} :coin:")
                     embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
                     embed.add_field(name='> 시드', value=str(seed), inline=True)
                     embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
-                    msg_ = await ctx.send(embed=embed)
+                    msg_ = await ctx.send(content=members[0].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
                     reaction_list = ['✅', '❎']
                     num = 0
                     while len(deck) > 0:
@@ -730,12 +730,12 @@ class Game(commands.Cog, name="게임(Game)"):
                             if num >= len(members):
                                 num = 0
                             embed = discord.Embed(title="<시드 포커>",
-                                                  description=members[num].name + " 님 카드를 받을 지, 시드를 추가할 지 선택해주세요.")
+                                                  description=f"{str(len(members))} :coin:")
                             embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
                             embed.add_field(name='> 시드', value=str(seed), inline=True)
                             embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
                             await msg_.clear_reactions()
-                            await msg_.edit(embed=embed)
+                            await msg_.edit(content=members[0].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
                     v = list(board.values())
                     v.sort()
                     while len(seed) < 3:

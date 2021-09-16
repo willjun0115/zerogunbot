@@ -25,11 +25,14 @@ class Voice(commands.Cog, name="음성(Voice)"):
         return queue_list
 
     async def play_next(self, ctx, voice_client):
-        voice_client.stop()
-        queue = await self.get_queue(ctx)
-        if len(queue) > 0:
-            await self.play_song(ctx, queue[0].content)
-            await queue[0].delete()
+        if voice_client.is_playing():
+            voice_client.stop()
+            queue = await self.get_queue(ctx)
+            if len(queue) > 0:
+                await self.play_song(ctx, queue[0].content)
+                await queue[0].delete()
+        else:
+            await self.play_next(ctx, voice_client)
 
     @commands.command(
         name="연결", aliases=["connect", "join"],
@@ -98,10 +101,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
                             os.rename(file, "0.mp3")
                     await msg.edit(content="재생 시작")
                     source = FFmpegPCMAudio(source="0.mp3")
-                    voice.play(source)
-                    while voice.is_playing():
-                        pass
-                    await self.play_next(ctx, voice)
+                    voice.play(source, after=await self.play_next(ctx, voice))
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

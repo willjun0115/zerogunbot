@@ -98,7 +98,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
                             os.rename(file, "0.mp3")
                     await msg.edit(content="재생 시작")
                     source = FFmpegPCMAudio(source="0.mp3")
-                    voice.play(source, after=lambda e: self.play_next(ctx, voice))
+                    voice.play(source, after=self.play_next(ctx, voice))
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

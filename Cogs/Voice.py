@@ -28,9 +28,9 @@ class Voice(commands.Cog, name="음성(Voice)"):
     async def play_next(self, ctx, voice_client: discord.VoiceClient):
         voice_client.stop()
         queue = await self.find_queue(ctx)
-        await queue[0].delete()
         if len(queue) > 0:
             await self.play_song(ctx, queue[0].content)
+            await queue[0].delete()
 
     @commands.command(
         name="연결", aliases=["connect", "join"],

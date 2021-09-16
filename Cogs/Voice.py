@@ -25,11 +25,12 @@ class Voice(commands.Cog, name="음성(Voice)"):
         return queue_list
 
     async def play_next(self, ctx, voice_client):
-        voice_client.stop()
-        queue = await self.get_queue(ctx)
-        if len(queue) > 0:
-            await self.play_song(ctx, queue[0].content)
-            await queue[0].delete()
+        if not voice_client.is_playing():
+            voice_client.stop()
+            queue = await self.get_queue(ctx)
+            if len(queue) > 0:
+                await self.play_song(ctx, queue[0].content)
+                await queue[0].delete()
 
     @commands.command(
         name="연결", aliases=["connect", "join"],

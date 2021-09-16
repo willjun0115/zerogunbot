@@ -76,12 +76,11 @@ class Voice(commands.Cog, name="음성(Voice)"):
             queue_channel = ctx.guild.get_channel(887984694866632724)
             voice = get(self.app.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
-                try:
-                    if os.path.isfile("0.mp3"):
-                        os.remove("0.mp3")
-                except PermissionError:
+                if voice.is_playing():
                     await queue_channel.send(url)
                 else:
+                    if os.path.isfile("0.mp3"):
+                        os.remove("0.mp3")
                     msg = await ctx.send("재생 준비 중...")
                     ydl_opt = {
                         'format': 'bestaudio/best',

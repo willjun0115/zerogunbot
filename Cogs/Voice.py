@@ -14,7 +14,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
     def __init__(self, app):
         self.app = app
 
-    async def find_queue(self, ctx):
+    async def get_queue(self, ctx):
         queue_channel = ctx.guild.get_channel(887984694866632724)
         queue_list = []
         async for message in queue_channel.history(limit=30, oldest_first=True):
@@ -26,7 +26,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
 
     async def play_next(self, ctx, voice_client):
         voice_client.stop()
-        queue = await self.find_queue(ctx)
+        queue = await self.get_queue(ctx)
         if len(queue) > 0:
             await self.play_song(ctx, queue[0].content)
             await queue[0].delete()
@@ -98,7 +98,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
                             os.rename(file, "0.mp3")
                     await msg.edit(content="재생 시작")
                     source = FFmpegPCMAudio(source="0.mp3")
-                    voice.play(source, after=lambda e: await ctx.send("음악이 끝났습니다."))
+                    voice.play(source, after=await self.play_next(ctx, voice))
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

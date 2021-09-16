@@ -25,7 +25,7 @@ class Voice(commands.Cog, name="음성(Voice)"):
                 await message.delete()
         return queue_list
 
-    async def play_next(self, ctx, voice_client: discord.VoiceClient):
+    async def play_next(self, ctx, voice_client):
         voice_client.stop()
         queue = await self.find_queue(ctx)
         if len(queue) > 0:

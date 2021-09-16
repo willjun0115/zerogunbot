@@ -71,7 +71,7 @@ class Chat(commands.Cog, name="채팅(Chat)"):
         name="청소", aliases=["지우기", "clear", "purge"],
         help="숫자만큼 채팅을 지웁니다.", usage="%* int()", pass_context=True
     )
-    async def clean(self, ctx, num: int()):
+    async def clean(self, ctx, num):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
             await ctx.message.delete()
             await ctx.channel.purge(limit=int(num))

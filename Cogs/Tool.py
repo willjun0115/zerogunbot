@@ -76,7 +76,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
         name="로그편집", aliases=["editlog", "edit"],
         help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%* str(식별자) @ int()"
     )
-    async def edit_log(self, ctx, selector, member: discord.Member, val: int):
+    async def edit_log(self, ctx, selector, member: discord.Member, val):
         log_channel = ctx.guild.get_channel(874970985307201546)
         if len(selector) == 1:
             log = await self.find_log(ctx, selector, member.id)

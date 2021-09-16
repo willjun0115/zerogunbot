@@ -4,7 +4,6 @@ import asyncio
 from discord.utils import get
 from discord.ext import commands
 from discord import FFmpegPCMAudio
-import openpyxl
 import os
 import youtube_dl
 import opuslib

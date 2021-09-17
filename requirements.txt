@@ -2,7 +2,6 @@ pip
 asyncio
 discord.py
 Cogs
-openpyxl
 discord
 discord.py[voice]
 ffmpeg

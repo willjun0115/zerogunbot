@@ -3,11 +3,10 @@ import random
 import asyncio
 from discord.utils import get
 from discord.ext import commands
-import openpyxl
 import operator
 
 
-class Game(commands.Cog, name="게임(Game)"):
+class Game(commands.Cog, name="게임(Game)", description="오락과 관련한 명령어입니다."):
 
     def __init__(self, app):
         self.app = app

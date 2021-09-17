@@ -3,7 +3,6 @@ import asyncio
 import random
 from discord.ext import commands
 from discord.utils import get
-import openpyxl
 
 
 class Chat(commands.Cog, name="채팅(Chat)"):

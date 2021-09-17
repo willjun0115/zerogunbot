@@ -50,6 +50,8 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                             break
                         else:
                             command_notfound = True
+                    if command_notfound is False:
+                        break
             if command_notfound is True:
                 await ctx.send('명령어를 찾을 수 없습니다.')
 

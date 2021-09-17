@@ -6,7 +6,7 @@ from discord.ext import commands
 import operator
 
 
-class Game(commands.Cog, name="게임(Game)", description="오락과 관련한 명령어입니다."):
+class Game(commands.Cog, name="게임", description="오락 및 도박과 관련된 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app
@@ -55,7 +55,7 @@ class Game(commands.Cog, name="게임(Game)", description="오락과 관련한 �
 
     @commands.command(
         name="도박", aliases=["gamble"],
-        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%* float()", pass_context=float()
+        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%* float()", pass_context=True
     )
     async def gamble(self, ctx, args):
         if args > 50:
@@ -195,7 +195,7 @@ class Game(commands.Cog, name="게임(Game)", description="오락과 관련한 �
         name="토큰순위", aliases=["토큰랭크", "순위표", "랭크표", "rank"],
         help="서버 내 토큰 보유 순위를 조회합니다.", usage="%*, %* @"
     )
-    async def token_rank(self, ctx, member: discord.Member=None):
+    async def token_rank(self, ctx, member: discord.Member = None):
         log_channel = ctx.guild.get_channel(874970985307201546)
         msg = await ctx.send("로그를 조회 중입니다... :mag:")
         members = {}
@@ -207,10 +207,10 @@ class Game(commands.Cog, name="게임(Game)", description="오락과 관련한 �
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         if member is None:
             embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
-            n = 1
             winner = members[0]
             names = ""
             coins = ""
+            n = 1
             for md in members[1:]:
                 n += 1
                 names += f"{n}. {md[0].name} \n"

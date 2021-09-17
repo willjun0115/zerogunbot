@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.utils import get
 
 
-class Tool(commands.Cog, name="도구(Tool)"):
+class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에 관한 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app
@@ -24,7 +24,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
     async def help_command(self, ctx, func=None):
         if func is None:
             embed = discord.Embed(title="도움말", description="접두사는 % 입니다.")
-            cog_list = ["도구(Tool)", "채팅(Chat)", "게임(Game)", "음성(Voice)"]
+            cog_list = ["도구", "채팅", "음성", "게임"]
             for x in cog_list:
                 cog_data = self.app.get_cog(x)
                 command_list = cog_data.get_commands()
@@ -40,7 +40,7 @@ class Tool(commands.Cog, name="도구(Tool)"):
                     break
                 else:
                     for title in cog.get_commands():
-                        if title.name == func:
+                        if func in ([title.name] + title.aliases):
                             cmd = self.app.get_command(title.name)
                             embed = discord.Embed(title=f"명령어 : {cmd}", description=cmd.help)
                             embed.add_field(name="대체 명령어", value=', '.join(cmd.aliases))

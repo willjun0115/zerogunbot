@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.utils import get
 
 
-class Chat(commands.Cog, name="채팅(Chat)"):
+class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app

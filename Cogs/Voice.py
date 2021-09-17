@@ -9,7 +9,7 @@ import youtube_dl
 import opuslib
 
 
-class Voice(commands.Cog, name="음성(Voice)"):
+class Voice(commands.Cog, name="음성", description="음성 채널 및 보이스 클라이언트 조작에 관한 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app

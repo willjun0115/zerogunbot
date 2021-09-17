@@ -19,16 +19,16 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
-        help="도움말을 불러옵니다.", usage="%*, %* str(command)"
+        help="도움말을 불러옵니다.", usage="%*, %* str(command, category)"
     )
     async def help_command(self, ctx, func=None):
         if func is None:
             embed = discord.Embed(title="도움말", description="접두사는 % 입니다.")
-            cog_list = ["도구", "채팅", "게임", "음성"]
-            for x in cog_list:
+            cog_list = {"도구": "Tools", "채팅": "Chat", "음성": "Voice", "게임": "Games"}
+            for x in cog_list.keys():
                 cog_data = self.app.get_cog(x)
                 command_list = cog_data.get_commands()
-                embed.add_field(name="> " + x, value="\n".join([c.name for c in command_list]), inline=True)
+                embed.add_field(name=f"> {x}({cog_list[x]})", value="\n".join([c.name for c in command_list]), inline=True)
             await ctx.send(embed=embed)
         else:
             command_notfound = True
@@ -58,7 +58,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="로그편집", aliases=["editlog", "edit"],
-        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%* str(식별자) @ int()"
+        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%* str(selector) @ int()"
     )
     async def edit_log(self, ctx, selector, member: discord.Member, val):
         log_channel = ctx.guild.get_channel(874970985307201546)

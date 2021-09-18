@@ -187,7 +187,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
-                await self.join_ch
+                await self.join_ch(ctx)
             else:
                 await ctx.send("음성 채널에 연결되어 있지 않습니다.")
                 raise commands.CommandError("Author not connected to a voice channel.")

@@ -19,7 +19,7 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+    'source_address': '0.0.0.0'
 }
 
 ffmpeg_options = {
@@ -111,36 +111,19 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="재생", aliases=["play", "p"],
-        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url)", pass_context=True
+        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url), %* str(url) -s", pass_context=True
     )
-    async def play_song(self, ctx, url: str):
+    async def play_song(self, ctx, url: str, stream=False):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            queue_channel = ctx.guild.get_channel(887984694866632724)
-            voice = get(self.app.voice_clients, guild=ctx.guild)
-            if voice and voice.is_connected():
-                if voice.is_playing():
-                    await queue_channel.send(url)
+            async with ctx.typing():
+                if stream == '-s':
+                    stream = True
                 else:
-                    if os.path.isfile("0.mp3"):
-                        os.remove("0.mp3")
-                    msg = await ctx.send("재생 준비 중...")
-                    ydl_opt = {
-                        'format': 'bestaudio/best',
-                        'noplaylist': True,
-                        'postprocessors': [{
-                            'key': 'FFmpegExtractAudio',
-                            'preferredcodec': 'mp3',
-                            'preferredquality': '192'
-                        }]
-                    }
-                    with youtube_dl.YoutubeDL(ydl_opt) as ydl:
-                        ydl.download([url])
-                    for file in os.listdir('./'):
-                        if file.endswith(".mp3"):
-                            os.rename(file, "0.mp3")
-                    await msg.edit(content="재생 시작")
-                    source = FFmpegPCMAudio(source="0.mp3")
-                    voice.play(source, after=await self.play_next(ctx, voice))
+                    stream = False
+                player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
+                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+
+            await ctx.send(f'Now playing: {player.title}')
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
@@ -153,20 +136,6 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             voice = get(self.app.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
                 voice.stop()
-        else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
-
-    @commands.command(
-        name="스트리밍", aliases=["stream"],
-        help="유튜브 url을 통해 음악을 스트리밍합니다.", usage="%* str(url)", pass_context=True
-    )
-    async def stream_song(self, ctx, url: str):
-        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            async with ctx.typing():
-                player = await YTDLSource.from_url(url, loop=self.app.loop, stream=True)
-                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-
-            await ctx.send(f'Now playing: {player.title}')
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

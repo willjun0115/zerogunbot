@@ -114,10 +114,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="재생", aliases=["play", "p"],
-        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url) stream=False", pass_context=True
+        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url), %* str(url) -s", pass_context=True
     )
-    async def play_song(self, ctx, url: str, stream=False):
+    async def play_song(self, ctx, url: str, stream=None):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
+            if stream == '-s':
+                stream = True
+            else:
+                stream = False
             if ctx.voice_client.is_playing():
                 ctx.voice_client.stop()
             async with ctx.typing():
@@ -170,7 +174,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             else:
                 await msg.delete()
                 select = search_list.get(int(message.content))
-                await self.play_song(ctx, select, stream=False)
+                await self.ensure_voice(ctx)
+                await self.play_song(ctx, select)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

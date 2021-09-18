@@ -58,16 +58,20 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.app = app
         self.queue = []
 
-    def playing(self, ctx, player):
+    async def playing(self, ctx, player, stream):
         self.queue = [player]
-        i = -1
+        i = 0
         while len(self.queue) > i:
             if not ctx.voice_client.is_playing():
-                i += 1
                 try:
                     ctx.voice_client.play(self.queue[i], after=lambda e: print(f'Player error: {e}') if e else None)
+                    msg = f'Now playing: {player.title}'
+                    if stream is True:
+                        msg = f'Now streaming: {player.title}'
+                    await ctx.send(msg)
                 except:
                     pass
+                i += 1
 
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],
@@ -126,7 +130,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             async with ctx.typing():
                 player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
             if len(self.queue) == 0:
-                self.playing(ctx, player)
+                await self.playing(ctx, player, stream)
             else:
                 self.queue.append(player)
         else:

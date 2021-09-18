@@ -8,3 +8,4 @@ ffmpeg
 PyNaCl
 youtube_dl
 opuslib
+selenium

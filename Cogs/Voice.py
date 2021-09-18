@@ -130,11 +130,12 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name="검색"
+        name="검색", aliases=["search"],
+        help="유튜브 검색을 통해 목록을 가져옵니다.", usage="%* str()"
     )
     async def yt_search(self, ctx, *, args):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            msg = await ctx.send("데이터 수집 중...")
+            msg = await ctx.send("데이터 수집 중... :mag:")
 
             url = "https://www.youtube.com/results?search_query=" + args
 
@@ -147,13 +148,25 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                                        chrome_options=chrome_options)
             browser.get(url)
 
-            embed = discord.Embed(title="YouTube", description=f"\"{args}\"의 검색 결과")
-            for n in range(0, 10):
+            embed = discord.Embed(title="YouTube", description=f"\"{args}\"의 검색 결과 :mag:")
+            for n in range(0, 5):
                 get_title = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('title')
                 get_href = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('href')
-                embed.add_field(name=get_title, value=get_href, inline=False)
-
+                embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_href, inline=False)
             await msg.edit(content=None, embed=embed)
+
+            answer_list = ["1", "2", "3", "4", "5"]
+
+            def check(message, user):
+                return message.content in answer_list and user == ctx.author
+
+            try:
+                message, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+            except asyncio.TimeoutError:
+                await msg.edit(content="시간 초과!", delete_after=2)
+            else:
+                select = browser.find_elements_by_xpath('//a[@id="video-title"]')[int(message.content)-1].get_attribute('href')
+                await self.play_song(ctx, select, stream=False)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

@@ -180,9 +180,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
                 if message.content in ["x", "X"]:
-                    await msg.edit()
+                    await msg.edit(content=":x: 취소했습니다.", delete_after=2)
                 else:
-                    await msg.delete(content=":x: 취소했습니다.", delete_after=2)
+                    await msg.delete()
                     select = search_list.get(int(message.content))
                     await self.ensure_voice(ctx)
                     await self.play_song(ctx, select)

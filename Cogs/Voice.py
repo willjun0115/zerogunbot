@@ -121,8 +121,6 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def play_song(self, ctx, url: str, stream=None):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            if ctx.voice_client.is_playing():
-                ctx.voice_client.stop()
             if stream == '-s':
                 stream = True
             else:
@@ -130,11 +128,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             async with ctx.typing():
                 player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
             if len(self.queue) == 0:
-                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-                msg = f'Now playing: {player.title}'
-                if stream is True:
-                    msg = f'Now streaming: {player.title}'
-                await ctx.send(msg)
+                await self.playing(ctx, player, stream)
             else:
                 self.queue.append(player)
         else:

@@ -162,11 +162,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             for n in range(0, 5):
                 get_title = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('title')
                 get_href = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('href')
-                get_time = browser.find_elements_by_xpath(
-                    '//span[@class="style-scope ytd-thumbnail-overlay-time-status-renderer"]'
-                )[n].text
+                get_info = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('aria-label')
+                get_info.replace(get_title, '')
                 search_list[n+1] = get_href
-                embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_href + f" [{get_time}]", inline=False)
+                embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_info, inline=False)
             await msg.edit(content=None, embed=embed)
 
             answer_list = ["1", "2", "3", "4", "5"]

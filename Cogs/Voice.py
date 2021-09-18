@@ -7,6 +7,8 @@ from discord import FFmpegPCMAudio
 import os
 import youtube_dl
 import opuslib
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -128,6 +130,32 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
+        name="검색"
+    )
+    async def yt_search(self, ctx, *, args):
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
+            msg = await ctx.send("데이터 수집 중...")
+            url = "﻿https://www.youtube.com/results?search_query=" + args
+
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--no-sandbox")
+            browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                                       chrome_options=chrome_options)
+            browser.get(url)
+
+            info = browser.find_elements_by_xpath('//*[@id="contents"]/ytd-video-renderer[1]')[0].text.replace("\n",
+                                                                                                               " | ")
+            get_href = browser.find_elements_by_xpath('//*[@id="video-title"]')[0].get_attribute('href')
+
+            await msg.delete()
+            await ctx.send(f"**{args} 의 검색 결과입니다.**\n" + info + "\n" + get_href)
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+
+    @commands.command(
         name="정지", aliases=["stop", "s"],
         help="음악 재생을 정지합니다.", usage="%*"
     )
@@ -143,7 +171,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
-                await ctx.author.voice.channel.connect()
+                await self.join_ch
             else:
                 await ctx.send("음성 채널에 연결되어 있지 않습니다.")
                 raise commands.CommandError("Author not connected to a voice channel.")

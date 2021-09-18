@@ -134,7 +134,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def yt_search(self, ctx, *, args):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            url = "﻿https://www.youtube.com/results?search_query=" + args
+            url = "https://www.youtube.com/results?search_query=" + args
 
             chrome_options = webdriver.ChromeOptions()
             chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")

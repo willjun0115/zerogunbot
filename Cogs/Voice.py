@@ -157,11 +157,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
             answer_list = ["1", "2", "3", "4", "5"]
 
-            def check(message, user):
-                return message.content in answer_list and user == ctx.author
+            def check(m):
+                return m.content in answer_list and m.author == ctx.author and m.channel == ctx.channel
 
             try:
-                message, user = await self.app.wait_for("message", check=check, timeout=60.0)
+                message = await self.app.wait_for("message", check=check, timeout=60.0)
             except asyncio.TimeoutError:
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:

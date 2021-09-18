@@ -62,6 +62,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.queue = [player]
         i = 0
         while len(self.queue) > i:
+            await asyncio.sleep(1)
             if not ctx.voice_client.is_playing():
                 try:
                     ctx.voice_client.play(self.queue[i], after=lambda e: print(f'Player error: {e}') if e else None)

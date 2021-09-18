@@ -128,6 +128,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await ctx.send(msg)
                 while ctx.voice_client.is_playing:
                     await asyncio.sleep(1)
+                await ctx.send("play next...")
                 await self.play_next(ctx)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
@@ -196,19 +197,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def get_queue_list(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             embed = discord.Embed(title="<재생 목록>", description="현재 재생 중")
-            chrome_options = webdriver.ChromeOptions()
-            chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-            chrome_options.add_argument("--headless")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--no-sandbox")
-            browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
-                                       chrome_options=chrome_options)
             for url in self.queue:
-                browser.get(url)
-                title = browser.find_elements_by_xpath(
-                    '//yt-formatted-string[@class="style-scope ytd-video-primary-info-renderer"]'
-                )[0].text
-                embed.add_field(name=str(self.queue.index(url)), value=title)
+                embed.add_field(name=str(self.queue.index(url)), value=url)
             await ctx.send(embed=embed)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")

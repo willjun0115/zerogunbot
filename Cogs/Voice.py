@@ -56,39 +56,33 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     def __init__(self, app):
         self.app = app
+        self.queue = []
 
-    async def get_queue(self, ctx):
-        queue_channel = ctx.guild.get_channel(887984694866632724)
-        queue_list = []
-        async for message in queue_channel.history(limit=30, oldest_first=True):
-            if message.content.startswith('https://www.youtube.com/') is True:
-                queue_list.append(message)
-            else:
-                await message.delete()
-        return queue_list
-
-    async def play_next(self, ctx, voice_client):
-        voice_client.stop()
-        queue = await self.get_queue(ctx)
-        if len(queue) > 0:
-            next_song = queue[0].content
-            await queue[0].delete()
+    async def play_next(self, ctx):
+        ctx.voice_client.stop()
+        if len(self.queue) > 0:
+            next_song = self.queue[0]
+            self.queue = self.queue[1:]
             await self.play_song(ctx, next_song)
 
     @commands.command(
-        name="연결", aliases=["connect", "join"],
+        name="연결", aliases=["connect", "c", "join"],
         help="음성 채널에 연결합니다.", usage="%*"
     )
     async def join_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            channel = ctx.message.author.voice.channel
-            voice = get(self.app.voice_clients, guild=ctx.guild)
-            if voice and voice.is_connected():
-                await voice.move_to(channel)
+            if ctx.author.voice:
+                channel = ctx.message.author.voice.channel
+                voice = get(self.app.voice_clients, guild=ctx.guild)
+                if voice and voice.is_connected():
+                    await voice.move_to(channel)
+                else:
+                    msg = await ctx.send("보이스 클라이언트 연결 중...")
+                    await channel.connect()
+                    await msg.edit(content=str(channel.name) + ' 채널에 연결합니다.')
             else:
-                msg = await ctx.send("보이스 클라이언트 연결 중...")
-                await channel.connect()
-                await msg.edit(content=str(channel.name) + ' 채널에 연결합니다.')
+                await ctx.send("음성 채널에 연결되어 있지 않습니다.")
+                raise commands.CommandError("Author not connected to a voice channel.")
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
@@ -123,14 +117,18 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             else:
                 stream = False
             if ctx.voice_client.is_playing():
-                ctx.voice_client.stop()
-            async with ctx.typing():
-                player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
-                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-            msg = f'Now playing: {player.title}'
-            if stream is True:
-                msg = f'Now streaming: {player.title}'
-            await ctx.send(msg)
+                self.queue.append(url)
+            else:
+                async with ctx.typing():
+                    player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
+                    ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+                msg = f'Now playing: {player.title}'
+                if stream is True:
+                    msg = f'Now streaming: {player.title}'
+                await ctx.send(msg)
+                while ctx.voice_client.is_playing:
+                    await asyncio.sleep(1)
+                await self.play_next(ctx)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
@@ -194,11 +192,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     @play_song.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
-            if ctx.author.voice:
-                await self.join_ch(ctx)
-            else:
-                await ctx.send("음성 채널에 연결되어 있지 않습니다.")
-                raise commands.CommandError("Author not connected to a voice channel.")
+            await self.join_ch(ctx)
 
 
 def setup(app):

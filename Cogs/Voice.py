@@ -84,7 +84,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if voice and voice.is_connected():
                 await voice.move_to(channel)
             else:
-                voice = await channel.connect()
+                await channel.connect()
                 await ctx.send(str(channel.name) + ' 채널에 연결합니다.')
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
@@ -111,19 +111,19 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="재생", aliases=["play", "p"],
-        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url), %* str(url) -s", pass_context=True
+        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url) stream=False", pass_context=True
     )
     async def play_song(self, ctx, url: str, stream=False):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
+            if ctx.voice_client.is_playing():
+                ctx.voice_client.stop()
             async with ctx.typing():
-                if stream == '-s':
-                    stream = True
-                else:
-                    stream = False
                 player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
                 ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-
-            await ctx.send(f'Now playing: {player.title}')
+            msg = f'Now playing: {player.title}'
+            if stream is True:
+                msg = f'Now streaming: {player.title}'
+            await ctx.send(msg)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
@@ -145,10 +145,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
             else:
-                await ctx.send("You are not connected to a voice channel.")
+                await ctx.send("음성 채널에 연결되어 있지 않습니다.")
                 raise commands.CommandError("Author not connected to a voice channel.")
-        elif ctx.voice_client.is_playing():
-            ctx.voice_client.stop()
 
 
 def setup(app):

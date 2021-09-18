@@ -8,6 +8,47 @@ import os
 import youtube_dl
 import opuslib
 
+ytdl_format_options = {
+    'format': 'bestaudio/best',
+    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'restrictfilenames': True,
+    'noplaylist': True,
+    'nocheckcertificate': True,
+    'ignoreerrors': False,
+    'logtostderr': False,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+}
+
+ffmpeg_options = {
+    'options': '-vn'
+}
+
+ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
+
+
+class YTDLSource(discord.PCMVolumeTransformer):
+    def __init__(self, source, *, data, volume=0.5):
+        super().__init__(source, volume)
+
+        self.data = data
+
+        self.title = data.get('title')
+        self.url = data.get('url')
+
+    @classmethod
+    async def from_url(cls, url, *, loop=None, stream=False):
+        loop = loop or asyncio.get_event_loop()
+        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
+
+        if 'entries' in data:
+            data = data['entries'][0]
+
+        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
+
 
 class Voice(commands.Cog, name="음성", description="음성 채널 및 보이스 클라이언트 조작에 관한 카테고리입니다."):
 
@@ -112,6 +153,20 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             voice = get(self.app.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
                 voice.stop()
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+
+    @commands.command(
+        name="스트리밍", aliases=["stream"],
+        help="유튜브 url을 통해 음악을 스트리밍합니다.", usage="%* str(url)", pass_context=True
+    )
+    async def stream_song(self, ctx, url: str):
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
+            async with ctx.typing():
+                player = await YTDLSource.from_url(url, loop=self.app.loop, stream=True)
+                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+
+            await ctx.send(f'Now playing: {player.title}')
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

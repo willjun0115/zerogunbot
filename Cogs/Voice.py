@@ -58,12 +58,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.app = app
         self.queue = []
 
-    async def play_next(self, ctx):
-        ctx.voice_client.stop()
-        if len(self.queue) > 0:
-            next_song = self.queue[0]
-            self.queue.remove(next_song)
-            await self.play_song(ctx, next_song)
+    async def playing(self, ctx):
+        i = 0
+        while len(self.queue) > i:
+            try:
+                ctx.voice_client.play(self.queue[i], after=lambda e: print(f'Player error: {e}') if e else None)
+            except:
+                pass
+            i += 1
 
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],
@@ -79,6 +81,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 else:
                     msg = await ctx.send("보이스 클라이언트 연결 중...")
                     await channel.connect()
+                    self.queue = []
                     await msg.edit(content=str(channel.name) + ' 채널에 연결합니다.')
             else:
                 await ctx.send("음성 채널에 연결되어 있지 않습니다.")
@@ -112,24 +115,23 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def play_song(self, ctx, url: str, stream=None):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
+            if ctx.voice_client.is_playing():
+                ctx.voice_client.stop()
             if stream == '-s':
                 stream = True
             else:
                 stream = False
-            if ctx.voice_client.is_playing():
-                self.queue.append(url)
-            else:
-                async with ctx.typing():
-                    player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
-                    ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+            async with ctx.typing():
+                player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
+            if len(self.queue) == 0:
+                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
                 msg = f'Now playing: {player.title}'
                 if stream is True:
                     msg = f'Now streaming: {player.title}'
                 await ctx.send(msg)
-                while ctx.voice_client.is_playing:
-                    await asyncio.sleep(1)
-                await ctx.send("play next...")
-                await self.play_next(ctx)
+                await self.playing(ctx)
+            else:
+                self.queue.append(player)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
@@ -197,8 +199,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def get_queue_list(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             embed = discord.Embed(title="<재생 목록>", description="현재 재생 중")
-            for url in self.queue:
-                embed.add_field(name=str(self.queue.index(url)), value=url)
+            for player in self.queue:
+                embed.add_field(name=str(self.queue.index(player)), value=player.title)
             await ctx.send(embed=embed)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")

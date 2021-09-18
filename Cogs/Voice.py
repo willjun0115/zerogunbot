@@ -129,6 +129,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 if stream is True:
                     msg = f'Now streaming: {player.title}'
                 await ctx.send(msg)
+                self.queue.append(player)
                 await self.playing(ctx)
             else:
                 self.queue.append(player)

@@ -163,7 +163,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 get_title = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('title')
                 get_href = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('href')
                 get_info = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('aria-label')
-                get_info.replace(get_title, '')
+                get_info = get_info[len(get_title):]
                 search_list[n+1] = get_href
                 embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_info, inline=False)
             await msg.edit(content=None, embed=embed)

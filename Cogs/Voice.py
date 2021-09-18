@@ -134,6 +134,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def yt_search(self, ctx, *, args):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
+            msg = await ctx.send("데이터 수집 중...")
+
             url = "https://www.youtube.com/results?search_query=" + args
 
             chrome_options = webdriver.ChromeOptions()
@@ -144,12 +146,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
                                        chrome_options=chrome_options)
             browser.get(url)
-            msg = await ctx.send("데이터 수집 중...")
 
-            get_href = browser.find_elements_by_xpath('//a[@id="video-title"]')[0].get_attribute('href')
+            embed = discord.Embed(title="YouTube", description=f"\"{args}\"의 검색 결과")
+            for n in range(0, 10):
+                get_title = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('title')
+                get_href = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('href')
+                embed.add_field(name=get_title, value=get_href, inline=False)
 
-            await msg.delete()
-            await ctx.send(f"**{args} 의 검색 결과입니다.**\n" + get_href)
+            await msg.edit(content=None, embed=embed)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

@@ -58,6 +58,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.app = app
         self.queue = []
 
+    def clear_mp3(self):
+        for file in os.listdir("./"):
+            if file.endswith(".mp3"):
+                os.remove(file)
+
     async def playing(self, ctx, player, stream):
         self.queue = [player]
         i = -1
@@ -86,8 +91,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                     await voice.move_to(channel)
                 else:
                     msg = await ctx.send("보이스 클라이언트 연결 중...")
-                    await channel.connect()
+                    self.clear_mp3()
                     self.queue = []
+                    await channel.connect()
                     await msg.edit(content=str(channel.name) + ' 채널에 연결합니다.')
             else:
                 await ctx.send("음성 채널에 연결되어 있지 않습니다.")
@@ -103,6 +109,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             await ctx.guild.voice_client.disconnect()
             await ctx.send("연결을 끊습니다.")
+            self.clear_mp3()
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

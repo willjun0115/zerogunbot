@@ -158,7 +158,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             browser.get(url)
 
             search_list = {}
-            embed = discord.Embed(title="YouTube", description=f"\"{args}\"의 검색 결과 :mag:")
+            embed = discord.Embed(title=f"\"{args}\"의 검색 결과 :mag:",
+                                  description="1~5를 입력해 선택하거나, 'c'를 입력해 취소하세요.")
             for n in range(0, 5):
                 get_title = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('title')
                 get_href = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('href')
@@ -168,7 +169,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_info, inline=False)
             await msg.edit(content=None, embed=embed)
 
-            answer_list = ["1", "2", "3", "4", "5"]
+            answer_list = ["c", "1", "2", "3", "4", "5"]
 
             def check(m):
                 return m.content in answer_list and m.author == ctx.author and m.channel == ctx.channel
@@ -178,10 +179,13 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             except asyncio.TimeoutError:
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
-                await msg.delete()
-                select = search_list.get(int(message.content))
-                await self.ensure_voice(ctx)
-                await self.play_song(ctx, select)
+                if message.content == "c":
+                    await msg.edit()
+                else:
+                    await msg.delete(content=":x: 취소했습니다.", delete_after=2)
+                    select = search_list.get(int(message.content))
+                    await self.ensure_voice(ctx)
+                    await self.play_song(ctx, select)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

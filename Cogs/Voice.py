@@ -59,18 +59,19 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.queue = []
 
     async def playing(self, ctx, player, stream):
-        self.queue.append(player)
+        self.queue = [player]
         i = 0
         while len(self.queue) > i:
-            try:
-                ctx.voice_client.play(self.queue[i], after=lambda e: print(f'Player error: {e}') if e else None)
-                msg = f'Now playing: {player.title}'
-                if stream is True:
-                    msg = f'Now streaming: {player.title}'
-                await ctx.send(msg)
-            except:
-                pass
-            i += 1
+            if not ctx.voice_client.is_playing():
+                try:
+                    ctx.voice_client.play(self.queue[i], after=lambda e: print(f'Player error: {e}') if e else None)
+                    msg = f'Now playing: {player.title}'
+                    if stream is True:
+                        msg = f'Now streaming: {player.title}'
+                    await ctx.send(msg)
+                except:
+                    pass
+                i += 1
 
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],

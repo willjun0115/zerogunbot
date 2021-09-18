@@ -131,7 +131,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="검색", aliases=["search"],
-        help="유튜브 검색을 통해 목록을 가져옵니다.", usage="%* str()"
+        help="유튜브 검색을 통해 목록을 가져옵니다.\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="%* str()"
     )
     async def yt_search(self, ctx, *, args):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
@@ -161,10 +161,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 return message.content in answer_list and user == ctx.author
 
             try:
-                message, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                message, user = await self.app.wait_for("message", check=check, timeout=60.0)
             except asyncio.TimeoutError:
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
+                await msg.delete()
                 select = browser.find_elements_by_xpath('//a[@id="video-title"]')[int(message.content)-1].get_attribute('href')
                 await self.play_song(ctx, select, stream=False)
         else:

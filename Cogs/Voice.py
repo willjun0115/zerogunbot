@@ -60,14 +60,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     def playing(self, ctx, player):
         self.queue = [player]
-        i = 0
+        i = -1
         while len(self.queue) > i:
             if not ctx.voice_client.is_playing():
+                i += 1
                 try:
                     ctx.voice_client.play(self.queue[i], after=lambda e: print(f'Player error: {e}') if e else None)
                 except:
                     pass
-                i += 1
 
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],

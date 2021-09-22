@@ -28,7 +28,11 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             for x in cog_list.keys():
                 cog_data = self.app.get_cog(x)
                 command_list = cog_data.get_commands()
-                embed.add_field(name=f"> {x}({cog_list[x]})", value="\n".join([c.name for c in command_list]), inline=True)
+                embed.add_field(
+                    name=f"> {x}({cog_list[x]})",
+                    value="\n".join([c.name for c in command_list if c.hidden is False]),
+                    inline=True
+                )
             await ctx.send(embed=embed)
         else:
             command_notfound = True
@@ -102,7 +106,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         if 0 <= num < 1000:
             for c in code:
                 x = ord(c)
-                x = (x - (num // 3)) // 2
+                x = (x - num * 3) // 2
                 cc = chr(x)
                 args = args + cc
             await ctx.send(str(args))

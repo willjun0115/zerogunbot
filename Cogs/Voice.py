@@ -212,7 +212,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="재생목록", aliases=["queue", "q"],
-        help="재생목록을 가져옵니다.", usage="*"
+        help="재생목록을 가져옵니다.", usage="*", hidden=True
     )
     async def get_queue_list(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:

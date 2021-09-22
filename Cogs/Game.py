@@ -10,18 +10,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     def __init__(self, app):
         self.app = app
-        self.log_ch_id = 874970985307201546
-        self.rolelst = {
-            "창씨개명": (0.0, 0.1, 50),
-            "강제 이동": (0.1, 0.6, 25),
-            "침묵": (0.6, 1.5, 15),
-            "언론 통제": (1.5, 3.0, 10),
-            "이모티콘 관리": (3.0, 6.5, 7),
-            "DJ": (6.5, 10.0, 5)
-        }
 
     async def find_log(self, ctx, selector, id):
-        log_channel = ctx.guild.get_channel(self.log_ch_id)
+        log_channel = ctx.guild.get_channel(self.app.log_ch)
         find = None
         async for message in log_channel.history(limit=100):
             if message.content.startswith(selector + str(id)) is True:
@@ -42,10 +33,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="토큰", aliases=["코인", "token", "coin", "$"],
         help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.",
-        usage="%*"
+        usage="*"
     )
     async def check_token(self, ctx):
-        log_channel = ctx.guild.get_channel(self.log_ch_id)
+        log_channel = ctx.guild.get_channel(self.app.log_ch)
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
@@ -124,7 +115,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="%*"
     )
     async def gacha(self, ctx):
-        my_channel = ctx.guild.get_channel(811849095031029762)
+        my_channel = ctx.guild.get_channel(self.app.game_ch)
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
@@ -149,11 +140,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         prize = None
                         result = '획득!'
                         rand = random.random() * 100
-                        margin_role = self.rolelst["DJ"]
+                        margin_role = self.app.role_lst["DJ"]
                         least = margin_role[1]
                         if 0.0 <= rand < least:
-                            for role in self.rolelst.keys():
-                                data = self.rolelst[role]
+                            for role in self.app.role_lst.keys():
+                                data = self.app.role_lst[role]
                                 if data[0] <= rand < data[1]:
                                     prize = role
                                     if get(ctx.guild.roles, name=prize) in ctx.author.roles:
@@ -185,8 +176,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="확률(%) (중복 시 얻는 코인)")
-        for role in self.rolelst.keys():
-            data = self.rolelst.get(role)
+        for role in self.app.role_lst.keys():
+            data = self.app.role_lst.get(role)
             embed.add_field(name="> " + role, value=str(data[1]-data[0])+f'% ({data[2]} :coin:)', inline=False)
         embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
         embed.add_field(name="> 1~5 :coin:", value='(Rest)%', inline=False)
@@ -197,7 +188,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="서버 내 토큰 보유 순위를 조회합니다.", usage="%*, %* @"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
-        log_channel = ctx.guild.get_channel(self.log_ch_id)
+        log_channel = ctx.guild.get_channel(self.app.log_ch)
         msg = await ctx.send("로그를 조회 중입니다... :mag:")
         members = {}
         async for message in log_channel.history(limit=100):
@@ -451,7 +442,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         board[member] = a + ' ' + b
                         member_sum = 0
                         ace = False
-                        for i in board[member].split():
+                        for i in board.get(member).split():
                             if i[i.rfind(':') + 1:] == 'A':
                                 ace = True
                                 member_sum += 1

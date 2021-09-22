@@ -7,10 +7,9 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     def __init__(self, app):
         self.app = app
-        self.log_ch_id = 874970985307201546
 
     async def find_log(self, ctx, selector, id):
-        log_channel = ctx.guild.get_channel(self.log_ch_id)
+        log_channel = ctx.guild.get_channel(self.app.log_ch)
         find = None
         async for message in log_channel.history(limit=100):
             if message.content.startswith(selector + str(id)) is True:
@@ -62,7 +61,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%* str(selector) @ int()"
     )
     async def edit_log(self, ctx, selector, member: discord.Member, val):
-        log_channel = ctx.guild.get_channel(self.log_ch_id)
+        log_channel = ctx.guild.get_channel(self.app.log_ch)
         if len(selector) == 1:
             log = await self.find_log(ctx, selector, member.id)
             if log is not None:

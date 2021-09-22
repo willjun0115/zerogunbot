@@ -10,6 +10,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     def __init__(self, app):
         self.app = app
+        self.log_ch_id = 874970985307201546
         self.rolelst = {
             "창씨개명": (0.0, 0.1, 50),
             "강제 이동": (0.1, 0.6, 25),
@@ -20,7 +21,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         }
 
     async def find_log(self, ctx, selector, id):
-        log_channel = ctx.guild.get_channel(874970985307201546)
+        log_channel = ctx.guild.get_channel(self.log_ch_id)
         find = None
         async for message in log_channel.history(limit=100):
             if message.content.startswith(selector + str(id)) is True:
@@ -44,7 +45,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="%*"
     )
     async def check_token(self, ctx):
-        log_channel = ctx.guild.get_channel(874970985307201546)
+        log_channel = ctx.guild.get_channel(self.log_ch_id)
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
@@ -196,7 +197,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="서버 내 토큰 보유 순위를 조회합니다.", usage="%*, %* @"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
-        log_channel = ctx.guild.get_channel(874970985307201546)
+        log_channel = ctx.guild.get_channel(self.log_ch_id)
         msg = await ctx.send("로그를 조회 중입니다... :mag:")
         members = {}
         async for message in log_channel.history(limit=100):

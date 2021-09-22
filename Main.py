@@ -8,6 +8,7 @@ import ctypes.util
 
 prefix = '%'
 app = commands.Bot(command_prefix=prefix, help_command=None)
+app.prefix = prefix
 
 token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"
 

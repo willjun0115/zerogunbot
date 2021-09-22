@@ -93,7 +93,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                 code = code + cc
             await ctx.send(str(code))
         else:
-            await ctx.send("코드번호는 0~99의 정수만 가능합니다.")
+            await ctx.send("코드번호는 0~999의 정수만 가능합니다.")
 
     @commands.command(
         name='복호화', aliases=["decrypt", "dec"],
@@ -111,7 +111,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                 args = args + cc
             await ctx.send(str(args))
         else:
-            await ctx.send("코드번호는 0~99의 정수만 가능합니다.")
+            await ctx.send("코드번호는 0~999의 정수만 가능합니다.")
 
 
 def setup(app):

@@ -19,7 +19,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
-        help="도움말을 불러옵니다.", usage="%*, %* str(command, category)"
+        help="도움말을 불러옵니다.", usage="* (str(command, category))"
     )
     async def help_command(self, ctx, func=None):
         if func is None:
@@ -44,7 +44,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                             cmd = self.app.get_command(title.name)
                             embed = discord.Embed(title=f"명령어 : {cmd}", description=cmd.help)
                             embed.add_field(name="대체 명령어", value=', '.join(cmd.aliases))
-                            embed.add_field(name="사용법", value=cmd.usage)
+                            embed.add_field(name="사용법", value=self.app.prefix + cmd.usage)
                             await ctx.send(embed=embed)
                             command_notfound = False
                             break
@@ -58,7 +58,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="로그편집", aliases=["editlog", "edit"],
-        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="%* str(selector) @ int()"
+        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(selector) @ int()"
     )
     async def edit_log(self, ctx, selector, member: discord.Member, val):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
@@ -74,83 +74,40 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             await ctx.send("식별자는 1글자여야 합니다.")
 
     @commands.command(
-        name='인코드', aliases=["encode", "enc"],
-        help='입력받은 문자열을 인코딩해 출력합니다.', usage='%* str()', pass_context=True
+        name='암호화', aliases=["encrypt", "enc"],
+        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int() str()', pass_context=True
     )
-    async def chat_encode(self, ctx, *, args):
+    async def chat_encode(self, ctx, num, *, args):
         await ctx.message.delete()
         code = ""
-        for c in args:
-            x = ord(c)
-            x = x * 2 + 11
-            cc = chr(x)
-            code = code + cc
-        await ctx.send(str(code))
+        num = int(num)
+        if 0 <= num < 1000:
+            for c in args:
+                x = ord(c)
+                x = x * 2 + num * 3
+                cc = chr(x)
+                code = code + cc
+            await ctx.send(str(code))
+        else:
+            await ctx.send("코드번호는 0~99의 정수만 가능합니다.")
 
     @commands.command(
-        name='디코드', aliases=["decode", "dec"],
-        help='0군봇이 인코딩한 코드를 입력받아 디코드해 출력합니다.', usage='%* str(code)', pass_context=True
+        name='복호화', aliases=["decrypt", "dec"],
+        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int() str(code)', pass_context=True
     )
-    async def chat_decode(self, ctx, *, code):
+    async def chat_decode(self, ctx, num, *, code):
         await ctx.message.delete()
         args = ""
-        for c in code:
-            x = ord(c)
-            x = (x - 11) // 2
-            cc = chr(x)
-            args = args + cc
-        await ctx.send(str(args))
-
-    @commands.command(
-        name='프라이빗인코드', aliases=["privateencode", "privenc"],
-        help='입력받은 문자열을 자신만 디코드할 수 있는 코드로 인코딩해 출력합니다.',
-        usage='%* str()', pass_context=True
-    )
-    async def private_encode(self, ctx, *, args):
-        await ctx.message.delete()
-        id = str(ctx.author.id)
-        id_1 = int(id[0:3])
-        id_2 = int(id[3:6])
-        id_3 = int(id[6:9])
-        id_4 = int(id[9:12])
-        id_5 = int(id[12:15])
-        id_6 = int(id[15:18])
-        idcode = chr(id_1) + chr(id_2) + chr(id_3) + chr(id_4) + chr(id_5) + chr(id_6)
-        code = ""
-        for c in args:
-            x = ord(c)
-            x = x * 2 - 31
-            cc = chr(x)
-            code = code + cc
-        code = idcode + ";" + code
-        await ctx.send(str(code))
-
-    @commands.command(
-        name='프라이빗디코드', aliases=["privatedecode", "privdec"],
-        help='0군봇이 인코딩한 프라이빗코드를 입력받아 디코드해 출력합니다.',
-        usage='%* str(code)', pass_context=True
-    )
-    async def private_decode(self, ctx, *, code):
-        await ctx.message.delete()
-        id = str(ctx.author.id)
-        id_1 = int(id[0:3])
-        id_2 = int(id[3:6])
-        id_3 = int(id[6:9])
-        id_4 = int(id[9:12])
-        id_5 = int(id[12:15])
-        id_6 = int(id[15:18])
-        idcode = chr(id_1) + chr(id_2) + chr(id_3) + chr(id_4) + chr(id_5) + chr(id_6)
-        if idcode == code[:6]:
-            code = code[7:]
-            args = ""
+        num = int(num)
+        if 0 <= num < 1000:
             for c in code:
                 x = ord(c)
-                x = (x + 31) // 2
+                x = (x - (num // 3)) // 2
                 cc = chr(x)
                 args = args + cc
             await ctx.send(str(args))
         else:
-            await ctx.send(":no_entry_sign: 코드 작성자의 아이디가 일치하지 않습니다.")
+            await ctx.send("코드번호는 0~99의 정수만 가능합니다.")
 
 
 def setup(app):

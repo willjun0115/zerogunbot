@@ -47,7 +47,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="도박", aliases=["gamble"],
-        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="%* float()", pass_context=True
+        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="* float((0.0, 50.0])", pass_context=True
     )
     async def gamble(self, ctx, args):
         if args > 50:
@@ -66,7 +66,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="가위바위보", aliases=["가바보", "rsp"],
         help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.",
-        usage="%*"
+        usage="*"
     )
     async def rock_scissors_paper(self, ctx):
         log = await self.find_log(ctx, '$', ctx.author.id)
@@ -112,7 +112,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha", "G"],
-        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="%*"
+        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
     )
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(self.app.game_ch)
@@ -172,7 +172,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="가챠정보", aliases=["가챠확률", "gachainfo", "Ginfo"],
-        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="%*"
+        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="*"
     )
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="확률(%) (중복 시 얻는 코인)")
@@ -185,7 +185,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="토큰순위", aliases=["토큰랭크", "순위표", "랭크표", "rank"],
-        help="서버 내 토큰 보유 순위를 조회합니다.", usage="%*, %* @"
+        help="서버 내 토큰 보유 순위를 조회합니다.", usage="* (@member)"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
@@ -226,7 +226,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="리폿", aliases=["신고", "report"],
         help="부적절한 사용자를 신고합니다.\n낮은 확률로 접수되면 최고 권한을 잃습니다."
-             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="%* @"
+             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="* @member"
     )
     async def report(self, ctx, member: discord.Member):
         my_channel = ctx.guild.get_channel(872938926019575879)
@@ -257,7 +257,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="인디언 포커를 신청합니다."
              "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
              "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
-             "\n숫자가 높은 쪽이 이깁니다.", usage="%* @"
+             "\n숫자가 높은 쪽이 이깁니다.", usage="* @"
     )
     async def indian_poker(self, ctx, member: discord.Member):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
@@ -378,7 +378,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n21를 초과하면 0점으로 처리됩니다."
              "\n시작하면 참가자마다 두 장의 카드를 받습니다."
              "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
-             "\n승자를 정합니다.", usage="%*"
+             "\n승자를 정합니다.", usage="*"
     )
     async def blackjack(self, ctx):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
@@ -591,7 +591,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n시드를 추가하면 시드에 새 카드를 추가합니다."
              "\n덱에 있는 카드를 모두 쓰고 나면, 패가 가장 낮은 멤버에게"
              "\n순서대로 시드 카드를 줍니다."
-             "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="%*"
+             "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="*"
     )
     async def seed_poker(self, ctx):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
@@ -752,7 +752,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
              "\n⏏️: 하프, ‼️: 따당, ✅: 콜(체크), 💀: 다이"
              "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
-             "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="%*"
+             "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="*"
     )
     async def seotda(self, ctx):
         author_log = await self.find_log(ctx, '$', ctx.author.id)

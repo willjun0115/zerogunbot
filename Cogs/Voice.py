@@ -80,7 +80,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],
-        help="음성 채널에 연결합니다.", usage="%*"
+        help="음성 채널에 연결합니다.", usage="*"
     )
     async def join_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
@@ -103,7 +103,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="퇴장", aliases=["연결해제", "연결끊기", "disconnect", "dc", "leave"],
-        help="음성 채널을 나갑니다.", usage="%*"
+        help="음성 채널을 나갑니다.", usage="*"
     )
     async def leave_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
@@ -115,7 +115,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="잠수", aliases=["afk"],
-        help="잠수방으로 이동합니다.", usage="%*"
+        help="잠수방으로 이동합니다.", usage="*"
     )
     async def submerge(self, ctx):
         afkchannel = ctx.guild.get_channel(760198518987685949)
@@ -124,7 +124,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="재생", aliases=["play", "p"],
-        help="유튜브 url을 통해 음악을 재생합니다.", usage="%* str(url), %* str(url) -s", pass_context=True
+        help="유튜브 url을 통해 음악을 재생합니다."
+             "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(url) (-s)", pass_context=True
     )
     async def play_song(self, ctx, url: str, stream=None):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
@@ -147,7 +148,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="검색", aliases=["search"],
-        help="유튜브 검색을 통해 목록을 가져옵니다.\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="%* str()"
+        help="유튜브 검색을 통해 목록을 가져옵니다."
+             "\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="* str()"
     )
     async def yt_search(self, ctx, *, args):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
@@ -198,7 +200,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="정지", aliases=["stop", "s"],
-        help="음악 재생을 정지합니다.", usage="%*"
+        help="음악 재생을 정지합니다.", usage="*"
     )
     async def stop_song(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
@@ -210,13 +212,13 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="재생목록", aliases=["queue", "q"],
-        help="재생목록을 가져옵니다.", usage="%*"
+        help="재생목록을 가져옵니다.", usage="*"
     )
     async def get_queue_list(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             embed = discord.Embed(title="<재생 목록>", description="현재 재생 중")
             for player in self.queue:
-                embed.add_field(name=str(self.queue.index(player)), value=player.title)
+                embed.add_field(name=str(self.queue.index(player)), value=player.title, inline=False)
             await ctx.send(embed=embed)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")

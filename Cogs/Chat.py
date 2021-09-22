@@ -12,7 +12,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name="안녕", aliases=["인사", "ㅎㅇ", "hello", "hi"],
-        help="짧은 인사를 건넵니다.", usage="%*"
+        help="짧은 인사를 건넵니다.", usage="*"
     )
     async def hello(self, ctx):
         what_message = random.randint(1, 3)
@@ -25,7 +25,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name="말하기", aliases=["say"],
-        help="입력값을 채팅에 전송합니다.", usage="%* str()", pass_context=True
+        help="입력값을 채팅에 전송합니다.", usage="* str()", pass_context=True
     )
     async def _say(self, ctx, *, args):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
@@ -36,7 +36,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name="tts", aliases=["TTS"],
-        help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="%* str()", pass_context=True
+        help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="* str()", pass_context=True
     )
     async def _say_tts(self, ctx, *, args):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
@@ -47,7 +47,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tc"],
-        help="잠시 후 사라지는 채팅을 전송합니다.", usage="%* str()", pass_context=True
+        help="잠시 후 사라지는 채팅을 전송합니다.", usage="* str()", pass_context=True
     )
     async def _say_timer(self, ctx, *, args):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
@@ -68,7 +68,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name="청소", aliases=["지우기", "clear", "purge"],
-        help="숫자만큼 채팅을 지웁니다.", usage="%* int()", pass_context=True
+        help="숫자만큼 채팅을 지웁니다.", usage="* int((0, 100])", pass_context=True
     )
     async def clean(self, ctx, num):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
@@ -79,7 +79,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name='패드립', aliases=["mb"],
-        help="저희 봇에 그런 기능은 없습니다?", usage="%*"
+        help="저희 봇에 그런 기능은 없습니다?", usage="*"
     )
     async def fdr(self, ctx):
         msg = await ctx.send("느금마")

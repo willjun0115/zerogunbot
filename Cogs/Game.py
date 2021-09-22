@@ -248,17 +248,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 win = 0
                 embed.add_field(name="관리자는 신고할 수 없습니다.", value=ctx.author.name + " 님, 맞을래요?",
                                 inline=False)
-            elif lv == get(ctx.guild.roles, name="창씨개명").position:
-                win = 5
-            elif lv == get(ctx.guild.roles, name="음성 통제").position:
-                win = 4
-            elif lv == get(ctx.guild.roles, name="언론 통제").position:
-                win = 3
-            elif lv == get(ctx.guild.roles, name="이모티콘 관리").position:
-                win = 2
-            elif lv == get(ctx.guild.roles, name="DJ").position:
-                win = 1
-            elif lv == get(ctx.guild.roles, name="언랭").position:
+            elif get(ctx.guild.roles, name="0군 인증서").position < lv <= get(ctx.guild.roles, name="창씨개명").position:
+                win = lv
+            elif lv == get(ctx.guild.roles, name="0군 인증서").position:
                 win = 0
             if rand <= win * 0.01:
                 await member.remove_roles(member.top_role)

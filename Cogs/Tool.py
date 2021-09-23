@@ -94,17 +94,17 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9150")
+            chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9050")
             browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
                                        chrome_options=chrome_options)
             browser.get(url)
 
             embed = discord.Embed(title="hitomi.la",
                                   description=f"\"{args}\"의 검색 결과 :mag:")
-            pre_path = '//div[@class="gallery-content"]/div'
+            pre_xpath = '//div[@class="gallery-content"]/div'
             for n in range(0, 5):
-                get_title = browser.find_elements_by_xpath(pre_path + f'[{str(n)}]/h1/a[0]').text
-                #get_artist = browser.find_elements_by_xpath(pre_path + f'[{n}]/div[@class="artist-list"]/ul/li/a[0]').text
+                get_title = browser.find_elements_by_xpath(pre_xpath + f'[{str(n)}]/h1/a[0]').text
+                # get_artist = browser.find_elements_by_xpath(pre_xpath + f'[{n}]/div[@class="artist-list"]/ul/li/a[0]').text
                 embed.add_field(name=f"> {str(n + 1)}. " + get_title, value="none", inline=False)
             await ctx.send(embed=embed)
 

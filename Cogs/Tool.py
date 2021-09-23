@@ -22,9 +22,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             'nocheckcertificate': True,
             'ignoreerrors': False,
             'logtostderr': False,
-            'quiet': True,
             'no_warnings': True,
-            'default_search': 'auto',
             'source_address': '0.0.0.0'
         }
 

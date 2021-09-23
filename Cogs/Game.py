@@ -140,21 +140,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         prize = None
                         result = '획득!'
                         rand = random.random() * 100
-                        margin_role = self.app.role_lst["DJ"]
-                        least = margin_role[1]
-                        if 0.0 <= rand < least:
-                            for role in self.app.role_lst.keys():
-                                data = self.app.role_lst[role]
-                                if data[0] <= rand < data[1]:
-                                    prize = role
-                                    if get(ctx.guild.roles, name=prize) in ctx.author.roles:
-                                        prize = role + f" (+ {data[2]} :coin:)"
-                                        await log.edit(content=log.content[:20] + str(coin + data[2]))
-                                    else:
-                                        await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                        else:
+                        for role in self.app.role_lst:
+                            if rand <= role[1]:
+                                prize = role[0]
+                                if get(ctx.guild.roles, name=prize) in ctx.author.roles:
+                                    prize += f" (+ {str(role[2])} :coin:)"
+                                    await log.edit(content=log.content[:20] + str(coin + role[2]))
+                                else:
+                                    await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
+                                break
+                            else:
+                                rand -= role[1]
+                        if prize is None:
                             roles = ctx.author.roles[2:]
-                            if rand >= 100.0 - (len(roles) * 2):
+                            if rand <= (len(roles) * 2):
                                 role = random.choice(roles)
                                 await ctx.author.remove_roles(role)
                                 prize = role.name
@@ -176,9 +175,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="확률(%) (중복 시 얻는 코인)")
-        for role in self.app.role_lst.keys():
-            data = self.app.role_lst.get(role)
-            embed.add_field(name="> " + role, value=str(data[1]-data[0])+f'% ({data[2]} :coin:)', inline=False)
+        for role in self.app.role_lst:
+            embed.add_field(name="> " + role[0], value=str(role[1])+f'% ({str(role[2])} :coin:)', inline=False)
         embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
         embed.add_field(name="> 1~5 :coin:", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)

@@ -11,14 +11,14 @@ app = commands.Bot(command_prefix=prefix, help_command=None)
 app.prefix = prefix
 app.game_ch = 811849095031029762
 app.log_ch = 874970985307201546
-app.role_lst = {
-            "창씨개명": (0.0, 0.1, 50),
-            "강제 이동": (0.1, 0.6, 25),
-            "침묵": (0.6, 1.5, 15),
-            "언론 통제": (1.5, 3.0, 10),
-            "이모티콘 관리": (3.0, 6.5, 7),
-            "DJ": (6.5, 10.0, 5)
-        }
+app.role_lst = [
+    ("창씨개명", 0.1, 50),
+    ("강제 이동", 0.5, 25),
+    ("침묵", 0.9, 15),
+    ("언론 통제", 1.5, 10),
+    ("이모티콘 관리", 3.5, 7),
+    ("DJ", 3.5, 5)
+]
 
 token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"
 

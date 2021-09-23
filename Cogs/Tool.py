@@ -1,6 +1,10 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
+import asyncio
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import os
 
 
 class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에 관한 카테고리입니다."):
@@ -76,6 +80,36 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                 await ctx.send('로그에 ' + member.name + ' 님의 ID를 기록했습니다.')
         else:
             await ctx.send("식별자는 1글자여야 합니다.")
+
+    @commands.command(
+        name="히토미", aliases=["hitomi"],
+        help="히토미에서 작품을 검색합니다.", usage="* str()", hidden=True
+    )
+    async def hitomi(self, ctx, *, args):
+        msg = await ctx.send("데이터 수집 중... :mag:")
+
+        url = "https://hitomi.la/search.html?" + args
+
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--no-sandbox")
+        browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                                   chrome_options=chrome_options)
+        browser.get(url)
+
+        embed = discord.Embed(title="hitomi.la",
+                              description=f"\"{args}\"의 검색 결과 :mag:")
+        get_title = browser.find_elements_by_xpath('//div[@class="dj"]/h1/a')[1].text
+        get_artist = browser.find_elements_by_xpath('//div[@class="dj"]/div[@class="artist_list"]/a')[1].text
+        get_img = browser.find_elements_by_xpath(
+            '//div[@class="dj"]/div[@class="dj_img1"]/picture/source'
+        )[1].get_attribute('srcset')
+        embed.add_field(name="> " + get_title, value=get_artist, inline=False)
+        get_img = str(get_img)
+        embed.set_image("https:" + str(get_img[get_img.index(",") + 2:]))
+        await msg.edit(content=None, embed=embed)
 
 
 def setup(app):

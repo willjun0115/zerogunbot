@@ -95,7 +95,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9050")
         browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
                                    chrome_options=chrome_options)
         browser.get(url)

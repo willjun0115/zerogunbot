@@ -14,6 +14,8 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         self.app = app
         self.ydl_opts = {
             'format': 'bestaudio/best',
+            'extractaudio': True,
+            'audioformat': 'mp3',
             'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
             'restrictfilenames': True,
             'noplaylist': True,
@@ -100,13 +102,15 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         help="유튜브 링크를 통해 음원을 추출합니다.", usage="* str(url)", hidden=True
     )
     async def extract_yt(self, ctx, url):
-        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-            ydl.download([url])
-        for file in os.listdir("./"):
-            if file.endswith(".mp3"):
-                await ctx.send(file=file)
-                os.remove(file)
-                break
+        if url.startswith("https://www.youtube.com/"):
+            await ctx.send("음원을 추출 중 입니다...")
+            with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+                ydl.download([url])
+            for file in os.listdir("./"):
+                if file.endswith(".mp3"):
+                    await ctx.send(file=file)
+                    os.remove(file)
+                    break
 
 
 def setup(app):

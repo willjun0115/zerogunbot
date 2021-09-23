@@ -102,6 +102,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         browser.save_screenshot("screenshot.png")
         if os.path.isfile("screenshot.png"):
             await ctx.send(file="screenshot.png")
+            os.remove("screenshot.png")
 
         embed = discord.Embed(title="hitomi.la",
                               description=f"\"{args}\"의 검색 결과 :mag:")

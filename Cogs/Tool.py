@@ -86,8 +86,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         help="히토미에서 작품을 검색합니다.", usage="* str()", hidden=True
     )
     async def hitomi(self, ctx, *, args):
-        msg = await ctx.send("데이터 수집 중... :mag:")
-
         async with ctx.typing():
             url = "https://hitomi.la/search.html?" + args
 
@@ -102,12 +100,12 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
             embed = discord.Embed(title=f"\"{args}\"의 검색 결과 :mag:",
                                   description="1~5를 입력해 선택하거나, x를 입력해 취소하세요.")
+            pre_path = '//div[@class="gallery-content"]/div'
             for n in range(0, 5):
-                get_title = browser.find_elements_by_xpath('//div[@class="gallery-content"]/div/h1/a')[n].text
-                get_artist = browser.find_elements_by_xpath('//div[@class="gallery-content"]/div/'
-                                                            'div[@class="artist-list"]/a')[n].text
+                get_title = browser.find_elements_by_xpath(pre_path + f'[{n}]/h1/a[0]').text
+                get_artist = browser.find_elements_by_xpath(pre_path + f'[{n}]/div[@class="artist-list"]/a[0]').text
                 embed.add_field(name=f"> {str(n + 1)}. " + get_title, value=get_artist, inline=False)
-            await msg.edit(content=None, embed=embed)
+            await ctx.send(embed=embed)
 
 
 def setup(app):

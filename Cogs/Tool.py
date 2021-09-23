@@ -86,27 +86,29 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         help="히토미에서 작품을 검색합니다.", usage="* str()", hidden=True
     )
     async def hitomi(self, ctx, *, args):
-        async with ctx.typing():
-            url = "https://hitomi.la/search.html?" + args
+        msg = await ctx.send("데이터 수집 중... :mag:")
 
-            chrome_options = webdriver.ChromeOptions()
-            chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-            chrome_options.add_argument("--headless")
-            chrome_options.add_argument("--disable-dev-shm-usage")
-            chrome_options.add_argument("--no-sandbox")
-            chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9050")
-            browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
-                                       chrome_options=chrome_options)
-            browser.get(url)
+        url = "https://hitomi.la/search.html?" + args
 
-            embed = discord.Embed(title="hitomi.la",
-                                  description=f"\"{args}\"의 검색 결과 :mag:")
-            pre_xpath = '//div[@class="gallery-content"]/div'
-            for n in range(0, 5):
-                get_title = browser.find_elements_by_xpath(pre_xpath + f'[{str(n)}]/h1/a[0]').text
-                # get_artist = browser.find_elements_by_xpath(pre_xpath + f'[{n}]/div[@class="artist-list"]/ul/li/a[0]').text
-                embed.add_field(name=f"> {str(n + 1)}. " + get_title, value="none", inline=False)
-            await ctx.send(embed=embed)
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9050")
+        browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                                   chrome_options=chrome_options)
+        browser.get(url)
+        await msg.edit(content="브라우저 세팅 완료...")
+
+        embed = discord.Embed(title="hitomi.la",
+                              description=f"\"{args}\"의 검색 결과 :mag:")
+        pre_xpath = '//div[@class="gallery-content"]/div'
+        for n in range(0, 5):
+            get_title = browser.find_elements_by_xpath(pre_xpath + f'[{str(n)}]/h1/a[0]').text
+            # get_artist = browser.find_elements_by_xpath(pre_xpath + f'[{n}]/div[@class="artist-list"]/ul/li/a[0]').text
+            embed.add_field(name=f"> {str(n + 1)}. " + get_title, value="none", inline=False)
+        await msg.edit(content=None, embed=embed)
 
 
 def setup(app):

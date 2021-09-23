@@ -162,6 +162,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9050")
             browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
                                        chrome_options=chrome_options)
             browser.get(url)

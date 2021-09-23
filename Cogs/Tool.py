@@ -5,12 +5,26 @@ import asyncio
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
+import youtube_dl
 
 
 class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에 관한 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app
+        self.ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+            'restrictfilenames': True,
+            'noplaylist': True,
+            'nocheckcertificate': True,
+            'ignoreerrors': False,
+            'logtostderr': False,
+            'quiet': True,
+            'no_warnings': True,
+            'default_search': 'auto',
+            'source_address': '0.0.0.0'
+        }
 
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
@@ -82,37 +96,17 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             await ctx.send("식별자는 1글자여야 합니다.")
 
     @commands.command(
-        name="히토미", aliases=["hitomi"],
-        help="히토미에서 작품을 검색합니다.", usage="* str()", hidden=True
+        name="음원추출", aliases=["extract_mp3"],
+        help="유튜브 링크를 통해 음원을 추출합니다.", usage="* str(url)", hidden=True
     )
-    async def hitomi(self, ctx, *, args):
-        msg = await ctx.send("데이터 수집 중... :mag:")
-
-        url = "https://hitomi.la/search.html?" + args
-
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--proxy-server=socks5://127.0.0.1:9150")
-        browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
-                                   chrome_options=chrome_options)
-        browser.get(url)
-        browser.save_screenshot("screenshot.png")
-        if os.path.isfile("screenshot.png"):
-            await ctx.send(file="screenshot.png")
-            os.remove("screenshot.png")
-        await msg.edit(content="브라우저 세팅 완료...")
-
-        embed = discord.Embed(title="hitomi.la",
-                              description=f"\"{args}\"의 검색 결과 :mag:")
-        pre_xpath = '//div[@class="gallery-content"]/div'
-        for n in range(0, 5):
-            get_title = browser.find_elements_by_xpath(f'//h1[{str(n)}]/a').text
-            # get_artist = browser.find_elements_by_xpath(pre_xpath + f'[{n}]/div[@class="artist-list"]/ul/li/a[0]').text
-            embed.add_field(name=f"> {str(n + 1)}. " + get_title, value="none", inline=False)
-        await msg.edit(content=None, embed=embed)
+    async def extract_yt(self, ctx, url):
+        with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
+            ydl.download([url])
+        for file in os.listdir("./"):
+            if file.endswith(".mp3"):
+                await ctx.send(file=file)
+                os.remove(file)
+                break
 
 
 def setup(app):

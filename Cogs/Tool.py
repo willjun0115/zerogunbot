@@ -33,7 +33,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
-        help="도움말을 불러옵니다.\n'%도움말 사용법'에서 명령어 사용법 참조.", usage="* (str(*command*, *category*))"
+        help="도움말을 불러옵니다.\n'%사용법'에서 명령어 사용법 참조.", usage="* (str(*command*, *category*))"
     )
     async def help_command(self, ctx, func=None):
         if func is None:
@@ -71,50 +71,54 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                     if command_notfound is False:
                         break
             if command_notfound is True:
-                if func in ["사용법", "usage"]:
-                    embed = discord.Embed(
-                        title="사용법",
-                        description="봇의 기본 명령어 구조는 '접두사 + 명령어' 입니다."
-                                    "\n명령어에 따라 필요한 인자를 명령어 뒤에 띄어쓰기 후 붙입니다."
-                    )
-                    embed.add_field(
-                        name="> 접두사(prefix)",
-                        value="기본값(default): %"
-                              "\n명령 선언 시 가장 앞에 입력.",
-                        inline=False
-                    )
-                    embed.add_field(
-                        name="> 명령어(command)",
-                        value="명령어나 대체명령어"
-                              "\n도움말에서 확인 가능."
-                              "\n(사용법에서는 *로 표기)",
-                        inline=False
-                    )
-                    embed.add_field(
-                        name="*대체명령어*",
-                        value="명령 선언 시 명령어와 동일하게 취급",
-                        inline=False
-                    )
-                    embed.add_field(
-                        name="> 인자(arguments)",
-                        value="명령어 실행에 필요한 인자"
-                              "\n도움말에서 필요한 인자의 형태와 개수 확인 가능."
-                              "\n(사용법에서 괄호 안에 있는 인자는 기본값이 있으므로, 선택 포함)",
-                        inline=False
-                    )
-                    embed.add_field(
-                        name="*인자 형태*",
-                        value="str(*type*): 문자열, int(*range*): 정수, float(*range*): 실수, @*type*: 언급(멘션)",
-                        inline=False
-                    )
-                    await ctx.send(embed=embed)
-                else:
-                    await ctx.send('명령어를 찾을 수 없습니다.')
+                await ctx.send('명령어를 찾을 수 없습니다.')
+
+    @commands.command(
+        name="사용법", aliases=["usage"],
+        help="명령 선언에 대한 기본적인 법칙을 설명합니다.", usage="*"
+    )
+    async def usage_help(self, ctx):
+        embed = discord.Embed(
+            title="사용법",
+            description="봇의 기본 명령어 구조는 '접두사 + 명령어' 입니다."
+                        "\n명령어에 따라 필요한 인자를 명령어 뒤에 띄어쓰기 후 붙입니다."
+        )
+        embed.add_field(
+            name="> 접두사(prefix)",
+            value="기본값(default): %"
+                  "\n명령 선언 시 가장 앞에 입력.",
+            inline=False
+        )
+        embed.add_field(
+            name="> 명령어(command)",
+            value="명령어나 대체명령어"
+                  "\n도움말에서 확인 가능."
+                  "\n(사용법에서는 *로 표기)",
+            inline=False
+        )
+        embed.add_field(
+            name="*대체명령어*",
+            value="명령 선언 시 명령어와 동일하게 취급",
+            inline=False
+        )
+        embed.add_field(
+            name="> 인자(arguments)",
+            value="명령어 실행에 필요한 인자"
+                  "\n도움말에서 필요한 인자의 형태와 개수 확인 가능."
+                  "\n(사용법에서 괄호 안에 있는 인자는 기본값이 있으므로, 선택 포함)",
+            inline=False
+        )
+        embed.add_field(
+            name="*인자 형태*",
+            value="str(*type*): 문자열, int(*range*): 정수, float(*range*): 실수, @*type*: 언급(멘션)",
+            inline=False
+        )
+        await ctx.send(embed=embed)
 
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="로그편집", aliases=["editlog", "edit"],
-        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(*selector*) @ int()"
+        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
     async def edit_log(self, ctx, selector, member: discord.Member, val):
         log_channel = ctx.guild.get_channel(self.app.log_ch)

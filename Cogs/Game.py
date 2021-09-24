@@ -232,7 +232,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="토큰순위", aliases=["토큰랭크", "순위표", "랭크표", "rank"],
-        help="서버 내 토큰 보유 순위를 조회합니다.", usage="* (@member)"
+        help="서버 내 토큰 보유 순위를 조회합니다.", usage="* (@*member*)"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
         log_channel = ctx.guild.get_channel(self.app.log_ch)

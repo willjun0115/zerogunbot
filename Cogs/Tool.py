@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
 import youtube_dl
+from discord import FFmpegPCMAudio
 
 
 class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에 관한 카테고리입니다."):

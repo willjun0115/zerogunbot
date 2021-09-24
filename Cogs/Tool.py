@@ -33,7 +33,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
-        help="도움말을 불러옵니다.\n'%도움말 사용법'에서 커맨드 사용법 참조.", usage="* (str(*command*, *category*))"
+        help="도움말을 불러옵니다.\n'%도움말 사용법'에서 명령어 사용법 참조.", usage="* (str(*command*, *category*))"
     )
     async def help_command(self, ctx, func=None):
         if func is None:
@@ -79,7 +79,8 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                     )
                     embed.add_field(
                         name="> 접두사(prefix)",
-                        value="기본값: %",
+                        value="기본값(default): %"
+                              "\n명령 선언 시 가장 앞에 입력.",
                         inline=False
                     )
                     embed.add_field(
@@ -90,11 +91,20 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                         inline=False
                     )
                     embed.add_field(
+                        name="*대체명령어*",
+                        value="명령 선언 시 명령어와 동일하게 취급",
+                        inline=False
+                    )
+                    embed.add_field(
                         name="> 인자(arguments)",
                         value="명령어 실행에 필요한 인자"
                               "\n도움말에서 필요한 인자의 형태와 개수 확인 가능."
-                              "\n인자 형태 [str(*type*): 문자열, int(*range*): 정수, float(*range*): 실수]"
                               "\n(사용법에서 괄호 안에 있는 인자는 기본값이 있으므로, 선택 포함)",
+                        inline=False
+                    )
+                    embed.add_field(
+                        name="*인자 형태*",
+                        value="str(*type*): 문자열, int(*range*): 정수, float(*range*): 실수, @*type*: 언급(멘션)",
                         inline=False
                     )
                     await ctx.send(embed=embed)

@@ -14,16 +14,11 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         self.app = app
         self.ydl_opts = {
             'format': 'bestaudio/best',
-            'extractaudio': True,
-            'audioformat': 'mp3',
-            'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-            'restrictfilenames': True,
-            'noplaylist': True,
-            'nocheckcertificate': True,
-            'ignoreerrors': False,
-            'logtostderr': False,
-            'no_warnings': True,
-            'source_address': '0.0.0.0'
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192'
+            }]
         }
 
     async def find_log(self, ctx, selector, id):

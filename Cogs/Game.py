@@ -849,12 +849,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         if str(reaction) == '⏏️':
                             call = coin // 2
                             coin += call
-                            call_members = []
+                            call_members = [user]
                             pay[user] += call
                         elif str(reaction) == '‼️':
                             call = call * 2
                             coin += call
-                            call_members = []
+                            call_members = [user]
                             pay[user] += call
                         elif str(reaction) == '✅':
                             call_members.append(user)

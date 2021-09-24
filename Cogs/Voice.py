@@ -125,7 +125,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     @commands.command(
         name="재생", aliases=["play", "p"],
         help="유튜브 url을 통해 음악을 재생합니다."
-             "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(url) (-s)", pass_context=True
+             "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(*url*) (-s)", pass_context=True
     )
     async def play_song(self, ctx, url: str, stream=None):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:

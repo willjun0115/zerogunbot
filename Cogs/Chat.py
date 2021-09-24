@@ -88,7 +88,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name='암호화', aliases=["encrypt", "enc"],
-        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int() str()', pass_context=True
+        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 999]) str()', pass_context=True
     )
     async def chat_encode(self, ctx, num, *, args):
         await ctx.message.delete()
@@ -106,7 +106,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name='복호화', aliases=["decrypt", "dec"],
-        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int() str(code)', pass_context=True
+        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)', pass_context=True
     )
     async def chat_decode(self, ctx, num, *, code):
         await ctx.message.delete()

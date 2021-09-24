@@ -33,7 +33,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
-        help="도움말을 불러옵니다.", usage="* (str(command, category))"
+        help="도움말을 불러옵니다.\n'%도움말 사용법'에서 커맨드 사용법 참조.", usage="* (str(*command*, *category*))"
     )
     async def help_command(self, ctx, func=None):
         if func is None:
@@ -61,7 +61,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                         if func in ([title.name] + title.aliases):
                             cmd = self.app.get_command(title.name)
                             embed = discord.Embed(title=f"명령어 : {cmd}", description=cmd.help)
-                            embed.add_field(name="대체 명령어", value=', '.join(cmd.aliases))
+                            embed.add_field(name="대체명령어", value=', '.join(cmd.aliases))
                             embed.add_field(name="사용법", value=self.app.prefix + cmd.usage)
                             await ctx.send(embed=embed)
                             command_notfound = False
@@ -71,12 +71,40 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                     if command_notfound is False:
                         break
             if command_notfound is True:
-                await ctx.send('명령어를 찾을 수 없습니다.')
+                if func in ["사용법", "usage"]:
+                    embed = discord.Embed(
+                        title="사용법",
+                        description="봇의 기본 명령어 구조는 '접두사 + 명령어' 입니다."
+                                    "\n명령어에 따라 필요한 인자를 명령어 뒤에 띄어쓰기 후 붙입니다."
+                    )
+                    embed.add_field(
+                        name="> 접두사(prefix)",
+                        value="기본값: %",
+                        inline=False
+                    )
+                    embed.add_field(
+                        name="> 명령어(command)",
+                        value="명령어나 대체명령어"
+                              "\n도움말에서 확인 가능."
+                              "\n(사용법에서는 *로 표기)",
+                        inline=False
+                    )
+                    embed.add_field(
+                        name="> 인자(arguments)",
+                        value="명령어 실행에 필요한 인자"
+                              "\n도움말에서 필요한 인자의 형태와 개수 확인 가능."
+                              "\n인자 형태 [str(*type*): 문자열, int(*range*): 정수, float(*range*): 실수]"
+                              "\n(사용법에서 괄호 안에 있는 인자는 기본값이 있으므로, 선택 포함)",
+                        inline=False
+                    )
+                    await ctx.send(embed=embed)
+                else:
+                    await ctx.send('명령어를 찾을 수 없습니다.')
 
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="로그편집", aliases=["editlog", "edit"],
-        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(selector) @ int()"
+        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(*selector*) @ int()"
     )
     async def edit_log(self, ctx, selector, member: discord.Member, val):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
@@ -93,7 +121,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name="음원추출", aliases=["extract_mp3"],
-        help="유튜브 링크를 통해 음원을 추출합니다.", usage="* str(url)", hidden=True
+        help="유튜브 링크를 통해 음원을 추출합니다.", usage="* str(*url*)", hidden=True
     )
     async def extract_yt(self, ctx, url):
         if url.startswith("https://www.youtube.com/"):

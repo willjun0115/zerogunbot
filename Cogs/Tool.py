@@ -84,32 +84,32 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                         "\n명령어에 따라 필요한 인자를 명령어 뒤에 띄어쓰기 후 붙입니다."
         )
         embed.add_field(
-            name="> 접두사(prefix)",
+            name="> 접두사 (prefix)",
             value="기본값(default): %"
                   "\n명령 선언 시 가장 앞에 입력.",
             inline=False
         )
         embed.add_field(
-            name="> 명령어(command)",
+            name="> 명령어 (command)",
             value="명령어나 대체명령어"
                   "\n도움말에서 확인 가능."
                   "\n(사용법에서는 *로 표기)",
             inline=False
         )
         embed.add_field(
-            name="*대체명령어*",
+            name="※대체명령어",
             value="명령 선언 시 명령어와 동일하게 취급",
             inline=False
         )
         embed.add_field(
-            name="> 인자(arguments)",
+            name="> 인자 (arguments)",
             value="명령어 실행에 필요한 인자"
                   "\n도움말에서 필요한 인자의 형태와 개수 확인 가능."
                   "\n(사용법에서 괄호 안에 있는 인자는 기본값이 있으므로, 선택 포함)",
             inline=False
         )
         embed.add_field(
-            name="*인자 형태*",
+            name="※인자 형태",
             value="str(*type*): 문자열, int(*range*): 정수, float(*range*): 실수, @*type*: 언급(멘션)",
             inline=False
         )

@@ -96,7 +96,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="도박", aliases=["gamble"],
-        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="* float((0.0, 50.0])", pass_context=True
+        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="* float(*(0.0, 50.0]*)", pass_context=True
     )
     async def gamble(self, ctx, args):
         if args > 50:
@@ -273,7 +273,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="리폿", aliases=["신고", "report"],
         help="부적절한 사용자를 신고합니다.\n낮은 확률로 접수되면 최고 권한을 잃습니다."
-             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="* @member"
+             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="* @*member*"
     )
     async def report(self, ctx, member: discord.Member):
         my_channel = ctx.guild.get_channel(872938926019575879)
@@ -300,11 +300,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(embed=embed)
 
     @commands.command(
-        name="인디언포커", aliases=["IndianPoker"],
+        name="인디언포커", aliases=["IndianPoker", "IP", "ip"],
         help="인디언 포커를 신청합니다."
              "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후,"
              "\n토큰 베팅을 시작합니다. 자신의 패는 알 수 없으며,"
-             "\n숫자가 높은 쪽이 이깁니다.", usage="* @"
+             "\n숫자가 높은 쪽이 이깁니다.", usage="* @*member*"
     )
     async def indian_poker(self, ctx, member: discord.Member):
         author_log = await self.find_log(ctx, '$', ctx.author.id)
@@ -421,7 +421,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 await ctx.send("무승부")
 
     @commands.command(
-        name="블랙잭", aliases=["Blackjack"],
+        name="블랙잭", aliases=["Blackjack", "BJ", "bj"],
         help="블랙잭을 신청합니다."
              "\nA는 1 or 11, J,Q,K는 10으로 계산하며,"
              "\n패의 합이 21에 가장 가까운 사람이 승리합니다."
@@ -592,7 +592,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await ctx.send(embed=embed)
 
     @commands.command(
-        name="시드포커", aliases=["SeedPoker"],
+        name="시드포커", aliases=["SeedPoker", "SP", "sp"],
         help="시드 포커를 신청합니다."
              "\n덱에는 1~15까지의 숫자가 있으며,"
              "\n시작하면 참가자마다 한 장의 카드를 받습니다."
@@ -716,7 +716,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await ctx.send(embed=embed)
 
     @commands.command(
-        name="섯다", aliases=["섰다"],
+        name="섯다", aliases=["ㅅㄷ"],
         help="섯다를 신청합니다."
              "\n시작하면 참가자마다 두 장의 패를 받습니다."
              "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
@@ -911,6 +911,86 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     embed.add_field(name=member.name, value=hand[0] + ' , ' + hand[1]
                                     + ' (' + hand[2] + ')', inline=True)
                 await ctx.send(embed=embed)
+
+    @commands.command(
+        name="뻥", aliases=["ㅃ"],
+        help="뻥을 신청합니다."
+             "\n3~5인까지 참가 가능합니다."
+             "\n가지고 있는 패의 숫자의 합이 가장 낮은 사람이 승리합니다."
+             "\n시작하면 각자 패를 5장 씩 받습니다."
+             "\n순서대로 패를 한 장 뽑고 한 장을 버립니다."
+             "\n같은 숫자가 2장 있을 때 다른 사람이 그 숫자를 버리면 '뻥'을 할 수 있습니다."
+             "\n'뻥'을 하면 그 숫자에 해당하는 패 두 장을 버리고 또 한 장을 버립니다."
+             "\n같은 숫자 3장은 0으로 취급됩니다."
+             "\n같은 숫자 2장이 남거나, 5장이 같은 숫자 3장 2장일 때 다른 사람이 그 숫자를 버리면 "
+             "그 사람은 바가지를 씁니다. 바가지는 30점이며, 자신은 0이 되고 즉시 게임이 끝납니다."
+             "\n'123456'과 같이 연속되는 숫자 6장이 모이면 그 숫자의 합 만큼 마이너스로 점수를 얻습니다."
+             "\n같은 숫자 2장 씩 3개, 혹은 3장 씩 2개가 되면 0이 됩니다."
+             "\n같은 숫자 2장, 4장이 모이면 -100점이 됩니다."
+             "\n6장 패의 합이 10 이하면 -100점이 됩니다. (십부족)"
+             "\n패의 합이 5이하가 되면 스톱을 할 수 있습니다. 스톱하면 즉시 게임이 끝납니다."
+             "\n만약 스톱했을 때 다른 사람이 자신의 패의 숫자의 합 이하이면 바가지를 씁니다."
+             "\n스톱 바가지는 50점입니다.", usage="*", hidden=True
+    )
+    async def bbeong(self, ctx):
+        start, members = await self.gather_members(ctx, "뻥")
+        if start is True:
+            if len(members) < 3:
+                await ctx.send("뻥은 3명 이상 필요합니다.")
+            elif len(members) > 5:
+                await ctx.send("뻥은 최대 5인까지 가능합니다.")
+            else:
+                deck = []
+                field = []
+                while len(deck) < 48:
+                    for i in range(1, 13):
+                        deck.append(str(i))
+                board = {}
+                for member in members:
+                    board[member] = []
+                    while len(board[member]) < 5:
+                        a = random.choice(deck)
+                        deck.remove(a)
+                        board[member].append(a)
+                    board[member].sort()
+                for member in members:
+                    hand = board.get(member)
+                    member_dm = await member.create_dm()
+                    await member_dm.send(' '.join(hand))
+                embed = discord.Embed(title="<뻥>",
+                                      description=f'남은 덱 : {len(deck)}')
+                for i in range(1, 13):
+                    embed.add_field(name='> ' + str(i),
+                                    value=str(field.count(str(i))), inline=True)
+                msg_ = await ctx.send(content=members[0].mention + " 님, 패를 버려주세요.", embed=embed)
+                num = 0
+                while len(deck) > 0:
+                    a = random.choice(deck)
+                    board[members[num]].append(a)
+                    deck.remove(a)
+                    board[members[num]].sort()
+                    ans_list = board[members[num]]
+
+                    def check(m):
+                        return m.content in ans_list and m.author == members[num] and m.channel == ctx.channel
+
+                    try:
+                        message = await self.app.wait_for("message", check=check, timeout=60.0)
+                    except asyncio.TimeoutError:
+                        await msg_.edit(content="시간 초과!", delete_after=2)
+                    else:
+                        await message.delete()
+                        board[members[num]].remove(message.content)
+                        field.append(message.content)
+                        num += 1
+                        if num >= len(members):
+                            num = 0
+                        embed = discord.Embed(title="<뻥>",
+                                              description=f'남은 덱 : {len(deck)}')
+                        for i in range(1, 13):
+                            embed.add_field(name='> ' + str(i),
+                                            value=str(field.count(str(i))), inline=True)
+                        msg_ = await ctx.send(content=members[num].mention + " 님, 패를 뽑아주세요.", embed=embed)
 
 
 def setup(app):

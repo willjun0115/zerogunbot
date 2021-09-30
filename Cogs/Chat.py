@@ -67,11 +67,11 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name="청소", aliases=["clear", "purge"],
-        help="숫자만큼 채팅을 지웁니다."
-             "\n특정 사용자의 채팅만을 지울 수도 있습니다.", usage="* int(*(0, 100]*) (@*member*)", pass_context=True
+        name="청소", aliases=["일괄삭제", "clear", "purge"],
+        help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."
+             "\n특정 사용자의 채팅만을 지울 수도 있습니다.", usage="* int() (@*member*)", pass_context=True
     )
-    async def clean(self, ctx, num, member: discord.Member = None):
+    async def clean(self, ctx, num=1, member: discord.Member = None):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
             await ctx.message.delete()
             if member is None:
@@ -82,45 +82,8 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             def check(m):
                 return m.author in member and m.channel == ctx.channel
 
-            await ctx.channel.purge(limit=int(num), check=check)
-        else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
-
-    @commands.command(
-        name="일괄삭제", aliases=["지우기", "deleteall"],
-        help="옵션에 있는 단어가 포함된 채팅을 지웁니다."
-             "\n다소 시간이 걸릴 수 있습니다."
-             "\n옵션은 \"단어1 단어2 단어3 ...\"와 같이 큰따옴표 안에 입력하며,"
-             " 반드시 단어는 띄어쓰기로 구분합니다."
-             "\n단어를 모두 포함하는 채팅을 삭제할 경우 and,"
-             "\n단어를 하나라도 포함하는 채팅을 삭제할 경우 or을 입력합니다.",
-        usage="* str(*options*) str(and *or* or) (@*member*)", pass_context=True
-    )
-    async def list_delete(self, ctx, words, opt, member: discord.Member = None):
-        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
-            await ctx.message.delete()
-            counter = 0
-            word_list = words.split()
-            msg = await ctx.send("채팅 목록을 읽고 있습니다...")
-            async for message in ctx.channel.history(limit=999):
-                deletion = False
-                if opt == 'or':
-                    for word in word_list:
-                        if word in message.content:
-                            deletion = True
-                elif opt == 'and':
-                    found_count = len([x for x in word_list if x in message.content])
-                    if len(word_list) == found_count:
-                        deletion = True
-                if deletion is True:
-                    if member is None:
-                        await message.delete()
-                        counter += 1
-                    else:
-                        if message.author == member:
-                            await message.delete()
-                            counter += 1
-            await msg.edit(content=f":white_check_mark: {counter}개의 채팅을 삭제했습니다.")
+            deleted = await ctx.channel.purge(limit=int(num), check=check)
+            await ctx.send(f":white_check_mark: {deleted}개의 채팅을 삭제했습니다.")
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

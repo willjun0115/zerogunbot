@@ -81,8 +81,8 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         name="일괄삭제", aliases=["지우기", "deleteall"],
         help="옵션에 있는 단어가 포함된 채팅을 지웁니다."
              "\n다소 시간이 걸릴 수 있습니다."
-             "\n옵션은 '단어1 단어2 단어3 ...'와 같은 형태로 입력합니다."
-             "\n반드시 단어는 띄어쓰기로 구분합니다."
+             "\n옵션은 \"단어1 단어2 단어3 ...\"와 같이 큰따옴표 안에 입력하며,"
+             " 반드시 단어는 띄어쓰기로 구분합니다."
              "\n단어를 모두 포함하는 채팅을 삭제할 경우 and,"
              "\n단어를 하나라도 포함하는 채팅을 삭제할 경우 or을 입력합니다.",
         usage="* str(*options*) str(and *or* or) (@*member*)", pass_context=True
@@ -92,6 +92,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.message.delete()
             counter = 0
             word_list = words.split()
+            msg = await ctx.send("채팅 목록을 읽고 있습니다...")
             async for message in ctx.channel.history(limit=999):
                 deletion = False
                 if opt == 'or':
@@ -110,7 +111,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
                         if message.author == member:
                             await message.delete()
                             counter += 1
-            await ctx.send(f"{counter}개의 채팅을 삭제했습니다.")
+            await msg.edit(content=f":white_check_mark: {counter}개의 채팅을 삭제했습니다.")
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

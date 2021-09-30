@@ -68,12 +68,21 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
 
     @commands.command(
         name="청소", aliases=["clear", "purge"],
-        help="숫자만큼 채팅을 지웁니다.", usage="* int(*(0, 100]*)", pass_context=True
+        help="숫자만큼 채팅을 지웁니다."
+             "\n특정 사용자의 채팅만을 지울 수도 있습니다.", usage="* int(*(0, 100]*) (@*member*)", pass_context=True
     )
-    async def clean(self, ctx, num):
+    async def clean(self, ctx, num, member: discord.Member = None):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
             await ctx.message.delete()
-            await ctx.channel.purge(limit=int(num))
+            if member is None:
+                member = ctx.guild.members
+            else:
+                member = [member]
+
+            def check(m):
+                return m.author in member and m.channel == ctx.channel
+
+            await ctx.channel.purge(limit=int(num), check=check)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

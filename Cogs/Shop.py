@@ -92,13 +92,13 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="상점의 상품 목록에서 역할이나 아이템을 구매합니다.", usage="* str(*role or item*)"
     )
     async def buy_item(self, ctx, *, args):
+        item_found = False
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
             item_found = False
             coin = int(log.content[20:])
-            embed = discord.Embed(title="<가챠 확률 정보>", description="'%구매 ~'를 통해 상품 구매")
             for role in self.app.role_lst:
                 if args == role[0]:
                     if coin >= role[2]:
@@ -111,10 +111,9 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     break
             if item_found is False:
                 if args in self.app.shop.keys():
-                    await ctx.send("해당 아이템은 명령어로 실행해주세요.\n'%도움말'을 참조해주세요")
+                    await ctx.send("해당 아이템은 명령어로 실행해주세요.\n'%도움말'을 참조해주세요.")
                 else:
                     await ctx.send("상품을 찾지 못했습니다.")
-            await ctx.send(embed=embed)
 
     @commands.command(
         name="행운", aliases=["luck+"],

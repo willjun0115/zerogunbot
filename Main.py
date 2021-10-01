@@ -9,7 +9,7 @@ import ctypes.util
 prefix = '%'
 app = commands.Bot(command_prefix=prefix, help_command=None)
 app.prefix = prefix
-app.game_ch = 811849095031029762
+app.gacha_ch = 811849095031029762
 app.log_ch = 874970985307201546
 app.role_lst = [
     ("창씨개명", 0.1, 50),

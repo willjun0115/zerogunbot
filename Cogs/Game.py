@@ -95,22 +95,32 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.command(
-        name="도박", aliases=["gamble"],
-        help="지정한 확률로 당첨되는 게임을 실행합니다.", usage="* float(*(0.0, 50.0]*)", pass_context=True
+        name="도박", aliases=["베팅", "gamble", "bet"],
+        help="베팅한 토큰이 -100.0% ~ 100.0% 의 랜덤한 배율로 반환됩니다."
+             "\n베팅은 최대 100까지 가능합니다.", usage="* int((0, 100])", pass_context=True
     )
-    async def gamble(self, ctx, args):
-        if args > 50:
-            await ctx.send("당첨 확률은 50이하로만 설정할 수 있습니다.")
-        elif args <= 0:
-            await ctx.send("당첨 확률은 0이하로 설정할 수 없습니다.")
+    async def gamble(self, ctx, bet):
+        my_channel = ctx.guild.get_channel(self.app.gacha_ch)
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
-            await ctx.send(str(args) + "% 확률의 도박을 돌립니다...")
-            await asyncio.sleep(2)
-            win = random.random() * 100
-            if win >= args:
-                await ctx.send(ctx.author.name + " Lose")
-            else:
-                await ctx.send(ctx.author.name + " Win! 배율 x" + str(100 / args))
+            bet = int(bet)
+            coin = int(log.content[20:])
+            if ctx.channel == my_channel:
+                if bet > 100:
+                    await ctx.send("베팅은 100 이하로만 설정할 수 있습니다.")
+                elif bet <= 0:
+                    await ctx.send("최소 토큰 1개 이상 베팅해야 합니다.")
+                else:
+                    embed = discord.Embed(title="<:video_game:  베팅 결과>", description=ctx.author.name + " 님의 결과")
+                    multi = (random.random() - 0.5) * 1
+                    prize = round(bet*multi)
+                    await log.edit(content=log.content[:20] + str(coin + prize))
+                    embed.add_field(name="베팅", value=str(bet) + " :coin:")
+                    embed.add_field(name="배율", value="x" + str("{:0.3f}".format(multi)))
+                    embed.add_field(name="배당", value=str(prize) + " :coin:")
+                    await ctx.send(embed=embed)
 
     @commands.command(
         name="가위바위보", aliases=["가바보", "rsp"],
@@ -164,7 +174,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
     )
     async def gacha(self, ctx):
-        my_channel = ctx.guild.get_channel(self.app.game_ch)
+        my_channel = ctx.guild.get_channel(self.app.gacha_ch)
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')

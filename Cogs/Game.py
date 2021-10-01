@@ -190,7 +190,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if str(reaction) == '✅':
                         description = ctx.author.name + " 님의 결과"
                         if luck >= 1:
-                            description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
+                            description = description + "\n(:four_leaf_clover: 행운 버프 적용 중)"
                         embed = discord.Embed(
                         title="<:video_game:  가챠 결과>",
                             description=description
@@ -199,7 +199,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         result = '획득!'
                         rand = random.random() * 100
                         for role in self.app.role_lst:
-                            if rand <= role[1] * (1 + luck**0.5):
+                            if rand <= role[1] * (1 + luck//10):
                                 prize = role[0]
                                 if get(ctx.guild.roles, name=prize) in ctx.author.roles:
                                     prize += f" (+ {str(role[2]//100)} :coin:)"
@@ -208,7 +208,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                                 break
                             else:
-                                rand -= role[1] * (1 + luck**0.5)
+                                rand -= role[1] * (1 + luck//10)
                         if prize is None:
                             roles = ctx.author.roles[2:]
                             if rand <= (len(roles) * 2):

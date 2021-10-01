@@ -76,6 +76,47 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 await msg.edit(content='로그에서 ID를 찾지 못했습니다.')
 
     @commands.command(
+        name="상점", aliases=["shop", "tokenshop", "coinshop"],
+        help="상품 목록을 나열합니다.", usage="*"
+    )
+    async def token_shop(self, ctx):
+        embed = discord.Embed(title="<가챠 확률 정보>", description="'%구매 ~'를 통해 상품 구매")
+        for role in self.app.role_lst:
+            embed.add_field(name="> " + role[0], value=f'{role[2]} :coin:', inline=True)
+        for item in self.app.shop.keys():
+            embed.add_field(name="> " + item, value=f'{self.app.shop.get(item)} :coin:', inline=True)
+        await ctx.send(embed=embed)
+
+    @commands.command(
+        name="구매", aliases=["buy"],
+        help="상점의 상품 목록에서 역할이나 아이템을 구매합니다.", usage="* str(*role or item*)"
+    )
+    async def buy_item(self, ctx, *, args):
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+        else:
+            item_found = False
+            coin = int(log.content[20:])
+            embed = discord.Embed(title="<가챠 확률 정보>", description="'%구매 ~'를 통해 상품 구매")
+            for role in self.app.role_lst:
+                if args == role[0]:
+                    if coin >= role[2]:
+                        await ctx.author.add_roles(get(ctx.guild.roles, name=role[0]))
+                        await log.edit(content=log.content[:20]+str(coin-role[2]))
+                        await ctx.send("구매 완료!")
+                    else:
+                        await ctx.send("코인이 부족합니다.")
+                    item_found = True
+                    break
+            if item_found is False:
+                if args in self.app.shop.keys():
+                    await ctx.send("해당 아이템은 명령어로 실행해주세요.\n'%도움말'을 참조해주세요")
+                else:
+                    await ctx.send("상품을 찾지 못했습니다.")
+            await ctx.send(embed=embed)
+
+    @commands.command(
         name="행운강화", aliases=["luck+"],
         help="자신의 행운을 강화합니다. (100 :coin:)"
              "\n행운에 비례해 가챠 확률이 증가합니다. (확률*(1+행운^0.5))"
@@ -105,7 +146,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="닉네임을 변경합니다. (1000 :coin:)"
              "\n아무것도 입력하지 않으면 기본 닉네임으로 변경됩니다.", usage="* (str())"
     )
-    async def nick_change(self, ctx, nickname=None):
+    async def nick_change(self, ctx, *, nickname=None):
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')

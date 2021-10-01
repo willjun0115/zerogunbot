@@ -173,7 +173,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 luck = 0
                 luck_log = await self.find_log(ctx, '%', ctx.author.id)
                 if luck_log is not None:
-                    luck = int(luck_log.content[:20])
+                    luck = int(luck_log.content[20:])
                 msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
                 reaction_list = ['✅', '❎']
                 for r in reaction_list:

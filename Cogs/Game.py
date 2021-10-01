@@ -199,7 +199,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         result = '획득!'
                         rand = random.random() * 100
                         for role in self.app.role_lst:
-                            if rand <= role[1] * (1 + luck**(1/2)):
+                            if rand <= role[1] * (1 + luck**0.5):
                                 prize = role[0]
                                 if get(ctx.guild.roles, name=prize) in ctx.author.roles:
                                     prize += f" (+ {str(role[2]//100)} :coin:)"
@@ -208,7 +208,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                                 break
                             else:
-                                rand -= role[1] * (1 + luck**(1/2))
+                                rand -= role[1] * (1 + luck**0.5)
                         if prize is None:
                             roles = ctx.author.roles[2:]
                             if rand <= (len(roles) * 2):

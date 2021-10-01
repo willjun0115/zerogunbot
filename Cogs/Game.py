@@ -190,9 +190,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if str(reaction) == '✅':
                         description = ctx.author.name + " 님의 결과"
                         if luck >= 1:
-                            description = description + "\n(:four_leaf_clover: 행운 버프 적용 중)"
+                            description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
                         embed = discord.Embed(
-                        title="<:video_game:  가챠 결과>",
+                            title="<:video_game:  가챠 결과>",
                             description=description
                         )
                         prize = None

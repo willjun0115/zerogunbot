@@ -38,7 +38,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
     async def help_command(self, ctx, func=None):
         if func is None:
             embed = discord.Embed(title="도움말", description=f"접두사는 {self.app.prefix} 입니다.")
-            cog_list = {"도구": "Tool", "채팅": "Chat", "음성": "Voice", "게임": "Game"}
+            cog_list = {"도구": "Tool", "채팅": "Chat", "음성": "Voice", "게임": "Game", "상점": "Shop"}
             for x in cog_list.keys():
                 cog_data = self.app.get_cog(x)
                 command_list = cog_data.get_commands()

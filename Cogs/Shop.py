@@ -124,23 +124,23 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         usage="*"
     )
     async def enhance_luck(self, ctx):
-        log_channel = ctx.guild.get_channel(self.app.log_ch)
-        log = await self.find_log(ctx, '$', ctx.author.id)
-        if log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
-        else:
-            coin = int(log.content[20:])
-            if coin >= 100:
-                luck_log = await self.find_log(ctx, '%', ctx.author.id)
-                if luck_log is not None:
-                    luck = int(luck_log.content[20:])
-                    await ctx.send(str(luck) + ' :four_leaf_clover:')
-                else:
-                    await log_channel.send('%' + str(ctx.author.id) + ';0')
-                    await log.edit(content=log.content[:20]+str(coin-100))
-                    await ctx.send(ctx.author.name + " 님이 행운 버프를 받습니다. -100 :coin:")
+            luck_log = await self.find_log(ctx, '%', ctx.author.id)
+            if luck_log is not None:
+                luck = int(luck_log.content[20:])
+                await ctx.send(str(luck) + ' :four_leaf_clover:')
             else:
-                await ctx.send("코인이 부족합니다.")
+                log_channel = ctx.guild.get_channel(self.app.log_ch)
+                log = await self.find_log(ctx, '$', ctx.author.id)
+                if log is None:
+                    await ctx.send('로그에서 ID를 찾지 못했습니다.')
+                else:
+                    coin = int(log.content[20:])
+                    if coin >= 100:
+                        await log_channel.send('%' + str(ctx.author.id) + ';0')
+                        await log.edit(content=log.content[:20]+str(coin-100))
+                        await ctx.send(ctx.author.name + " 님이 행운 버프를 받습니다. -100 :coin:")
+                    else:
+                        await ctx.send("코인이 부족합니다.")
 
     @commands.command(
         name="닉변", aliases=["nick"],

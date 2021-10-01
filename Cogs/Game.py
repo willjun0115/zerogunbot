@@ -173,7 +173,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 luck = 0
                 luck_log = await self.find_log(ctx, '%', ctx.author.id)
                 if luck_log is not None:
-                    luck = int(log.content[:20:])
+                    luck = int(luck_log.content[:20:])
                 msg = await ctx.send(":warning: 주의: 권한을 잃을 수 있습니다.\n시작하려면 :white_check_mark: 을 눌러주세요.")
                 reaction_list = ['✅', '❎']
                 for r in reaction_list:
@@ -934,12 +934,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for i in board.get(members[num]):
                         member_sum += i
                     if member_sum <= 5:
-                        def check(m):
+                        def can_stop(m):
                             return m.content in ["스탑", "스톱", "stop"] and\
                                    m.author == members[num] and m.channel == ctx.channel
 
                         try:
-                            await self.app.wait_for("message", check=check, timeout=5.0)
+                            await self.app.wait_for("message", check=can_stop, timeout=5.0)
                         except:
                             pass
                         else:

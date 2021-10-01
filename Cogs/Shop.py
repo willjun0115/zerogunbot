@@ -133,11 +133,12 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             if coin >= 100:
                 luck_log = await self.find_log(ctx, '%', ctx.author.id)
                 if luck_log is not None:
-                    await luck_log.edit(content=luck_log.content[:20]+str(int(luck_log.content[20:])+1))
+                    luck = int(luck_log.content[20:])
+                    await ctx.send(str(luck) + ' :four_leaf_clover:')
                 else:
-                    await log_channel.send('%' + str(ctx.author.id) + ';1')
-                await log.edit(content=log.content[:20]+str(coin-100))
-                await ctx.send(ctx.author.name + " 님 행운 +1, -100 :coin:")
+                    await log_channel.send('%' + str(ctx.author.id) + ';0')
+                    await log.edit(content=log.content[:20]+str(coin-100))
+                    await ctx.send(ctx.author.name + " 님이 행운 버프를 받습니다. -100 :coin:")
             else:
                 await ctx.send("코인이 부족합니다.")
 

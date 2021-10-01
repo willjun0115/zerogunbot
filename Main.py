@@ -21,7 +21,7 @@ app.role_lst = [
 ]
 app.shop = {
     "닉변": 1000,
-    "행운강화": 100
+    "행운": 100
 }
 
 token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"

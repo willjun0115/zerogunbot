@@ -222,8 +222,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 await log.edit(content=log.content[:20] + str(coin + 1))
                                 prize = "1 :coin:"
                         else:
-                            await luck_log.delete()
-                            await ctx.send(ctx.author.name + " 님의 행운이 초기화 되었습니다.")
+                            if luck_log is not None:
+                                await luck_log.delete()
+                                await ctx.send(ctx.author.name + " 님의 행운이 초기화 되었습니다.")
                         embed.add_field(name=str(prize), value=result, inline=False)
                         await ctx.send(embed=embed)
                     else:

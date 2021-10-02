@@ -210,7 +210,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             else:
                                 rand -= role[1] * (1 + luck//10)
                         if prize is None:
-                            await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
+                            if luck_log is not None:
+                                await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
                             roles = ctx.author.roles[2:]
                             if rand <= (len(roles) * 2):
                                 role = random.choice(roles)

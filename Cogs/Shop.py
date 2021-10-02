@@ -92,7 +92,6 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="상점의 상품 목록에서 역할이나 아이템을 구매합니다.", usage="* str(*role or item*)"
     )
     async def buy_item(self, ctx, *, args):
-        item_found = False
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')

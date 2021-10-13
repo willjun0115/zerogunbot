@@ -323,9 +323,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     coin = 1
                     author_call = False
                     member_call = False
-                    msg_ = await ctx.send(ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
-                                                                                   "\n 베팅 토큰: " + str(coin)
-                                          )
+                    msg_ = await ctx.send(
+                        ctx.author.name + " 님과 " + member.name + " 님의 인디언 포커 베팅을 시작합니다."
+                                                                 "\n 베팅 토큰: " + str(coin)
+                    )
                     reaction_list = ['⏏️', '✅', '💀']
                     while True:
                         for r in reaction_list:
@@ -518,7 +519,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             else:
                                 embed.add_field(name=member.name, value=board[member], inline=True)
                         await msg_.clear_reactions()
-                        await msg_.edit(content=players[num].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
+                        if len(players) > 0:
+                            await msg_.edit(content=players[num].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
+                        else:
+                            await msg_.edit(embed=embed)
                 for member in finish_members:
                     member_sum = 0
                     ace = False

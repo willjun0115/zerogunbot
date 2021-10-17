@@ -189,6 +189,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             except asyncio.TimeoutError:
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
+                await msg.edit(content=str(num))
                 if message.content in odd_aliases:
                     choice = 'odd'
                 elif message.content in even_aliases:

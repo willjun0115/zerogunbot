@@ -159,6 +159,53 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
 
     @commands.command(
+        name="홀짝", aliases=["짝홀", "odd-even"],
+        help="봇이 정한 랜덤 정수가 홀수인지 짝수인지 맞추는 게임입니다."
+             "\n이기면 숫자만큼 토큰을 얻고, 지면 숫자만큼 잃습니다."
+             "\n만약 0을 맞추면 20코인을 얻습니다.",
+        usage="*"
+    )
+    async def odd_or_even(self, ctx):
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is not None:
+            coin = int(log.content[20:])
+            num = random.randint(0, 9)
+            if num == 0:
+                result = 'zero'
+            elif num % 2 == 0:
+                result = 'even'
+            else:
+                result = 'odd'
+            msg = await ctx.send("홀짝을 맞춰보세요!")
+            odd_aliases = ['홀', '홀수', 'odd']
+            even_aliases = ['짝', '짝수', 'even']
+            zero_aliases = ['0', '영', 'zero']
+
+            def check(m):
+                return m.content in odd_aliases + even_aliases + zero_aliases and m.author == ctx.author and m.channel == ctx.channel
+
+            try:
+                message = await self.app.wait_for("message", check=check, timeout=60.0)
+            except asyncio.TimeoutError:
+                await msg.edit(content="시간 초과!", delete_after=2)
+            else:
+                if message.content in odd_aliases:
+                    choice = 'odd'
+                elif message.content in even_aliases:
+                    choice = 'even'
+                else:
+                    choice = 'zero'
+                if result == choice:
+                    await ctx.send(ctx.author.name + " 님 승!")
+                    if num == 0:
+                        await log.edit(content=log.content[:20] + str(coin + 20))
+                    else:
+                        await log.edit(content=log.content[:20] + str(coin + num))
+                else:
+                    await ctx.send(ctx.author.name + " 님 패!")
+                    await log.edit(content=log.content[:20] + str(coin - num))
+
+    @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha", "G"],
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
     )
@@ -189,7 +236,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 else:
                     if str(reaction) == '✅':
                         description = ctx.author.name + " 님의 결과"
-                        if luck >= 1:
+                        if luck_log is not None:
                             description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
                         embed = discord.Embed(
                             title="<:video_game:  가챠 결과>",
@@ -199,7 +246,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         result = '획득!'
                         rand = random.random() * 100
                         for role in self.app.role_lst:
-                            if rand <= role[1] * (1 + luck//10):
+                            if rand <= role[1] * (1 + luck*0.1):
                                 prize = role[0]
                                 if get(ctx.guild.roles, name=prize) in ctx.author.roles:
                                     prize += f" (+ {str(role[2]//100)} :coin:)"
@@ -208,12 +255,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                                 break
                             else:
-                                rand -= role[1] * (1 + luck//10)
+                                rand -= role[1] * (1 + luck*0.1)
                         if prize is None:
+                            roles = ctx.author.roles[2:]
+                            lose_p = (len(roles) * 2)
                             if luck_log is not None:
                                 await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
-                            roles = ctx.author.roles[2:]
-                            if rand <= (len(roles) * 2):
+                                lose_p = lose_p/2
+                            if rand <= lose_p:
                                 role = random.choice(roles)
                                 await ctx.author.remove_roles(role)
                                 prize = role.name

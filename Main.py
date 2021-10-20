@@ -11,6 +11,7 @@ app = commands.Bot(command_prefix=prefix, help_command=None)
 app.prefix = prefix
 app.gacha_ch = 811849095031029762
 app.log_ch = 874970985307201546
+app.bot_log_ch = 900294120331960350
 app.role_lst = [
     ("창씨개명", 0.1, 5000),
     ("강제 이동", 0.5, 2500),

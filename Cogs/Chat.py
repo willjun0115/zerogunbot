@@ -132,6 +132,11 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
 
+    @commands.after_invoke
+    async def record_to_log(self, ctx):
+        bot_log = ctx.guild.get_channel(self.app.bot_log_ch)
+        await bot_log.send(ctx.author.name + " called a command:\n" + ctx.message.content)
+
 
 def setup(app):
     app.add_cog(Chat(app))

@@ -159,6 +159,11 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             else:
                 await ctx.send("코인이 부족합니다.")
 
+    @commands.after_invoke
+    async def record_to_log(self, ctx):
+        bot_log = ctx.guild.get_channel(self.app.bot_log_ch)
+        await bot_log.send(ctx.author.name + " called a command:\n" + ctx.message.content)
+
 
 def setup(app):
     app.add_cog(Shop(app))

@@ -81,7 +81,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
-        help="베팅한 토큰이 -100.0% ~ 100.0% 의 랜덤한 배율로 반환됩니다."
+        help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다."
              "\n베팅은 최대 100까지 가능합니다.", usage="* int((0, 100])", pass_context=True
     )
     async def gamble(self, ctx, bet):
@@ -208,7 +208,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha", "G"],
-        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
+        help="코인을 소모하여 확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
     )
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
@@ -236,47 +236,51 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     if str(reaction) == '✅':
-                        description = ctx.author.name + " 님의 결과"
-                        if luck_log is not None:
-                            description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
-                        embed = discord.Embed(
-                            title="<:video_game:  가챠 결과>",
-                            description=description
-                        )
-                        prize = None
-                        result = '획득!'
-                        rand = random.random() * 100
-                        for role in self.app.role_lst:
-                            if rand <= role[1] * (1 + luck*0.1):
-                                prize = role[0]
-                                if get(ctx.guild.roles, name=prize) in ctx.author.roles:
-                                    prize += f" (+ {str(role[2]//100)} :coin:)"
-                                    await log.edit(content=log.content[:20] + str(coin + role[2]//100))
-                                else:
-                                    await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                                break
-                            else:
-                                rand -= role[1] * (1 + luck*0.1)
-                        if prize is None:
-                            roles = ctx.author.roles[2:]
-                            lose_p = (len(roles) * 2)
-                            if luck_log is not None:
-                                await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
-                                lose_p = lose_p/2
-                            if rand <= lose_p:
-                                role = random.choice(roles)
-                                await ctx.author.remove_roles(role)
-                                prize = role.name
-                                result = '손실 :x:'
-                            else:
-                                await log.edit(content=log.content[:20] + str(coin + 1))
-                                prize = "1 :coin:"
+                        if coin < 1:
+                            await ctx.send("코인이 부족합니다.")
                         else:
+                            coin -= 1
+                            description = ctx.author.name + " 님의 결과"
                             if luck_log is not None:
-                                await luck_log.delete()
-                                await ctx.send(ctx.author.name + " 님의 행운이 초기화 되었습니다.")
-                        embed.add_field(name=str(prize), value=result, inline=False)
-                        await ctx.send(embed=embed)
+                                description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
+                            embed = discord.Embed(
+                                title="<:video_game:  가챠 결과>",
+                                description=description
+                            )
+                            prize = None
+                            result = '획득!'
+                            rand = random.random() * 100
+                            for role in self.app.role_lst:
+                                if rand <= role[1] * (1 + luck*0.1):
+                                    prize = role[0]
+                                    if get(ctx.guild.roles, name=prize) in ctx.author.roles:
+                                        prize += f" (+ {str(role[2]//100)} :coin:)"
+                                        await log.edit(content=log.content[:20] + str(coin + role[2]//100))
+                                    else:
+                                        await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
+                                    break
+                                else:
+                                    rand -= role[1] * (1 + luck*0.1)
+                            if prize is None:
+                                roles = ctx.author.roles[2:]
+                                lose_p = (len(roles) * 2)
+                                if luck_log is not None:
+                                    await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
+                                    lose_p = lose_p/2
+                                if rand <= lose_p:
+                                    role = random.choice(roles)
+                                    await ctx.author.remove_roles(role)
+                                    prize = role.name
+                                    result = '손실 :x:'
+                                else:
+                                    await log.edit(content=log.content[:20] + str(coin))
+                                    prize = "꽝"
+                            else:
+                                if luck_log is not None:
+                                    await luck_log.delete()
+                                    await ctx.send(ctx.author.name + " 님의 행운이 초기화 되었습니다.")
+                            embed.add_field(name=str(prize), value=result, inline=False)
+                            await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
             else:
@@ -940,121 +944,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     + ' (' + hand[2] + ')', inline=True)
                 await ctx.send(embed=embed)
 
-    @commands.command(
-        name="뻥", aliases=["ㅃ"],
-        help="뻥을 신청합니다."
-             "\n3~5인까지 참가 가능합니다."
-             "\n가지고 있는 패의 숫자의 합이 가장 낮은 사람이 승리합니다."
-             "\n시작하면 각자 패를 5장 씩 받습니다."
-             "\n순서대로 패를 한 장 뽑고 한 장을 버립니다."
-             "\n같은 숫자가 2장 있을 때 다른 사람이 그 숫자를 버리면 '뻥'을 할 수 있습니다."
-             "\n'뻥'을 하면 그 숫자에 해당하는 패 두 장을 버리고 또 한 장을 버립니다."
-             "\n같은 숫자 3장은 0으로 취급됩니다."
-             "\n같은 숫자 2장이 남거나, 5장이 같은 숫자 3장 2장일 때 다른 사람이 그 숫자를 버리면 "
-             "그 사람은 바가지를 씁니다. 바가지는 30점이며, 자신은 0이 되고 즉시 게임이 끝납니다."
-             "\n'123456'과 같이 연속되는 숫자 6장이 모이면 그 숫자의 합 만큼 마이너스로 점수를 얻습니다."
-             "\n같은 숫자 2장 씩 3개, 혹은 3장 씩 2개가 되면 0이 됩니다."
-             "\n같은 숫자 2장, 4장이 모이면 -100점이 됩니다."
-             "\n6장 패의 합이 10 이하면 -100점이 됩니다. (십부족)"
-             "\n패의 합이 5이하가 되면 스톱을 할 수 있습니다. 스톱하면 즉시 게임이 끝납니다."
-             "\n만약 스톱했을 때 다른 사람이 자신의 패의 숫자의 합 이하이면 바가지를 씁니다."
-             "\n스톱 바가지는 50점입니다.", usage="*", hidden=True
-    )
-    async def bbeong(self, ctx):
-        start, members = await self.gather_members(ctx, "뻥")
-        if start is True:
-            if len(members) < 3:
-                await ctx.send("뻥은 3명 이상 필요합니다.")
-            elif len(members) > 5:
-                await ctx.send("뻥은 최대 5인까지 가능합니다.")
-            else:
-                deck = []
-                field = []
-                while len(deck) < 48:
-                    for i in range(1, 13):
-                        deck.append(i)
-                board = {}
-                for member in members:
-                    board[member] = []
-                    while len(board[member]) < 5:
-                        a = random.choice(deck)
-                        deck.remove(a)
-                        board[member].append(a)
-                    board[member].sort()
-                for member in members:
-                    hand = board.get(member)
-                    member_dm = await member.create_dm()
-                    await member_dm.send(' '.join(hand))
-                num = 0
-                while len(deck) > 0:
-                    member_sum = 0
-                    for i in board.get(members[num]):
-                        member_sum += i
-                    if member_sum <= 5:
-                        def can_stop(m):
-                            return m.content in ["스탑", "스톱", "stop"] and\
-                                   m.author == members[num] and m.channel == ctx.channel
-
-                        try:
-                            await self.app.wait_for("message", check=can_stop, timeout=5.0)
-                        except:
-                            pass
-                        else:
-                            break
-                    else:
-                        await asyncio.sleep(5)
-                    embed = discord.Embed(title="<뻥>",
-                                          description=f'남은 덱 : {len(deck)}')
-                    for i in range(1, 13):
-                        embed.add_field(name='> ' + str(i),
-                                        value=str(field.count(str(i))), inline=True)
-                    msg = await ctx.send(content=members[num].mention + " 님 차례입니다.", embed=embed)
-
-                    a = random.choice(deck)
-                    board[members[num]].append(a)
-                    deck.remove(a)
-                    member_sum += a
-                    board[members[num]].sort()
-                    hand = board.get(members[num])
-                    if hand == [hand[0] + n for n in range(0, 6)]:
-                        score = 0
-                        for n in hand:
-                            score -= n
-                        board[members[num]] = [score]
-                        break
-                    elif hand == [hand[0]]*3\
-                            or hand == [hand[0]]*2+[hand[2]]*2+[hand[4]]*2\
-                            or hand == [hand[0]]*3+[hand[3]]*3:
-                        board[members[num]] = [0]
-                        break
-                    elif hand == [hand[0]]*2+[hand[2]]*4\
-                            or hand == [hand[0]]*4+[hand[4]]*2:
-                        board[members[num]] = [-100]
-                        break
-                    elif len(hand) == 6 and member_sum <= 10:
-                        board[members[num]] = [-100]
-                        break
-
-                    member_dm = await members[num].create_dm()
-                    await member_dm.send(' '.join(hand))
-
-                    def check(m):
-                        return int(m.content) in hand and m.author == members[num] and m.channel == ctx.channel
-
-                    try:
-                        message = await self.app.wait_for("message", check=check, timeout=60.0)
-                    except asyncio.TimeoutError:
-                        await msg.edit(content="시간 초과!", delete_after=2)
-                    else:
-                        await message.delete()
-                        board[members[num]].remove(message.content)
-                        field.append(message.content)
-                        num += 1
-                        for member in members:
-                            if len([x for x in board[member] if x == message.content]) == 2:
-                                num = members.index(member) + 1
-                        if num >= len(members):
-                            num = 0
+    @commands.after_invoke
+    async def record_to_log(self, ctx):
+        bot_log = ctx.guild.get_channel(self.app.bot_log_ch)
+        await bot_log.send(ctx.author.name + " called a command:\n" + ctx.message.content)
 
 
 def setup(app):

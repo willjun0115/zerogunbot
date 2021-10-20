@@ -128,12 +128,12 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="tts를 이용해 전자 음성을 출력합니다.", usage="* str()"
     )
     async def tts_voice(self, ctx, *, msg):
-        tts = gTTS(text=msg, lang='ko', slow=False)
-        tts.save('tts_ko.mp3')
-        ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'), after=lambda e: print(f'Player error: {e}') if e else None)
         for file in os.listdir("./"):
             if file.startswith("tts_ko"):
                 os.remove(file)
+        tts = gTTS(text=msg, lang='ko', slow=False)
+        tts.save('tts_ko.mp3')
+        ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'), after=lambda e: print(f'Player error: {e}') if e else None)
 
     @commands.command(
         name="재생", aliases=["play", "p"],

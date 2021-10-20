@@ -9,6 +9,7 @@ import youtube_dl
 import opuslib
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from gtts import gTTS
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -121,6 +122,18 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         afkchannel = ctx.guild.get_channel(760198518987685949)
         await ctx.message.author.move_to(afkchannel)
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
+
+    @commands.command(
+        name="전자음성", aliases=["ev"],
+        help="tts를 이용해 전자 음성을 출력합니다.", usage="* str()"
+    )
+    async def tts_voice(self, ctx, *, msg):
+        tts = gTTS(text=msg, lang='ko', slow=False)
+        tts.save('tts_ko.mp3')
+        ctx.voice_client.play('tts_ko.mp3', after=lambda e: print(f'Player error: {e}') if e else None)
+        for file in os.listdir("./"):
+            if file.startswith("tts_ko"):
+                os.remove(file)
 
     @commands.command(
         name="재생", aliases=["play", "p"],

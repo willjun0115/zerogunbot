@@ -11,13 +11,12 @@ app = commands.Bot(command_prefix=prefix, help_command=None)
 app.prefix = prefix
 app.gacha_ch = 811849095031029762
 app.log_ch = 874970985307201546
-app.bot_log_ch = 900294120331960350
 app.role_lst = [
     ("창씨개명", 0.1, 5000),
     ("강제 이동", 0.5, 2500),
     ("침묵", 1.0, 1500),
     ("언론 통제", 1.5, 1000),
-    ("이모티콘 관리", 3.0, 750),
+    ("이모티콘 관리", 3.0, 700),
     ("DJ", 3.5, 500)
 ]
 app.shop = {

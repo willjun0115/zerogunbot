@@ -228,11 +228,6 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         if ctx.voice_client is None:
             await self.join_ch(ctx)
 
-    @commands.after_invoke
-    async def record_to_log(self, ctx):
-        bot_log = ctx.guild.get_channel(self.app.bot_log_ch)
-        await bot_log.send(ctx.author.name + " called a command:\n" + ctx.message.content)
-
 
 def setup(app):
     app.add_cog(Voice(app))

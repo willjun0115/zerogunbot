@@ -944,11 +944,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     + ' (' + hand[2] + ')', inline=True)
                 await ctx.send(embed=embed)
 
-    @commands.after_invoke
-    async def record_to_log(self, ctx):
-        bot_log = ctx.guild.get_channel(self.app.bot_log_ch)
-        await bot_log.send(ctx.author.name + " called a command:\n" + ctx.message.content)
-
 
 def setup(app):
     app.add_cog(Game(app))

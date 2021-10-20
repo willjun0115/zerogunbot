@@ -124,16 +124,20 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
 
     @commands.command(
-        name="전자음성", aliases=["ev"],
-        help="tts를 이용해 전자 음성을 출력합니다.", usage="* str()"
+        name="tts", aliases=["TTS"],
+        help="입력받은 문자열을 tts 음성으로 출력합니다.", usage="* str()"
     )
     async def tts_voice(self, ctx, *, msg):
-        for file in os.listdir("./"):
-            if file.startswith("tts_ko"):
-                os.remove(file)
-        tts = gTTS(text=msg, lang='ko', slow=False)
-        tts.save('tts_ko.mp3')
-        ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'), after=lambda e: print(f'Player error: {e}') if e else None)
+        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
+            for file in os.listdir("./"):
+                if file.startswith("tts_ko"):
+                    os.remove(file)
+            tts = gTTS(text=msg, lang='ko', slow=False)
+            tts.save('tts_ko.mp3')
+            ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'),
+                                  after=lambda e: print(f'Player error: {e}') if e else None)
+        else:
+            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
         name="재생", aliases=["play", "p"],

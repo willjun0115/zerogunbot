@@ -35,17 +35,6 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
-        name="tts", aliases=["TTS"],
-        help="입력값을 채팅에 tts 메세지로 전송합니다.", usage="* str()", pass_context=True
-    )
-    async def _say_tts(self, ctx, *, args):
-        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
-            await ctx.message.delete()
-            await ctx.send(args, tts=True)
-        else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
-
-    @commands.command(
         name="타이머챗", aliases=["timerchat", "tc"],
         help="잠시 후 사라지는 채팅을 전송합니다.", usage="* str()", pass_context=True
     )

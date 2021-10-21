@@ -144,52 +144,48 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     if str(reaction) == '✅':
-                        if coin < 1:
-                            await ctx.send("코인이 부족합니다.")
-                        else:
-                            coin -= 1
-                            await ctx.send("- 1 :coin:")
-                            description = ctx.author.name + " 님의 결과"
-                            if luck_log is not None:
-                                description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
-                            embed = discord.Embed(
-                                title="<:video_game:  가챠 결과>",
-                                description=description
-                            )
-                            prize = None
-                            result = '획득!'
-                            rand = random.random() * 100
-                            for role in self.app.role_lst:
-                                if rand <= role[1] * (1 + luck * 0.1):
-                                    prize = role[0]
-                                    if get(ctx.guild.roles, name=prize) in ctx.author.roles:
-                                        prize += f" (+ {str(role[2] // 100)} :coin:)"
-                                        await log.edit(content=log.content[:20] + str(coin + role[2] // 100))
-                                    else:
-                                        await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
-                                    break
+                        await ctx.send("- 1 :coin:")
+                        description = ctx.author.name + " 님의 결과"
+                        if luck_log is not None:
+                            description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
+                        embed = discord.Embed(
+                            title="<:video_game:  가챠 결과>",
+                            description=description
+                        )
+                        prize = None
+                        result = '획득!'
+                        rand = random.random() * 100
+                        for role in self.app.role_lst:
+                            if rand <= role[1] * (1 + luck * 0.1):
+                                prize = role[0]
+                                if get(ctx.guild.roles, name=prize) in ctx.author.roles:
+                                    prize += f" (+ {str(role[2] // 100)} :coin:)"
+                                    await log.edit(content=log.content[:20] + str(coin + role[2] // 100))
                                 else:
-                                    rand -= role[1] * (1 + luck * 0.1)
-                            if prize is None:
-                                roles = ctx.author.roles[2:]
-                                lose_p = (len(roles) * 2)
-                                if luck_log is not None:
-                                    await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
-                                    lose_p = lose_p / 2
-                                if rand <= lose_p:
-                                    role = random.choice(roles)
-                                    await ctx.author.remove_roles(role)
-                                    prize = role.name
-                                    result = '손실 :x:'
-                                else:
-                                    prize = "꽝"
-                                await log.edit(content=log.content[:20] + str(coin))
+                                    await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
+                                break
                             else:
-                                if luck_log is not None:
-                                    await luck_log.delete()
-                                    await ctx.send(ctx.author.name + " 님의 행운이 초기화 되었습니다.")
-                            embed.add_field(name=str(prize), value=result, inline=False)
-                            await ctx.send(embed=embed)
+                                rand -= role[1] * (1 + luck * 0.1)
+                        if prize is None:
+                            roles = ctx.author.roles[2:]
+                            lose_p = (len(roles) * 2)
+                            if luck_log is not None:
+                                await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
+                                lose_p = lose_p / 2
+                            if rand <= lose_p:
+                                role = random.choice(roles)
+                                await ctx.author.remove_roles(role)
+                                prize = role.name
+                                result = '손실 :x:'
+                            else:
+                                prize = "꽝"
+                            await log.edit(content=log.content[:20] + str(coin))
+                        else:
+                            if luck_log is not None:
+                                await luck_log.delete()
+                                await ctx.send(ctx.author.name + " 님의 행운이 초기화 되었습니다.")
+                        embed.add_field(name=str(prize), value=result, inline=False)
+                        await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
             else:

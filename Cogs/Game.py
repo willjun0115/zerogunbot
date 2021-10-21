@@ -397,9 +397,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             await msg_.edit(content="시간 초과!", delete_after=2)
                         else:
                             if str(reaction) == '⏏️':
-                                author_call = False
-                                member_call = False
-                                coin *= 2
+                                if coin > author_coin + member_coin:
+                                    await ctx.send("판돈은 두 유저의 토큰의 합을 초과할 수 없습니다.")
+                                else:
+                                    author_call = False
+                                    member_call = False
+                                    coin *= 2
                             elif str(reaction) == '✅':
                                 if user == ctx.author:
                                     author_call = True

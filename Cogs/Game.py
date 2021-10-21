@@ -113,7 +113,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
-        help="코인을 소모하여 확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
+        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
     )
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
@@ -340,122 +340,138 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n자신의 패는 알 수 없으며 숫자가 높은 쪽이 이깁니다.", usage="* @*member*"
     )
     async def indian_poker(self, ctx, member: discord.Member):
+        party = (member, ctx.author)
+        limit = 0
         author_log = await self.find_log(ctx, '$', ctx.author.id)
         member_log = await self.find_log(ctx, '$', member.id)
-        author_coin = int(author_log.content[20:])
-        member_coin = int(member_log.content[20:])
         if author_log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
-        elif member_log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send(f'로그에서 {ctx.author.name} 님의 ID를 찾지 못했습니다.')
         else:
-            msg = await ctx.send(
-                ctx.author.name + " 님이 " + member.name + " 님에게 인디언 포커를 신청합니다."
-                                                         "\n수락하려면 :white_check_mark: 을 눌러주세요."
-            )
-            reaction_list = ['✅', '❎']
-            for r in reaction_list:
-                await msg.add_reaction(r)
+            limit += int(author_log.content[20:])
+        if member_log is None:
+            await ctx.send(f'로그에서 {member.name} 님의 ID를 찾지 못했습니다.')
+        else:
+            limit += int(member_log.content[20:])
+        if author_log is not None:
+            if member_log is not None:
+                msg = await ctx.send(
+                    ctx.author.name + " 님이 " + member.name + " 님에게 인디언 포커를 신청합니다."
+                                                             "\n수락하려면 :white_check_mark: 을 눌러주세요."
+                )
+                reaction_list = ['✅', '❎']
+                for r in reaction_list:
+                    await msg.add_reaction(r)
 
-            def check(reaction, user):
-                return str(reaction) in reaction_list and reaction.message.id == msg.id and user == member
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == member
 
-            try:
-                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
-            except asyncio.TimeoutError:
-                await msg.edit(content="시간 초과!", delete_after=2)
-            else:
-                if str(reaction) == '✅':
-                    await msg.delete()
-                    deck = []
-                    for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
-                        for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
-                            deck.append(i + j)
-                    author_card = random.choice(deck)
-                    deck.remove(author_card)
-                    member_card = random.choice(deck)
-                    deck.remove(member_card)
-                    author_dm = await ctx.author.create_dm()
-                    member_dm = await member.create_dm()
-                    await author_dm.send(member_card)
-                    await member_dm.send(author_card)
-                    coin = 1
-                    party = (member, ctx.author)
-                    called_party = []
-                    embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
-                    embed.add_field(name="> :white_check_mark:", value=str([x.name for x in called_party]), inline=True)
-                    msg_ = await ctx.send(content=member.mention + " 님 차례입니다.", embed=embed)
-                    reaction_list = ['⏏️', '✅', '💀']
-                    num = 0
-                    while len(called_party) < 2:
-                        for r in reaction_list:
-                            await msg_.add_reaction(r)
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
+                else:
+                    if str(reaction) == '✅':
+                        await msg.delete()
+                        deck = []
+                        for i in [':spades:', ':clubs:', ':hearts:', ':diamonds:']:
+                            for j in ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
+                                deck.append(i + j)
+                        coin = 1
+                        board = {}
+                        called_party = []
+                        for m in party:
+                            card = random.choice(deck)
+                            board[m] = card
+                            deck.remove(card)
+                            dm = await m.create_dm()
+                            await dm.send(card)
+                        embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
+                        embed.add_field(name="> :white_check_mark:", value=str([x.name for x in called_party]), inline=True)
+                        msg_ = await ctx.send(content=member.mention + " 님 차례입니다.", embed=embed)
+                        reaction_list = ['⏏️', '✅', '💀']
+                        num = 0
+                        while len(called_party) < 2:
+                            for r in reaction_list:
+                                await msg_.add_reaction(r)
 
-                        def check(reaction, user):
-                            return str(reaction) in reaction_list and reaction.message.id == msg_.id \
-                                   and user == party[num]
+                            def check(reaction, user):
+                                return str(reaction) in reaction_list and reaction.message.id == msg_.id \
+                                       and user == party[num]
 
-                        try:
-                            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=30.0)
-                        except asyncio.TimeoutError:
-                            await ctx.send(party[num].name + " 님이 시간을 초과하여 자동으로 콜 처리됩니다.")
-                            called_party.append(party[num])
-                            num += 1
-                        else:
-                            if str(reaction) == '⏏️':
-                                if coin > author_coin + member_coin:
-                                    await ctx.send("판돈은 두 유저의 토큰의 합을 초과할 수 없습니다.")
-                                else:
-                                    called_party = []
-                                    coin *= 2
-                                    num += 1
-                            elif str(reaction) == '✅':
-                                called_party.append(user)
+                            try:
+                                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=30.0)
+                            except asyncio.TimeoutError:
+                                await ctx.send(party[num].name + " 님이 시간을 초과하여 자동으로 콜 처리됩니다.")
+                                called_party.append(party[num])
                                 num += 1
                             else:
-                                if user == ctx.author:
-                                    await author_log.edit(content=author_log.content[:20] + str(author_coin - coin))
-                                    await member_log.edit(content=member_log.content[:20] + str(member_coin + coin))
+                                if str(reaction) == '⏏️':
+                                    if coin > limit:
+                                        await ctx.send("판돈은 두 유저의 토큰의 합을 초과할 수 없습니다.")
+                                    else:
+                                        called_party = []
+                                        coin *= 2
+                                        num += 1
+                                elif str(reaction) == '✅':
+                                    called_party.append(user)
+                                    num += 1
                                 else:
-                                    await author_log.edit(content=author_log.content[:20] + str(author_coin + coin))
-                                    await member_log.edit(content=member_log.content[:20] + str(member_coin - coin))
-                                await ctx.send(user.name + " 다이")
+                                    if user == ctx.author:
+                                        await author_log.edit(
+                                            content=author_log.content[:20] + str(int(author_log.content[20:]) - coin)
+                                        )
+                                        await member_log.edit(
+                                            content=member_log.content[:20] + str(int(member_log.content[20:]) + coin)
+                                        )
+                                    else:
+                                        await author_log.edit(
+                                            content=author_log.content[:20] + str(int(author_log.content[20:]) + coin)
+                                        )
+                                        await member_log.edit(
+                                            content=member_log.content[:20] + str(int(member_log.content[20:]) - coin)
+                                        )
+                                    await ctx.send(user.name + " 다이")
+                                    await msg_.delete()
+                                    break
+                            if num > 2:
+                                num = 0
+                            if len(called_party) == 2:
+                                await ctx.send("콜 성사")
                                 await msg_.delete()
                                 break
-                        if num > 2:
-                            num = 0
+                            await msg_.clear_reactions()
+                            embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
+                            embed.add_field(name="> :white_check_mark:", value=str([x.name for x in called_party]),
+                                            inline=True)
+                            msg_ = await ctx.send(content=party[num].mention + " 님 차례입니다.", embed=embed)
+                        await ctx.send(f'{ctx.author.name} {str(board[ctx.author])} : {member.name} {str(board[member])}')
+                        for m in party:
+                            card = board.get(m)
+                            if card[card.rfind(':') + 1:] == 'A':
+                                board[m] = 1
+                            else:
+                                board[m] = int(card[card.rfind(':') + 1:])
                         if len(called_party) == 2:
-                            await ctx.send("콜 성사")
-                            await msg_.delete()
-                            break
-                        await msg_.clear_reactions()
-                        embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
-                        embed.add_field(name="> :white_check_mark:", value=str([x.name for x in called_party]),
-                                        inline=True)
-                        msg_ = await ctx.send(content=party[num].mention + " 님 차례입니다.", embed=embed)
-                    if author_card[author_card.rfind(':') + 1:] == 'A':
-                        author_num = 1
+                            if board[ctx.author] == board[member]:
+                                await ctx.send("무승부")
+                            elif board[ctx.author] > board[member]:
+                                await author_log.edit(
+                                    content=author_log.content[:20] + str(int(author_log.content[20:]) + coin)
+                                )
+                                await member_log.edit(
+                                    content=member_log.content[:20] + str(int(member_log.content[20:]) - coin)
+                                )
+                                await ctx.send(ctx.author.name + " 승!")
+                            elif board[ctx.author] < board[member]:
+                                await author_log.edit(
+                                    content=author_log.content[:20] + str(int(author_log.content[20:]) - coin)
+                                )
+                                await member_log.edit(
+                                    content=member_log.content[:20] + str(int(member_log.content[20:]) + coin)
+                                )
+                                await ctx.send(member.name + " 승!")
                     else:
-                        author_num = int(author_card[author_card.rfind(':') + 1:])
-                    if member_card[member_card.rfind(':') + 1:] == 'A':
-                        member_num = 1
-                    else:
-                        member_num = int(member_card[member_card.rfind(':') + 1:])
-                    await ctx.send(
-                        ctx.author.name + ' ' + str(author_num) + ' : ' + member.name + ' ' + str(member_num))
-                    if len(called_party) == 2:
-                        if author_num > member_num:
-                            await author_log.edit(content=author_log.content[:20] + str(author_coin + coin))
-                            await member_log.edit(content=member_log.content[:20] + str(member_coin - coin))
-                            await ctx.send(ctx.author.name + ' 승!')
-                        elif author_num < member_num:
-                            await author_log.edit(content=author_log.content[:20] + str(author_coin - coin))
-                            await member_log.edit(content=member_log.content[:20] + str(member_coin + coin))
-                            await ctx.send(member.name + ' 승!')
-                        else:
-                            await ctx.send("무승부")
-                else:
-                    await ctx.send("신청을 거절했습니다.")
+                        await ctx.send("신청을 거절했습니다.")
 
     @commands.command(
         name="블랙잭", aliases=["Blackjack", "BJ", "bj"],

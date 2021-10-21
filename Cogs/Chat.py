@@ -64,14 +64,14 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
             await ctx.message.delete()
             if member is None:
-                member = ctx.guild.members
+                deleted = await ctx.channel.purge(limit=int(num))
             else:
                 member = [member]
 
-            def check(m):
-                return m.author in member and m.channel == ctx.channel
+                def check(m):
+                    return m.author in member and m.channel == ctx.channel
 
-            deleted = await ctx.channel.purge(limit=int(num), check=check)
+                deleted = await ctx.channel.purge(limit=int(num), check=check)
             await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")

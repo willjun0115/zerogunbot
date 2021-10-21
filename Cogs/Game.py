@@ -82,7 +82,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다."
-             "\n베팅은 최대 100까지 가능합니다.", usage="* int((0, 100])", pass_context=True
+             "\n베팅은 보유 토큰의 절반까지 가능합니다.", usage="* int((0, *token/2*])", pass_context=True
     )
     async def gamble(self, ctx, bet):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
@@ -95,8 +95,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if ctx.channel == my_channel:
                 if coin < bet:
                     await ctx.send("코인이 부족합니다.")
-                elif bet > 100:
-                    await ctx.send("베팅은 100 이하로만 설정할 수 있습니다.")
+                elif bet > coin//2:
+                    await ctx.send("베팅은 보유 토큰의 절반까지만 할 수 있습니다.")
                 elif bet <= 0:
                     await ctx.send("최소 토큰 1개 이상 베팅해야 합니다.")
                 else:
@@ -240,6 +240,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             await ctx.send("코인이 부족합니다.")
                         else:
                             coin -= 1
+                            await ctx.send("- 1 :coin:")
                             description = ctx.author.name + " 님의 결과"
                             if luck_log is not None:
                                 description += "\n(:four_leaf_clover: 행운 버프 적용 중)"

@@ -182,8 +182,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     prize = role.name
                                     result = '손실 :x:'
                                 else:
-                                    await log.edit(content=log.content[:20] + str(coin))
                                     prize = "꽝"
+                                await log.edit(content=log.content[:20] + str(coin))
                             else:
                                 if luck_log is not None:
                                     await luck_log.delete()
@@ -305,7 +305,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="리폿", aliases=["신고", "report"],
         help="부적절한 사용자를 신고합니다.\n낮은 확률로 접수되면 최고 권한을 잃습니다."
-             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다.", usage="* @*member*"
+             "\n대상의 권한이 높을수록 신고가 접수될 확률이 높습니다."
+             "\n신고가 접수되면 보상으로 10 코인을 드립니다.", usage="* @*member*"
     )
     async def report(self, ctx, member: discord.Member):
         my_channel = ctx.guild.get_channel(872938926019575879)
@@ -327,6 +328,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await member.remove_roles(member.top_role)
                 embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + " 님이 강등됩니다.",
                                 inline=True)
+                log = await self.find_log(ctx, '$', ctx.author.id)
+                if log is not None:
+                    coin = int(log.content[20:])
+                    await log.edit(content=log.content[:20] + str(coin+10))
+                    await ctx.send("접수 보상 + 10 :coin:")
             else:
                 embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             await ctx.send(embed=embed)

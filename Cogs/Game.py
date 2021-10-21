@@ -129,7 +129,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     luck = int(luck_log.content[20:])
                 msg = await ctx.send(
                     ":warning: 주의: 권한을 잃을 수 있습니다."
-                    "\n:white_check_mark: 을 누르면 토큰을 1개 잃으며 가챠를 돌립니다."
+                    "\n가챠를 시작하려면 :white_check_mark: 을 누르세요."
                 )
                 reaction_list = ['✅', '❎']
                 for r in reaction_list:
@@ -144,7 +144,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     if str(reaction) == '✅':
-                        await ctx.send("- 1 :coin:")
                         description = ctx.author.name + " 님의 결과"
                         if luck_log is not None:
                             description += "\n(:four_leaf_clover: 행운 버프 적용 중)"

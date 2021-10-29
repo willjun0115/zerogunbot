@@ -522,24 +522,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         pass
                     else:
                         players.append(x)
-                embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members))} :coin:")
-                for member in members:
-                    if member in finish_members:
-                        embed.add_field(name="> " + member.name, value=board[member], inline=True)
-                    else:
-                        embed.add_field(name=member.name, value=board[member], inline=True)
-                msg_ = await ctx.send(content=players[0].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
                 reaction_list = ['✅', '❎']
                 num = 0
+                msg_ = await ctx.send("On ready...")
                 while len(finish_members) != len(members):
-                    players = []
-                    for x in members:
-                        if x in finish_members:
-                            pass
-                        else:
-                            players.append(x)
+                    players = [x for x in members if x not in finish_members]
                     if num >= len(players):
                         num = 0
+                    embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members))} :coin:")
+                    for member in members:
+                        if member in finish_members:
+                            embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                        else:
+                            embed.add_field(name=member.name, value=board[member], inline=True)
+                    await msg_.edit(content=players[num].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
                     for r in reaction_list:
                         await msg_.add_reaction(r)
 
@@ -578,29 +574,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             finish_members.append(user)
                             num -= 1
                     num += 1
-                    players = []
-                    for x in members:
-                        if x in finish_members:
-                            pass
-                        else:
-                            players.append(x)
+                    players = [x for x in members if x not in finish_members]
                     if num >= len(players):
                         num = 0
-                    if len(players) > 0:
-                        embed = discord.Embed(title="<블랙잭>",
-                                              description=f"{str(len(members))} :coin:")
-                    else:
-                        embed = discord.Embed(title="<블랙잭>", description="모든 플레이어가 선택을 종료했습니다.")
-                    for member in members:
-                        if member in finish_members:
-                            embed.add_field(name="> " + member.name, value=board[member], inline=True)
-                        else:
-                            embed.add_field(name=member.name, value=board[member], inline=True)
                     await msg_.clear_reactions()
-                    if len(players) > 0:
-                        await msg_.edit(content=players[num].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
-                    else:
-                        await msg_.edit(embed=embed)
                 for member in finish_members:
                     member_sum = 0
                     ace = False

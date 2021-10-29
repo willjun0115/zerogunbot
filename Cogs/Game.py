@@ -383,8 +383,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             card = random.choice(deck)
                             board[m] = card
                             deck.remove(card)
-                            dm = await m.create_dm()
-                            await dm.send(card)
+                        a_dm = await ctx.author.create_dm()
+                        await a_dm.send(board.get(member))
+                        m_dm = await member.create_dm()
+                        await m_dm.send(board.get(ctx.author))
                         reaction_list = ['⏏️', '✅', '💀']
                         num = 0
                         msg_ = await ctx.send("On ready...")

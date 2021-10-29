@@ -403,13 +403,28 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             try:
                                 reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=30.0)
                             except asyncio.TimeoutError:
-                                await ctx.send(party[num].name + " 님이 시간을 초과하여 자동으로 콜 처리됩니다.")
-                                called_party.append(party[num])
-                                num += 1
+                                await ctx.send(party[num].name + " 님이 시간을 초과하여 자동으로 다이 처리됩니다.")
+                                if party[num] == ctx.author:
+                                    await author_log.edit(
+                                        content=author_log.content[:20] + str(int(author_log.content[20:]) - coin)
+                                    )
+                                    await member_log.edit(
+                                        content=member_log.content[:20] + str(int(member_log.content[20:]) + coin)
+                                    )
+                                else:
+                                    await author_log.edit(
+                                        content=author_log.content[:20] + str(int(author_log.content[20:]) + coin)
+                                    )
+                                    await member_log.edit(
+                                        content=member_log.content[:20] + str(int(member_log.content[20:]) - coin)
+                                    )
+                                await ctx.send(party[num].name + " 다이")
+                                await msg_.delete()
+                                break
                             else:
                                 if str(reaction) == '⏏️':
-                                    if coin > limit:
-                                        await ctx.send("판돈은 두 유저의 토큰의 합을 초과할 수 없습니다.")
+                                    if coin*2 > limit:
+                                        await ctx.send("판돈은 두 플레이어의 토큰의 합을 초과할 수 없습니다.")
                                     else:
                                         called_party = []
                                         coin *= 2
@@ -578,6 +593,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if num >= len(players):
                         num = 0
                     await msg_.clear_reactions()
+                embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members))} :coin:")
+                for member in members:
+                    if member in finish_members:
+                        embed.add_field(name="> " + member.name, value=board[member], inline=True)
+                    else:
+                        embed.add_field(name=member.name, value=board[member], inline=True)
+                await msg_.edit(content="모든 플레이어가 선택을 종료했습니다.", embed=embed)
                 for member in finish_members:
                     member_sum = 0
                     ace = False

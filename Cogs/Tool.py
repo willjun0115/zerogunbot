@@ -149,6 +149,11 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                     os.remove(file)
                     break
 
+    @commands.after_invoke
+    async def log_record(self, ctx):
+        record_log_channel = ctx.guild.get_channel(self.app.record_ch)
+        await record_log_channel.send(f"{ctx.author.name}({ctx.author.id}) : {ctx.message.content}")
+
 
 def setup(app):
     app.add_cog(Tool(app))

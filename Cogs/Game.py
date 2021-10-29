@@ -435,7 +435,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     await ctx.send(user.name + " 다이")
                                     await msg_.delete()
                                     break
-                            if num > 2:
+                            if num >= 2:
                                 num = 0
                             if len(called_party) == 2:
                                 await ctx.send("콜 성사")

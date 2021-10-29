@@ -385,12 +385,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             deck.remove(card)
                             dm = await m.create_dm()
                             await dm.send(card)
-                        embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
-                        embed.add_field(name="> :white_check_mark:", value=str([x.name for x in called_party]), inline=True)
-                        msg_ = await ctx.send(content=member.mention + " 님 차례입니다.", embed=embed)
                         reaction_list = ['⏏️', '✅', '💀']
                         num = 0
+                        msg_ = await ctx.send("On ready...")
                         while len(called_party) < 2:
+                            embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
+                            embed.add_field(name="> :white_check_mark:", value=str([x.name for x in called_party]),
+                                            inline=True)
+                            await msg_.edit(content=party[num].mention + " 님 차례입니다.", embed=embed)
                             for r in reaction_list:
                                 await msg_.add_reaction(r)
 
@@ -440,10 +442,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 await msg_.delete()
                                 break
                             await msg_.clear_reactions()
-                            embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
-                            embed.add_field(name="> :white_check_mark:", value=str([x.name for x in called_party]),
-                                            inline=True)
-                            msg_ = await ctx.send(content=party[num].mention + " 님 차례입니다.", embed=embed)
                         await ctx.send(f'{ctx.author.name} {str(board[ctx.author])} : {member.name} {str(board[member])}')
                         for m in party:
                             card = board.get(m)

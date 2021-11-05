@@ -153,9 +153,28 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         else:
             coin = int(log.content[20:])
             if coin >= 1000:
-                await ctx.author.edit(nick=nickname)
-                await log.edit(content=log.content[:20] + str(coin - 1000))
-                await ctx.send(ctx.author.name + " 님의 닉네임을 " + nickname + "(으)로 변경했습니다.")
+                msg = await ctx.send(
+                    ":warning: 주의: 코인을 소모합니다."
+                    f"\n정말 닉네임을 {nickname}으로 변경하시겠습니까?"
+                )
+                reaction_list = ['✅', '❎']
+                for r in reaction_list:
+                    await msg.add_reaction(r)
+
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
+                else:
+                    if str(reaction) == '✅':
+                        await ctx.author.edit(nick=nickname)
+                        await log.edit(content=log.content[:20] + str(coin - 1000))
+                        await ctx.send(ctx.author.name + " 님의 닉네임을 " + nickname + "(으)로 변경했습니다.")
+                    else:
+                        await ctx.send("닉네임 변경을 취소했습니다.")
             else:
                 await ctx.send("코인이 부족합니다.")
 

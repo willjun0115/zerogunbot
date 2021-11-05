@@ -191,7 +191,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
     @commands.command(
-        name="가챠정보", aliases=["가챠확률", "gachainfo", "Ginfo"],
+        name="가챠정보", aliases=["가챠확률", "gachainfo"],
         help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="*"
     )
     async def gacha_info(self, ctx):
@@ -795,7 +795,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 for i in range(1, 10):
                     deck.append(str(i))
                 deck.append('장')
-                specials = ['멍텅구리구사', '구사', '땡잡이', '암행어사']
                 middles = ['세륙', '장사', '장삥', '구삥', '독사', '알리']
                 ends = []
                 for i in range(0, 10):
@@ -804,7 +803,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 for i in range(1, 10):
                     pairs.append(str(i) + '땡')
                 pairs.append('장땡')
-                level_table = specials + ends + middles + pairs + ['13광땡', '18광땡', '38광땡']
+                level_table = ['멍텅구리구사', '구사', '땡잡이', '암행어사'] + ends + middles + pairs + ['13광땡', '18광땡', '38광땡']
                 coin = len(members)
                 pay = {}
                 for member in members:

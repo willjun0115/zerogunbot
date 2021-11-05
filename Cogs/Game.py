@@ -795,183 +795,199 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 for i in range(1, 10):
                     deck.append(str(i))
                 deck.append('장')
-                board = {}
-                pay = {}
-                for member in members:
-                    pay[member] = 1
                 specials = ['멍텅구리구사', '구사', '땡잡이', '암행어사']
                 middles = ['세륙', '장사', '장삥', '구삥', '독사', '알리']
                 ends = []
                 for i in range(0, 10):
-                    ends.append(str(i)+'끗')
+                    ends.append(str(i) + '끗')
                 pairs = []
                 for i in range(1, 10):
                     pairs.append(str(i) + '땡')
                 pairs.append('장땡')
                 level_table = specials + ends + middles + pairs + ['13광땡', '18광땡', '38광땡']
-                for member in members:
-                    a = random.choice(deck)
-                    deck.remove(a)
-                    b = random.choice(deck)
-                    deck.remove(b)
-                    board[member] = a + ' ' + b
-                for member in members:
-                    hand = board.get(member).split()
-                    hand1 = hand[0]
-                    hand2 = hand[1]
-                    n = 0
-                    if hand1[0] == '장':
-                        n += 10
-                    else:
-                        n += int(hand1[0])
-                    if hand2[0] == '장':
-                        n += 10
-                    else:
-                        n += int(hand2[0])
-                    while n > 9:
-                        n -= 10
-                    n = str(n) + '끗'
-                    if hand1[0] == hand2[0]:
-                        n = hand1[0] + '땡'
-                    if hand1[0] == '9' or hand1[0] == '4':
-                        if int(hand1[0]) + int(hand2[0]) == 13:
-                            n = '구사'
-                    if hand1[0] == '1' or hand2[0] == '1':
-                        if int(hand1[0]) + int(hand2[0]) == 3:
-                            n = '알리'
-                        elif int(hand1[0]) + int(hand2[0]) == 5:
-                            n = '독사'
-                        elif int(hand1[0]) + int(hand2[0]) == 10:
-                            n = '구삥'
-                        elif hand1[0] == '장' or hand2[0] == '장':
-                            n = '장삥'
-                    if hand1[0] == '4' or hand2[0] == '4':
-                        if hand1[0] == '장' or hand2[0] == '장':
-                            n = '장사'
-                        elif int(hand1[0]) + int(hand2[0]) == 10:
-                            n = '세륙'
-                    if '8광' in hand:
-                        if '3광' in hand:
-                            n = '38광땡'
-                        elif '1광' in hand:
-                            n = '18광땡'
-                    elif '1광' in hand:
-                        if '3광' in hand:
-                            n = '13광땡'
-                    elif '7열끗' in hand:
-                        if '3광' in hand:
-                            n = '땡잡이'
-                        elif '4열끗' in hand:
-                            n = '암행어사'
-                    elif '9열끗' in hand:
-                        if '4열끗' in hand:
-                            n = '멍텅구리구사'
-                    board[member] = board.get(member) + ' ' + n
-                for member in members:
-                    hand = board.get(member).split()
-                    member_dm = await member.create_dm()
-                    await member_dm.send(hand[0] + ' , ' + hand[1])
                 coin = len(members)
-                call = 0
-                die_members = []
-                call_members = []
-                winner = ctx.author
-                embed = discord.Embed(title="<섯다>",
-                                      description=f'{str(coin)} :coin: (콜 비용: {str(call)})')
+                pay = {}
                 for member in members:
-                    embed.add_field(name='> ' + member.name,
-                                    value=str(pay[member]) + ' :coin:', inline=True)
-                msg_ = await ctx.send(content=members[0].mention + " 님 베팅해주세요.", embed=embed)
-                reaction_list = ['⏏️', '‼️', '✅', '💀']
-                num = 0
-                while len(call_members) != len(members):
-                    players = []
-                    for x in members:
-                        if x in die_members:
-                            pass
+                    pay[member] = 1
+                regame = True
+                while regame:
+                    regame = False
+                    board = {}
+                    die_members = []
+                    call_members = []
+                    for member in members:
+                        a = random.choice(deck)
+                        deck.remove(a)
+                        b = random.choice(deck)
+                        deck.remove(b)
+                        board[member] = a + ' ' + b
+                    for member in members:
+                        hand = board.get(member).split()
+                        hand1 = hand[0]
+                        hand2 = hand[1]
+                        n = 0
+                        if hand1[0] == '장':
+                            n += 10
                         else:
-                            players.append(x)
-                    if num >= len(players):
-                        num = 0
-                    for r in reaction_list:
-                        await msg_.add_reaction(r)
-
-                    def check(reaction, user):
-                        return str(reaction) in reaction_list and reaction.message.id == msg_.id \
-                               and user == players[num]
-
-                    try:
-                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
-                    except asyncio.TimeoutError:
-                        die_members.append(players[num])
-                        await ctx.send(players[num].name + " 님이 시간을 초과하여 자동으로 다이 처리합니다.")
-                        num -= 1
-                    else:
-                        if str(reaction) == '⏏️':
-                            call = coin // 2
-                            coin += call
-                            call_members = [user]
-                            pay[user] += call
-                        elif str(reaction) == '‼️':
-                            call = call * 2
-                            coin += call
-                            call_members = [user]
-                            pay[user] += call
-                        elif str(reaction) == '✅':
-                            call_members.append(user)
-                            coin += call
-                            pay[user] += call
+                            n += int(hand1[0])
+                        if hand2[0] == '장':
+                            n += 10
                         else:
-                            die_members.append(user)
-                            await ctx.send(user.name + ' 다이')
-                            num -= 1
-                    num += 1
-                    players = []
-                    for x in members:
-                        if x in die_members:
-                            pass
-                        else:
-                            players.append(x)
-                    if num >= len(players):
-                        num = 0
-                    if len(players) == 1:
-                        winner = players[0]
-                        break
+                            n += int(hand2[0])
+                        while n > 9:
+                            n -= 10
+                        n = str(n) + '끗'
+                        if hand1[0] == hand2[0]:
+                            n = hand1[0] + '땡'
+                        if hand1[0] == '9' or hand1[0] == '4':
+                            if int(hand1[0]) + int(hand2[0]) == 13:
+                                n = '구사'
+                        if hand1[0] == '1' or hand2[0] == '1':
+                            if int(hand1[0]) + int(hand2[0]) == 3:
+                                n = '알리'
+                            elif int(hand1[0]) + int(hand2[0]) == 5:
+                                n = '독사'
+                            elif int(hand1[0]) + int(hand2[0]) == 10:
+                                n = '구삥'
+                            elif hand1[0] == '장' or hand2[0] == '장':
+                                n = '장삥'
+                        if hand1[0] == '4' or hand2[0] == '4':
+                            if hand1[0] == '장' or hand2[0] == '장':
+                                n = '장사'
+                            elif int(hand1[0]) + int(hand2[0]) == 10:
+                                n = '세륙'
+                        if '8광' in hand:
+                            if '3광' in hand:
+                                n = '38광땡'
+                            elif '1광' in hand:
+                                n = '18광땡'
+                        elif '1광' in hand:
+                            if '3광' in hand:
+                                n = '13광땡'
+                        elif '7열끗' in hand:
+                            if '3광' in hand:
+                                n = '땡잡이'
+                            elif '4열끗' in hand:
+                                n = '암행어사'
+                        elif '9열끗' in hand:
+                            if '4열끗' in hand:
+                                n = '멍텅구리구사'
+                        board[member] = board.get(member) + ' ' + n
+                    for member in members:
+                        hand = board.get(member).split()
+                        member_dm = await member.create_dm()
+                        await member_dm.send(hand[0] + ' , ' + hand[1])
+                    call = 0
+                    winner = ctx.author
                     embed = discord.Embed(title="<섯다>",
                                           description=f'{str(coin)} :coin: (콜 비용: {str(call)})')
                     for member in members:
                         embed.add_field(name='> ' + member.name,
                                         value=str(pay[member]) + ' :coin:', inline=True)
-                    await msg_.clear_reactions()
-                    await msg_.edit(content=players[num].mention + " 님 베팅해주세요.", embed=embed)
-                for member in call_members:
-                    m_hand = board.get(member).split()
-                    w_hand = board.get(winner).split()
-                    if level_table.index(m_hand[2]) > level_table.index(w_hand[2]):
-                        winner = member
-                w_hand = board[winner].split()
-                if w_hand[2] in ['13광땡', '18광땡']:
+                    msg_ = await ctx.send(content=members[0].mention + " 님 베팅해주세요.", embed=embed)
+                    reaction_list = ['⏏️', '‼️', '✅', '💀']
+                    num = 0
+                    while len(call_members) != len(members):
+                        players = [x for x in members if x not in die_members]
+                        if num >= len(players):
+                            num = 0
+                        for r in reaction_list:
+                            await msg_.add_reaction(r)
+
+                        def check(reaction, user):
+                            return str(reaction) in reaction_list and reaction.message.id == msg_.id \
+                                   and user == players[num]
+
+                        try:
+                            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                        except asyncio.TimeoutError:
+                            die_members.append(players[num])
+                            await ctx.send(players[num].name + " 님이 시간을 초과하여 자동으로 다이 처리합니다.")
+                            num -= 1
+                        else:
+                            if str(reaction) == '⏏️':
+                                call = coin // 2
+                                coin += call
+                                call_members = [user]
+                                pay[user] += call
+                            elif str(reaction) == '‼️':
+                                call = call * 2
+                                coin += call
+                                call_members = [user]
+                                pay[user] += call
+                            elif str(reaction) == '✅':
+                                call_members.append(user)
+                                coin += call
+                                pay[user] += call
+                            else:
+                                die_members.append(user)
+                                await ctx.send(user.name + ' 다이')
+                                num -= 1
+                        num += 1
+                        players = [x for x in members if x not in die_members]
+                        if num >= len(players):
+                            num = 0
+                        if len(players) == 1:
+                            winner = players[0]
+                            break
+                        embed = discord.Embed(title="<섯다>",
+                                              description=f'{str(coin)} :coin: (콜 비용: {str(call)})')
+                        for member in members:
+                            embed.add_field(name='> ' + member.name,
+                                            value=str(pay[member]) + ' :coin:', inline=True)
+                        await msg_.clear_reactions()
+                        await msg_.edit(content=players[num].mention + " 님 베팅해주세요.", embed=embed)
                     for member in call_members:
                         m_hand = board.get(member).split()
-                        if m_hand[2] == '암행어사':
+                        w_hand = board.get(winner).split()
+                        if level_table.index(m_hand[2]) > level_table.index(w_hand[2]):
                             winner = member
-                elif w_hand[2] in pairs:
-                    for member in call_members:
-                        m_hand = board.get(member).split()
-                        if m_hand[2] == '땡잡이':
-                            winner = member
-                for member in call_members:
-                    if member == winner:
-                        pay[member] -= coin
-                    member_log = await self.find_log(ctx, '$', member.id)
-                    member_coin = int(member_log.content[20:])
-                    await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
-                embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')
-                for member in members:
-                    hand = board.get(member).split()
-                    embed.add_field(name=member.name, value=hand[0] + ' , ' + hand[1]
-                                    + ' (' + hand[2] + ')', inline=True)
-                await ctx.send(embed=embed)
+                    w_hand = board[winner].split()
+                    if w_hand[2] in ['13광땡', '18광땡']:
+                        for member in call_members:
+                            m_hand = board.get(member).split()
+                            if m_hand[2] == '암행어사':
+                                winner = member
+                    elif w_hand[2] in pairs:
+                        for member in call_members:
+                            m_hand = board.get(member).split()
+                            if m_hand[2] == '땡잡이':
+                                winner = member
+                    elif level_table.index(w_hand[2]) < 30:
+                        for member in call_members:
+                            m_hand = board.get(member).split()
+                            if m_hand[2] == '멍텅구리구사':
+                                regame = True
+                    elif level_table.index(w_hand[2]) < 20:
+                        for member in call_members:
+                            m_hand = board.get(member).split()
+                            if m_hand[2] == '구사':
+                                regame = True
+                    if regame:
+                        for member in die_members:
+                            member_log = await self.find_log(ctx, '$', member.id)
+                            member_coin = int(member_log.content[20:])
+                            await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
+                        embed = discord.Embed(title="<섯다 결과>", description='재경기')
+                        for member in members:
+                            hand = board.get(member).split()
+                            embed.add_field(name=member.name, value=hand[0] + ' , ' + hand[1]
+                                                                    + ' (' + hand[2] + ')', inline=True)
+                        await ctx.send(embed=embed)
+                        members = call_members
+                    else:
+                        for member in members:
+                            if member == winner:
+                                pay[member] -= coin
+                            member_log = await self.find_log(ctx, '$', member.id)
+                            member_coin = int(member_log.content[20:])
+                            await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
+                        embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')
+                        for member in members:
+                            hand = board.get(member).split()
+                            embed.add_field(name=member.name, value=hand[0] + ' , ' + hand[1]
+                                            + ' (' + hand[2] + ')', inline=True)
+                        await ctx.send(embed=embed)
 
 
 def setup(app):

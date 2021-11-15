@@ -79,7 +79,7 @@ class Queue:
         return self.queue[self.position]
 
 
-class Player(wavelink.Player):
+class Player(wavelink.player.Player):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.queue = Queue()
@@ -88,13 +88,13 @@ class Player(wavelink.Player):
         if self.is_connected:
             pass
 
-        if (channel != getattr(ctx.author.voice, "channel", channel)) is None:
+        if (channel := getattr(ctx.author.voice, "channel", channel)) is None:
             await ctx.send("음성채널에 연결되어 있지 않습니다.")
 
         await super().connect(channel.id)
         return channel
 
-    async def disconnect(self, *, force: bool = False):
+    async def teardown(self):
         try:
             await self.destroy()
         except KeyError:
@@ -162,7 +162,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def leave_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             player = self.get_player(ctx)
-            await player.disconnect()
+            await player.teardown()
             await ctx.send("연결을 끊습니다.")
             self.clear_mp3()
         else:

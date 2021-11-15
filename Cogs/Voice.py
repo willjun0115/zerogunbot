@@ -73,7 +73,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             player = self.app.voice_clients
             channel = ctx.author.voice.channel
             if channel:
-                await player.connect(ctx, channel)
+                await player.connect(channel)
                 await ctx.send(channel.name + "에 연결합니다.")
             else:
                 await ctx.send("음성채널에 연결되어 있지 않습니다.")

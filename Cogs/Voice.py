@@ -70,8 +70,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def join_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             if ctx.author.voice:
+                player = get(self.app.voice_clients, guild=ctx.guild)
                 channel = ctx.author.voice.channel
-                await ctx.guild.change_voice_state(channel)
+                await player.change_voice_state(channel)
                 await channel.connect()
                 await ctx.send(channel.name + "에 연결합니다.")
             else:

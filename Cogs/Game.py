@@ -646,7 +646,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 embed = discord.Embed(
                     title="<블랙잭 결과>",
                     description=', '.join([x.name for x in winners]) +
-                                f' 님 우승! (상금: {(len(finish_members)-1) // len(winners)} :coin:)'
+                                f' 님 우승! (상금: {((len(finish_members)-1) // len(winners))*coin} :coin:)'
                 )
                 for member in members:
                     if board[member] == 22:

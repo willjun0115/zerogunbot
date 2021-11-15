@@ -18,7 +18,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '192'
+                'preferredquality': '320'
             }],
         }
 

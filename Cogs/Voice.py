@@ -70,10 +70,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def join_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             if ctx.author.voice:
-                player = self.app.voice_clients
                 channel = ctx.author.voice.channel
                 await ctx.guild.change_voice_state(channel)
-                await player.connect()
+                await channel.connect()
                 await ctx.send(channel.name + "에 연결합니다.")
             else:
                 await ctx.send("음성채널에 연결되어 있지 않습니다.")
@@ -86,8 +85,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def leave_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            player = self.app.voice_clients
-            await player.disconnect()
+            await ctx.voice_client.disconnect()
             await ctx.send("연결을 끊습니다.")
             self.clear_mp3()
         else:

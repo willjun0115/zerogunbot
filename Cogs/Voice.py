@@ -5,12 +5,11 @@ from discord.utils import get
 from discord.ext import commands
 from discord import FFmpegPCMAudio
 import os
-import youtube_dl
 import opuslib
+import youtube_dl
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from gtts import gTTS
-import wavelink
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -54,90 +53,16 @@ class YTDLSource(discord.PCMVolumeTransformer):
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
 
-class Queue:
-    def __init__(self):
-        self.queue = []
-        self.position = 0
-
-    def add(self, *args):
-        self.queue.extend(args)
-
-    def get_first_track(self):
-        if not self.queue:
-            pass
-
-        return self.queue[0]
-
-    def get_next_track(self):
-        if not self.queue:
-            pass
-
-        self.position += 1
-        if self.position > len(self.queue) - 1:
-            return None
-
-        return self.queue[self.position]
-
-
-class Player(wavelink.player.Player):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.queue = Queue()
-
-    async def connect(self, ctx, channel=None):
-        if self.is_connected:
-            pass
-
-        if (channel := getattr(ctx.author.voice, "channel", channel)) is None:
-            await ctx.send("음성채널에 연결되어 있지 않습니다.")
-
-        await super().connect(channel.id)
-        return channel
-
-    async def teardown(self):
-        try:
-            await self.destroy()
-        except KeyError:
-            pass
-
-
 class Voice(commands.Cog, name="음성", description="음성 채널 및 보이스 클라이언트 조작에 관한 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app
-        self.wavelink = wavelink.Client(bot=app)
 
     def clear_mp3(self):
         for file in os.listdir("./"):
             if file.endswith(".mp3"):
                 os.remove(file)
 
-    async def cog_check(self, ctx):
-        if isinstance(ctx.channel, discord.DMChannel):
-            return False
-
-    async def start_nodes(self):
-        await self.app.wait_until_ready()
-
-        nodes = {
-            "MAIN": {
-                "host": "127.0.0.1",
-                "port": 2333,
-                "rest_uri": "http://127.0.0.1:2333",
-                "password": "willjun115",
-                "identifier": "MAIN",
-                "region": "europe",
-            }
-        }
-
-        for node in nodes.values():
-            await self.wavelink.initiate_node(**node)
-
-    def get_player(self, obj):
-        if isinstance(obj, commands.Context):
-            return self.wavelink.get_player(obj.guild.id, cls=Player, context=obj)
-        elif isinstance(obj, discord.Guild):
-            return self.wavelink.get_player(obj.id, cls=Player)
 
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],
@@ -145,7 +70,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def join_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            player = self.get_player(ctx)
+            player = self.app.voice_clients
             channel = ctx.author.voice.channel
             if channel:
                 await player.connect(ctx, channel)
@@ -161,8 +86,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def leave_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            player = self.get_player(ctx)
-            await player.teardown()
+            player = self.app.voice_clients
+            await player.disconnect()
             await ctx.send("연결을 끊습니다.")
             self.clear_mp3()
         else:
@@ -206,14 +131,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 stream = False
             async with ctx.typing():
                 player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
-            if len(self.queue) == 0:
-                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-                msg = f'Now playing: {player.title}'
-                if stream is True:
-                    msg = f'Now streaming: {player.title}'
-                await ctx.send(msg)
-            else:
-                self.queue.append(player)
+            ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+            msg = f'Now playing: {player.title}'
+            if stream is True:
+                msg = f'Now streaming: {player.title}'
+            await ctx.send(msg)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
@@ -278,19 +200,6 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             voice = get(self.app.voice_clients, guild=ctx.guild)
             if voice and voice.is_connected():
                 voice.stop()
-        else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
-
-    @commands.command(
-        name="재생목록", aliases=["queue", "q"],
-        help="재생목록을 가져옵니다.", usage="*", hidden=True
-    )
-    async def get_queue_list(self, ctx):
-        if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            embed = discord.Embed(title="<재생 목록>", description="현재 재생 중")
-            for player in self.queue:
-                embed.add_field(name=str(self.queue.index(player)), value=player.title, inline=False)
-            await ctx.send(embed=embed)
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

@@ -553,7 +553,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     players = [x for x in members if x not in finish_members]
                     if num >= len(players):
                         num = 0
-                    embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members))} :coin:")
+                    embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members)*coin)} :coin:")
                     for member in members:
                         if member in finish_members:
                             embed.add_field(name="> " + member.name, value=board[member], inline=True)

@@ -496,10 +496,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n21를 초과하면 0점으로 처리됩니다."
              "\n시작하면 참가자마다 두 장의 카드를 받습니다."
              "\n카드를 더 받을 지, 그대로 정할 지 모두 선택이 끝나면,"
-             "\n승자를 정합니다.", usage="*"
+             "\n승자를 정합니다.", usage="* (int(default=1))"
     )
-    async def blackjack(self, ctx):
+    async def blackjack(self, ctx, coin=1):
         start, members = await self.gather_members(ctx, "블랙잭")
+        coin = int(coin)
+        if coin < 1:
+            await ctx.send("상금 배율은 1 이상이어야 합니다.")
+            start = False
+        elif coin > 10:
+            await ctx.send("상금 배율은 10 이하여야 합니다.")
+            start = False
         if start is True:
             if len(members) < 2:
                 await ctx.send("블랙잭은 혼자할 수 없습니다.")
@@ -635,7 +642,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             winners.append(member)
                         elif board[member] > board[winners[0]]:
                             winners = [member]
-                await self.calc_prize(ctx, 1, finish_members, winners)
+                await self.calc_prize(ctx, coin, finish_members, winners)
                 embed = discord.Embed(
                     title="<블랙잭 결과>",
                     description=', '.join([x.name for x in winners]) +

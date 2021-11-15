@@ -63,17 +63,17 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if file.endswith(".mp3"):
                 os.remove(file)
 
-
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],
         help="음성 채널에 연결합니다.", usage="*"
     )
     async def join_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            player = self.app.voice_clients
-            channel = ctx.author.voice.channel
-            if channel:
-                await player.connect(channel)
+            if ctx.author.voice:
+                player = self.app.voice_clients
+                channel = ctx.author.voice.channel
+                await ctx.guild.change_voice_state(channel)
+                await player.connect()
                 await ctx.send(channel.name + "에 연결합니다.")
             else:
                 await ctx.send("음성채널에 연결되어 있지 않습니다.")

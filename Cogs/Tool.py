@@ -19,7 +19,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192'
-            }]
+            }],
         }
 
     async def find_log(self, ctx, selector, id):
@@ -145,6 +145,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             await msg.edit(content="다운 완료! 배포 중...")
             for file in os.listdir("./"):
                 if file.endswith(".mp3"):
+                    await msg.delete()
                     await ctx.send(content=None, file=file)
                     os.remove(file)
                     break

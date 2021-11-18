@@ -72,8 +72,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if ctx.author.voice:
                 player = get(self.app.voice_clients, guild=ctx.guild)
                 channel = ctx.author.voice.channel
-                await player.change_voice_state(channel)
-                await channel.connect()
+                if player.is_connected:
+                    await player.move_to(channel)
+                else:
+                    player = await channel.connect()
                 await ctx.send(channel.name + "에 연결합니다.")
             else:
                 await ctx.send("음성채널에 연결되어 있지 않습니다.")

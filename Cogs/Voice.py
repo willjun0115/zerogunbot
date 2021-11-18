@@ -72,6 +72,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if ctx.author.voice:
                 player = get(self.app.voice_clients, guild=ctx.guild)
                 channel = ctx.author.voice.channel
+                await player.change_voice_state(channel)
                 if player.is_connected:
                     await player.move_to(channel)
                 else:

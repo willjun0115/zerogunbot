@@ -69,7 +69,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def join_ch(self, ctx):
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
-            if ctx.author.voice:
+            if ctx.author.voice.channel is not None:
                 player = get(self.app.voice_clients, guild=ctx.guild)
                 channel = ctx.author.voice.channel
                 await player.change_voice_state(channel)

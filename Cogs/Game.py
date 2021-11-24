@@ -602,7 +602,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if num >= len(players):
                         num = 0
                     await msg_.clear_reactions()
-                embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members))} :coin:")
+                embed = discord.Embed(title="<블랙잭>", description=f"{str(len(members)*coin)} :coin:")
                 for member in members:
                     if member in finish_members:
                         embed.add_field(name="> " + member.name, value=board[member], inline=True)

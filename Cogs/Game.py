@@ -10,6 +10,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     def __init__(self, app):
         self.app = app
+        self.cannot_find_id = '로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
 
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
@@ -25,7 +26,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         author_log = await self.find_log(ctx, '$', ctx.author.id)
         start = False
         if author_log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send(self.cannot_find_id)
         else:
             msg = await ctx.send(
                 ctx.author.name + f" 님이 {game_name}을(를) 신청합니다."
@@ -52,7 +53,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         elif user not in members:
                             member_log = await self.find_log(ctx, '$', user.id)
                             if member_log is None:
-                                await ctx.send('로그에서 ID를 찾지 못했습니다.')
+                                await ctx.send(self.cannot_find_id)
                             else:
                                 members.append(user)
                     else:
@@ -88,7 +89,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send(self.cannot_find_id)
         else:
             bet = int(bet)
             coin = int(log.content[20:])
@@ -119,7 +120,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send(self.cannot_find_id)
         else:
             coin = int(log.content[20:])
             if ctx.channel == my_channel:
@@ -247,7 +248,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     coin -= 1
                 await log.edit(content=log.content[:20] + str(coin))
         else:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send(self.cannot_find_id)
 
     @commands.command(
         name="홀짝", aliases=["짝홀", "odd-even"],
@@ -296,6 +297,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 else:
                     await ctx.send(ctx.author.name + " 님 패!")
                     await log.edit(content=log.content[:20] + str(coin - num))
+        else:
+            await ctx.send(self.cannot_find_id)
 
     @commands.command(
         name="리폿", aliases=["신고", "report"],

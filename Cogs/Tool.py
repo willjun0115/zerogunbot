@@ -134,6 +134,42 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             await ctx.send("식별자는 1글자여야 합니다.")
 
     @commands.command(
+        name='암호화', aliases=["encrypt", "enc"],
+        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 1000)) str()', pass_context=True
+    )
+    async def chat_encode(self, ctx, num, *, args):
+        await ctx.message.delete()
+        code = ""
+        num = int(num)
+        if 0 <= num < 1000:
+            for c in args:
+                x = ord(c)
+                x = x * 2 + num * 3
+                cc = chr(x)
+                code = code + cc
+            await ctx.send(str(code))
+        else:
+            await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
+
+    @commands.command(
+        name='복호화', aliases=["decrypt", "dec"],
+        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 1000)) str(*code*)', pass_context=True
+    )
+    async def chat_decode(self, ctx, num, *, code):
+        await ctx.message.delete()
+        args = ""
+        num = int(num)
+        if 0 <= num < 1000:
+            for c in code:
+                x = ord(c)
+                x = (x - num * 3) // 2
+                cc = chr(x)
+                args = args + cc
+            await ctx.send(str(args))
+        else:
+            await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
+
+    @commands.command(
         name="음원추출", aliases=["extract_mp3"],
         help="유튜브 링크를 통해 음원을 추출합니다.", usage="* str(*url*)", hidden=True
     )

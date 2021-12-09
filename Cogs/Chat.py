@@ -85,42 +85,6 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         await asyncio.sleep(1)
         await msg.edit(content='저는 그런 말 못해요 ㅠㅠ')
 
-    @commands.command(
-        name='암호화', aliases=["encrypt", "enc"],
-        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 1000)) str()', pass_context=True
-    )
-    async def chat_encode(self, ctx, num, *, args):
-        await ctx.message.delete()
-        code = ""
-        num = int(num)
-        if 0 <= num < 1000:
-            for c in args:
-                x = ord(c)
-                x = x * 2 + num * 3
-                cc = chr(x)
-                code = code + cc
-            await ctx.send(str(code))
-        else:
-            await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
-
-    @commands.command(
-        name='복호화', aliases=["decrypt", "dec"],
-        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 1000)) str(*code*)', pass_context=True
-    )
-    async def chat_decode(self, ctx, num, *, code):
-        await ctx.message.delete()
-        args = ""
-        num = int(num)
-        if 0 <= num < 1000:
-            for c in code:
-                x = ord(c)
-                x = (x - num * 3) // 2
-                cc = chr(x)
-                args = args + cc
-            await ctx.send(str(args))
-        else:
-            await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
-
 
 def setup(app):
     app.add_cog(Chat(app))

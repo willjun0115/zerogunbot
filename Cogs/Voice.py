@@ -71,12 +71,16 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         if get(ctx.guild.roles, name='DJ') in ctx.message.author.roles:
             voice = get(self.app.voice_clients, guild=ctx.guild)
             channel = ctx.author.voice.channel
-            if voice and voice.is_connected():
-                await voice.move_to(channel)
+            try:
+                if voice and voice.is_connected():
+                    await voice.move_to(channel)
+                else:
+                    await ctx.guild.change_voice_state(channel=channel)
+                    voice = await channel.connect()
+            except:
+                await ctx.send(":no_entry: 연결 오류가 발생했습니다.")
             else:
-                await ctx.guild.change_voice_state(channel=channel)
-                voice = await channel.connect()
-            await ctx.send(channel.name + "에 연결합니다.")
+                await ctx.send(channel.name + "에 연결합니다.")
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

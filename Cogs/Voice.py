@@ -82,7 +82,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             else:
                 await ctx.send(channel.name + "에 연결합니다.")
         else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+            await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
         name="퇴장", aliases=["연결해제", "연결끊기", "disconnect", "dc", "leave"],

@@ -136,8 +136,8 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     coin = int(log.content[20:])
                     if coin >= 100:
                         await log_channel.send('%' + str(ctx.author.id) + ';0')
-                        await log.edit(content=log.content[:20]+str(coin-100))
-                        await ctx.send(ctx.author.name + " 님이 행운 버프를 받습니다. -100 :coin:")
+                        await log.edit(content=log.content[:20]+str(coin-50))
+                        await ctx.send(ctx.author.name + " 님이 행운 버프를 받습니다. -50 :coin:")
                     else:
                         await ctx.send("코인이 부족합니다.")
 

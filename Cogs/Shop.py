@@ -116,7 +116,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
 
     @commands.command(
         name="행운", aliases=["luck+"],
-        help="행운 버프를 얻습니다. (100 :coin:)"
+        help="행운 버프를 얻습니다."
              "\n행운에 비례해 가챠 확률이 증가합니다. (행운 1 당 +0.1%)"
              "\n행운 보유 중엔 손실 확률이 50% 감소합니다."
              "\n역할을 얻으면 행운이 초기화됩니다.",
@@ -133,17 +133,18 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 if log is None:
                     await ctx.send('로그에서 ID를 찾지 못했습니다.')
                 else:
+                    price = self.app.shop.get("행운")
                     coin = int(log.content[20:])
-                    if coin >= 100:
+                    if coin >= price:
                         await log_channel.send('%' + str(ctx.author.id) + ';0')
-                        await log.edit(content=log.content[:20]+str(coin-50))
-                        await ctx.send(ctx.author.name + " 님이 행운 버프를 받습니다. -50 :coin:")
+                        await log.edit(content=log.content[:20]+str(coin-price))
+                        await ctx.send(ctx.author.name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
                     else:
                         await ctx.send("코인이 부족합니다.")
 
     @commands.command(
         name="닉변", aliases=["nick"],
-        help="닉네임을 변경합니다. (1000 :coin:)"
+        help="닉네임을 변경합니다."
              "\n아무것도 입력하지 않으면 기본 닉네임으로 변경됩니다.", usage="* (str())"
     )
     async def nick_change(self, ctx, *, nickname=None):
@@ -151,8 +152,9 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         if log is None:
             await ctx.send('로그에서 ID를 찾지 못했습니다.')
         else:
+            price = self.app.shop.get("닉변")
             coin = int(log.content[20:])
-            if coin >= 1000:
+            if coin >= price:
                 msg = await ctx.send(
                     ":warning: 주의: 코인을 소모합니다."
                     f"\n정말 닉네임을 {nickname}으로 변경하시겠습니까?"
@@ -171,7 +173,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 else:
                     if str(reaction) == '✅':
                         await ctx.author.edit(nick=nickname)
-                        await log.edit(content=log.content[:20] + str(coin - 1000))
+                        await log.edit(content=log.content[:20] + str(coin - price))
                         await ctx.send(ctx.author.name + " 님의 닉네임을 " + nickname + "(으)로 변경했습니다.")
                     else:
                         await ctx.send("닉네임 변경을 취소했습니다.")

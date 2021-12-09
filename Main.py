@@ -24,7 +24,7 @@ app.shop = {
     "행운": 50
 }
 
-token = "ODExMDc3MzI4MDk5NjA2NTMx.YCs8oA.3Upak_WkaF8pSPTsUR0F_BOJ8Xc"
+token = os.environ.get("TOKEN")
 
 for filename in os.listdir("Cogs"):
     if filename.endswith(".py"):

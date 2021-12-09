@@ -117,7 +117,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     @commands.command(
         name="행운", aliases=["luck+"],
         help="행운 버프를 얻습니다. (100 :coin:)"
-             "\n행운에 비례해 가챠 확률이 증가합니다. (행운 1 당 0.1배)"
+             "\n행운에 비례해 가챠 확률이 증가합니다. (행운 1 당 +0.1%)"
              "\n행운 보유 중엔 손실 확률이 50% 감소합니다."
              "\n역할을 얻으면 행운이 초기화됩니다.",
         usage="*"

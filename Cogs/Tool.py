@@ -135,7 +135,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name='암호화', aliases=["encrypt", "enc"],
-        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 1000)) str()', pass_context=True
+        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 999]) str()', pass_context=True
     )
     async def chat_encode(self, ctx, num, *, args):
         await ctx.message.delete()

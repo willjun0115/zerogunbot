@@ -110,7 +110,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     break
             if item_found is False:
                 if args in self.app.shop.keys():
-                    await ctx.send("해당 아이템은 명령어로 실행해주세요.\n'%도움말'을 참조해주세요.")
+                    await ctx.send(f"해당 아이템은 '%{args}'로 실행해주세요.\n'%도움말'을 참조해주세요.")
                 else:
                     await ctx.send("상품을 찾지 못했습니다.")
 

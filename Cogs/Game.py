@@ -220,13 +220,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if ctx.channel == my_channel:
                 rand = random.random() * 100
                 if rand <= 1:
-                    await bot_log.edit(content=bot_log.content[:20] + str(0))
+                    await bot_log.edit(content=bot_log.content[:20] + str(10))
                     await log.edit(content=log.content[:20] + str(coin + prize))
                     await ctx.send(f"{ctx.author.name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
                 else:
                     await ctx.send("꽝 입니다. 다음에 도전하세요")
             else:
-                await ctx.send(f"당첨 상금: {prize} :coin:")
+                await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
     @commands.command(
         name="가위바위보", aliases=["가바보", "rsp"],

@@ -206,7 +206,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="복권", aliases=["ㅂㄱ", "lottery"],
-        help="가챠에서 꽝이 나오면 복권 상금이 오릅니다.\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다.", usage="*"
+        help="가챠에서 꽝이 나오면 복권 상금이 오릅니다.\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다.\n(당첨 확률은 1%)", usage="*"
     )
     async def lottery(self, ctx):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
@@ -218,8 +218,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
             if ctx.channel == my_channel:
-                rand = random.random() * 100
-                if rand <= 1:
+                if random.random() <= 0.01:
                     await bot_log.edit(content=bot_log.content[:20] + str(10))
                     await log.edit(content=log.content[:20] + str(coin + prize))
                     await ctx.send(f"{ctx.author.name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")

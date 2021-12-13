@@ -179,6 +179,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 result = '손실 :x:'
                             else:
                                 prize = "꽝"
+                                bot_log = await self.find_log(ctx, '$', self.app.id)
+                                await bot_log.edit(content=bot_log.content[:20] + str(int(bot_log.content[20:]) + 1))
                             await log.edit(content=log.content[:20] + str(coin))
                         else:
                             if luck_log is not None:
@@ -202,6 +204,30 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
         embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)
+
+    @commands.command(
+        name="복권", aliases=["ㅂㄱ", "lottery"],
+        help="가챠에서 꽝이 나오면 복권 상금이 오릅니다.\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다.", usage="*"
+    )
+    async def lottery(self, ctx):
+        my_channel = ctx.guild.get_channel(self.app.gacha_ch)
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is None:
+            await ctx.send(self.cannot_find_id)
+        else:
+            bot_log = await self.find_log(ctx, '$', self.app.id)
+            coin = int(log.content[20:])
+            prize = int(bot_log.content[20:])
+            if ctx.channel == my_channel:
+                rand = random.random() * 100
+                if rand <= 1:
+                    await bot_log.edit(content=bot_log.content[:20] + str(0))
+                    await log.edit(content=log.content[:20] + str(coin + prize))
+                    await ctx.send(f"{ctx.author.name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
+                else:
+                    await ctx.send("꽝 입니다. 다음에 도전하세요")
+            else:
+                await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
     @commands.command(
         name="가위바위보", aliases=["가바보", "rsp"],

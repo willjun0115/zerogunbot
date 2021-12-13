@@ -8,6 +8,7 @@ import ctypes.util
 
 prefix = '%'
 app = commands.Bot(command_prefix=prefix, help_command=None)
+app.id = 811077328099606531
 app.prefix = prefix
 app.gacha_ch = 811849095031029762
 app.log_ch = 874970985307201546

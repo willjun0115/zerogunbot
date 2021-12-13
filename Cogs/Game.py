@@ -179,7 +179,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 result = '손실 :x:'
                             else:
                                 prize = "꽝"
-                                bot_log = await self.find_log(ctx, '$', self.app.user.id)
+                                bot_log = await self.find_log(ctx, '$', self.app.id)
                                 await bot_log.edit(content=bot_log.content[:20] + str(int(bot_log.content[20:]) + 1))
                             await log.edit(content=log.content[:20] + str(coin))
                         else:
@@ -215,7 +215,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
-            bot_log = await self.find_log(ctx, '$', self.app.user.id)
+            bot_log = await self.find_log(ctx, '$', self.app.id)
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
             if ctx.channel == my_channel:

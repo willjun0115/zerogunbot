@@ -65,16 +65,17 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.message.delete()
             if int(num) > 1000:
                 await ctx.send(" :no_entry: 읽을 수 있는 채팅 기록은 최대 999개 입니다.")
-            if member is None:
-                deleted = await ctx.channel.purge(limit=int(num))
             else:
-                member = [member]
+                if member is None:
+                    deleted = await ctx.channel.purge(limit=int(num))
+                else:
+                    member = [member]
 
-                def check(m):
-                    return m.author in member and m.channel == ctx.channel
+                    def check(m):
+                        return m.author in member and m.channel == ctx.channel
 
-                deleted = await ctx.channel.purge(limit=int(num), check=check)
-            await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
+                    deleted = await ctx.channel.purge(limit=int(num), check=check)
+                await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 

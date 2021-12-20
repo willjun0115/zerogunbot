@@ -125,7 +125,14 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         if len(selector) == 1:
             log = await self.find_log(ctx, selector, member.id)
             if log is not None:
-                await log.edit(content=log.content[:20] + str(val))
+                if val[0] == '+':
+                    val = val[1:]
+                    await log.edit(content=log.content[:20] + str(int(log.content[:20]) + int(val)))
+                elif val[0] == '-':
+                    val = val[1:]
+                    await log.edit(content=log.content[:20] + str(int(log.content[:20]) - int(val)))
+                else:
+                    await log.edit(content=log.content[:20] + str(val))
                 await ctx.send('로그를 업데이트했습니다.')
             else:
                 await log_channel.send(selector + str(member.id) + ';0')
@@ -168,23 +175,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             await ctx.send(str(args))
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
-
-    @commands.command(
-        name="음원추출", aliases=["extract_mp3"],
-        help="유튜브 링크를 통해 음원을 추출합니다.", usage="* str(*url*)", hidden=True
-    )
-    async def extract_yt(self, ctx, url):
-        if url.startswith("https://www.youtube.com/"):
-            msg = await ctx.send("음원을 추출 중 입니다...")
-            with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-                ydl.download([url])
-            await msg.edit(content="다운 완료! 배포 중...")
-            for file in os.listdir("./"):
-                if file.endswith(".mp3"):
-                    await msg.delete()
-                    await ctx.send(content=None, file=file)
-                    os.remove(file)
-                    break
 
 
 def setup(app):

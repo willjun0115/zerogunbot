@@ -63,7 +63,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
     async def clean(self, ctx, num=1, member: discord.Member = None):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
             await ctx.message.delete()
-            if int(num) > 1000:
+            if int(num) > 999:
                 await ctx.send(" :no_entry: 읽을 수 있는 채팅 기록은 최대 999개 입니다.")
             else:
                 if member is None:

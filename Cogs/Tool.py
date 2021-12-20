@@ -115,6 +115,57 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         )
         await ctx.send(embed=embed)
 
+    @commands.command(
+        name="0군인증", aliases=["0_certify"],
+        help="0군 인증서 발급 투표를 진행합니다.", usage="* @*member*"
+    )
+    async def zerogun_certification(self, ctx, member: discord.Member):
+        if get(ctx.guild.roles, name="0군 인증서") in member.roles:
+            await ctx.send("이미 인증된 멤버입니다.")
+        else:
+            await ctx.send(
+                "\n0군 인증 투표를 진행합니다."
+                "\n찬성표가 3개 이상이고 반대표보다 많아야 0군 인증서를 받을 수 있습니다."
+                "\n찬성을 원하시면 :white_check_mark: 를, 반대를 원하시면 :negative_squared_cross_mark: 를 눌러주세요."
+            )
+            members = [member]
+            pros = 0
+            cons = 0
+            reaction_list = ['✅', '❎']
+            msg = await ctx.send("On Ready...")
+            while True:
+                await msg.edit(
+                    content=f"{member.name}의 0군 인증 투표 진행 중..."
+                            "\n마지막 투표로부터 1분 경과 시 투표가 종료됩니다."
+                            f"\n:white_check_mark: {pros} : :negative_squared_cross_mark: {cons}"
+                )
+
+                for r in reaction_list:
+                    await msg.add_reaction(r)
+
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id \
+                           and user.bot is False and user not in members \
+                           and get(ctx.guild.roles, name="0군 인증서") in user.roles
+
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="마지막 투표로부터 1분이 경과했습니다. 투표를 종료합니다.", delete_after=2)
+                    break
+                else:
+                    if str(reaction) == '✅':
+                        pros += 1
+                    else:
+                        cons += 1
+                    members.append(user)
+                    await msg.clear_reactions()
+            if pros > cons and pros >= 3:
+                await member.add_roles(get(ctx.guild.roles, name="0군 인증서"))
+                await ctx.send(f"{member.name} 님의 0군 인증이 완료되었습니다.")
+            else:
+                await ctx.send(f"{member.name} 님이 0군 인증을 받지 못했습니다.")
+
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="로그편집", aliases=["editlog", "edit"],

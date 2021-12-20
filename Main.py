@@ -51,6 +51,13 @@ async def on_message(message):
         await app.process_commands(message)
 
 
+@app.event
+async def on_member_join(member):
+    if member.guild.id == 760194959336275988:
+        channel = member.guild.get_channel(813664336811786270)
+        await channel.send("새 멤버가 등장했습니다!\n0군 인증서를 발급받으려면 '%0군인증'을 진행해주세요.")
+
+
 @commands.has_permissions(administrator=True)
 @app.command(name="로드", aliases=["load"])
 async def load_commands(ctx, extension):

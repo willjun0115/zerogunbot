@@ -109,8 +109,12 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     item_found = True
                     break
             if item_found is False:
-                if args in self.app.shop.keys():
-                    await ctx.send(f"해당 아이템은 '%{args}'로 실행해주세요.\n'%도움말'을 참조해주세요.")
+                if args == "행운":
+                    await self.enhance_luck(ctx)
+                elif args == "닉변":
+                    await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
+                elif args == "유료복권":
+                    await self.lottery_p(ctx)
                 else:
                     await ctx.send("상품을 찾지 못했습니다.")
 
@@ -141,6 +145,31 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                         await ctx.send(ctx.author.name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
                     else:
                         await ctx.send("코인이 부족합니다.")
+
+    @commands.command(
+        name="유료복권", aliases=["lottery+"],
+        help="코인을 소모하며 '복권보다 당첨 확률이 높습니다.\n(당첨 확률은 2.05%)", usage="*"
+    )
+    async def lottery_p(self, ctx):
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        price = self.app.shop.get("유료복권")
+        if log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.')
+        else:
+            bot_log = await self.find_log(ctx, '$', self.app.id)
+            coin = int(log.content[20:])
+            prize = int(bot_log.content[20:])
+            if coin < price:
+                await ctx.send("코인이 부족합니다.")
+            else:
+                rand = random.random()
+                if rand <= 0.0205:
+                    await bot_log.edit(content=bot_log.content[:20] + str(10))
+                    await log.edit(content=log.content[:20] + str(coin - price + prize))
+                    await ctx.send(f"{ctx.author.name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
+                else:
+                    await log.edit(content=log.content[:20] + str(coin - price))
+                    await ctx.send("꽝 입니다. 다음에 도전하세요.")
 
     @commands.command(
         name="닉변", aliases=["nick"],

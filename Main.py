@@ -22,7 +22,8 @@ app.role_lst = [
 ]
 app.shop = {
     "닉변": 1000,
-    "행운": 50
+    "행운": 50,
+    "유료복권": 10,
 }
 
 token = os.environ.get("TOKEN")

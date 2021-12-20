@@ -6,7 +6,7 @@ from discord.ext import commands
 import operator
 
 
-class Game(commands.Cog, name="게임", description="오락 및 도박과 관련된 카테고리입니다."):
+class Game(commands.Cog, name="게임", description="오락 및 도박과 관련된 카테고리입니다.\n토큰을 수급할 수 있습니다."):
 
     def __init__(self, app):
         self.app = app

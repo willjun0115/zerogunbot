@@ -33,7 +33,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
-        help="도움말을 불러옵니다.\n'%사용법'에서 명령어 사용법 참조.", usage="* (str(*command or category*))"
+        help="도움말을 불러옵니다.\n'%사용법'에서 명령어 사용법 참조.", usage="* (str(*command*))"
     )
     async def help_command(self, ctx, func=None):
         if func is None:

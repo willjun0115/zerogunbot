@@ -159,8 +159,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             if rand <= role[1] * (1 + luck * 0.1):
                                 prize = role[0]
                                 if get(ctx.guild.roles, name=prize) in ctx.author.roles:
-                                    prize += f" (+ {str(role[2] // 100)} :coin:)"
-                                    await log.edit(content=log.content[:20] + str(coin + role[2] // 100))
+                                    prize += f" (+ {str(role[2] // 20)} :coin:)"
+                                    await log.edit(content=log.content[:20] + str(coin + role[2] // 20))
                                 else:
                                     await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                                 break
@@ -199,7 +199,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="확률(%) (중복 시 얻는 코인)")
         for role in self.app.role_lst:
-            embed.add_field(name="> " + role[0], value=str(role[1]) + f'% ({str(role[2] // 100)} :coin:)', inline=False)
+            embed.add_field(name="> " + role[0], value=str(role[1]) + f'% ({str(role[2] // 20)} :coin:)', inline=False)
         embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
         embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)
@@ -354,8 +354,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 log = await self.find_log(ctx, '$', ctx.author.id)
                 if log is not None:
                     coin = int(log.content[20:])
-                    await log.edit(content=log.content[:20] + str(coin+10))
-                    await ctx.send("접수 보상 + 10 :coin:")
+                    await log.edit(content=log.content[:20] + str(coin + lv * 10))
+                    await ctx.send(f"접수 보상 + {lv * 10} :coin:")
             else:
                 embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             await ctx.send(embed=embed)

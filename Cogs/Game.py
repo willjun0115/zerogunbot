@@ -816,10 +816,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
              "\n⏏️: 하프, ‼️: 따당, ✅: 콜(체크), 💀: 다이"
              "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
-             "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="*"
+             "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="* (int(default=1))"
     )
-    async def seotda(self, ctx):
+    async def seotda(self, ctx, seed=1):
+        seed = int(seed)
         start, members = await self.gather_members(ctx, "섯다")
+        if seed > 10:
+            await ctx.send("삥값은 10을 넘을 수 없습니다.")
+            start = False
+        elif seed < 1:
+            await ctx.send("삥값은 최소 1 이상이어야 합니다.")
+            start = False
         if start is True:
             if len(members) < 2:
                 await ctx.send("섯다는 혼자할 수 없습니다.")
@@ -839,10 +846,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     pairs.append(str(i) + '땡')
                 pairs.append('장땡')
                 level_table = ['멍텅구리구사', '구사', '땡잡이', '암행어사'] + ends + middles + pairs + ['13광땡', '18광땡', '38광땡']
-                coin = len(members)
+                coin = len(members) * seed
                 pay = {}
                 for member in members:
-                    pay[member] = 1
+                    pay[member] = seed
                 regame = True
                 while regame:
                     regame = False

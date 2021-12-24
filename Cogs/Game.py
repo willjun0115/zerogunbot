@@ -693,7 +693,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n시드를 추가하면 시드에 새 카드를 추가합니다."
              "\n덱에 있는 카드를 모두 쓰고 나면, 패가 가장 낮은 멤버에게"
              "\n순서대로 시드 카드를 줍니다."
-             "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="*"
+             "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="*", hidden=True, enabled=False
     )
     async def seed_poker(self, ctx):
         start, members = await self.gather_members(ctx, "시드 포커")

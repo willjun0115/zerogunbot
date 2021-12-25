@@ -57,15 +57,15 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             n = 1
             for md in members[1:]:
                 n += 1
-                names += f"{n}. {md[0].name} \n"
+                names += f"{n}. {md[0].nick} \n"
                 coins += str(md[1]) + "\n"
                 if n >= 10:
                     break
-            embed.add_field(name=f"1. " + winner[0].name + " :crown:", value=names, inline=True)
+            embed.add_field(name=f"1. " + winner[0].nick + " :crown:", value=names, inline=True)
             embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
             await msg.edit(content=None, embed=embed)
         else:
-            embed = discord.Embed(title="<토큰 랭킹>", description=member.name + " 님의 토큰 순위")
+            embed = discord.Embed(title="<토큰 랭킹>", description=member.nick + " 님의 토큰 순위")
             log = await self.find_log(ctx, '$', member.id)
             if log is not None:
                 coin = int(log.content[20:])

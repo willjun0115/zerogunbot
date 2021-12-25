@@ -101,7 +101,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 elif bet <= 0:
                     await ctx.send("최소 토큰 1개 이상 베팅해야 합니다.")
                 else:
-                    embed = discord.Embed(title="<:video_game:  베팅 결과>", description=ctx.author.nick + " 님의 결과")
+                    embed = discord.Embed(title="<:video_game:  베팅 결과>", description=ctx.author.display_name + " 님의 결과")
                     multi = (random.random() - 0.5) * 1
                     prize = round(bet*multi)
                     await log.edit(content=log.content[:20] + str(coin + prize))
@@ -145,7 +145,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     if str(reaction) == '✅':
-                        description = ctx.author.nick + " 님의 결과"
+                        description = ctx.author.display_name + " 님의 결과"
                         if luck_log is not None:
                             description += "\n(:four_leaf_clover: 행운 버프 적용 중)"
                         embed = discord.Embed(
@@ -184,7 +184,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         else:
                             if luck_log is not None:
                                 await luck_log.delete()
-                                await ctx.send(ctx.author.name + " 님의 행운이 초기화 되었습니다.")
+                                await ctx.send(ctx.author.display_name + " 님의 행운이 초기화 되었습니다.")
                         embed.add_field(name=str(prize), value=result, inline=False)
                         await ctx.send(embed=embed)
                     else:
@@ -222,7 +222,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if rand <= 0.0125:
                     await bot_log.edit(content=bot_log.content[:20] + str(10))
                     await log.edit(content=log.content[:20] + str(coin + prize))
-                    await ctx.send(f"{ctx.author.nick} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
+                    await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
                 else:
                     await ctx.send("꽝 입니다. 다음에 도전하세요.")
             else:
@@ -266,10 +266,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if bot_react == user_react:
                     await ctx.send('비겼네요.')
                 elif bot_react == hand[i]:
-                    await ctx.send(ctx.author.nick + ' 님 승리!')
+                    await ctx.send(ctx.author.display_name + ' 님 승리!')
                     coin += 1
                 else:
-                    await ctx.send(ctx.author.nick + ' 님 패배')
+                    await ctx.send(ctx.author.display_name + ' 님 패배')
                     coin -= 1
                 await log.edit(content=log.content[:20] + str(coin))
         else:
@@ -314,13 +314,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 else:
                     choice = 'zero'
                 if result == choice:
-                    await ctx.send(ctx.author.nick + " 님 승!")
+                    await ctx.send(ctx.author.display_name + " 님 승!")
                     if num == 0:
                         await log.edit(content=log.content[:20] + str(coin + 20))
                     else:
                         await log.edit(content=log.content[:20] + str(coin + num))
                 else:
-                    await ctx.send(ctx.author.nick + " 님 패!")
+                    await ctx.send(ctx.author.display_name + " 님 패!")
                     await log.edit(content=log.content[:20] + str(coin - num))
         else:
             await ctx.send(self.cannot_find_id)
@@ -383,7 +383,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         if author_log is not None:
             if member_log is not None:
                 msg = await ctx.send(
-                    ctx.author.nick + " 님이 " + member.nick + " 님에게 인디언 포커를 신청합니다."
+                    ctx.author.display_name + " 님이 " + member.display_name + " 님에게 인디언 포커를 신청합니다."
                                                              "\n수락하려면 :white_check_mark: 을 눌러주세요."
                 )
                 reaction_list = ['✅', '❎']
@@ -433,7 +433,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             try:
                                 reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=30.0)
                             except asyncio.TimeoutError:
-                                await ctx.send(party[num].nick + " 님이 시간을 초과하여 자동으로 다이 처리됩니다.")
+                                await ctx.send(party[num].display_name + " 님이 시간을 초과하여 자동으로 다이 처리됩니다.")
                                 if party[num] == ctx.author:
                                     await author_log.edit(
                                         content=author_log.content[:20] + str(int(author_log.content[20:]) - coin)
@@ -448,7 +448,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     await member_log.edit(
                                         content=member_log.content[:20] + str(int(member_log.content[20:]) - coin)
                                     )
-                                await ctx.send(party[num].nick + " 다이")
+                                await ctx.send(party[num].display_name + " 다이")
                                 await msg_.delete()
                                 break
                             else:
@@ -477,7 +477,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                         await member_log.edit(
                                             content=member_log.content[:20] + str(int(member_log.content[20:]) - coin)
                                         )
-                                    await ctx.send(user.nick + " 다이")
+                                    await ctx.send(user.display_name + " 다이")
                                     await msg_.delete()
                                     break
                             if num >= 2:

@@ -186,7 +186,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                     await log.edit(content=log.content[:20] + str(val))
                 await ctx.send('로그를 업데이트했습니다.')
             else:
-                await log_channel.send(selector + str(member.id) + ';0')
+                await log_channel.send(selector + str(member.id) + ';' + str(val))
                 await ctx.send('로그에 ' + member.name + ' 님의 ID를 기록했습니다.')
         else:
             await ctx.send("식별자는 1글자여야 합니다.")

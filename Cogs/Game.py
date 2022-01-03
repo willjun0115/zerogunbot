@@ -12,12 +12,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = '로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
 
-    def if_gacha_ch(self, ctx):
-        return ctx.message.channel.id == self.app.gacha_ch
-
-    def if_report_ch(self, ctx):
-        return ctx.message.channel.id == 872938926019575879
-
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
         find = None
@@ -116,7 +110,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     embed.add_field(name="> 배당", value=str(prize) + " :coin:")
                     await ctx.send(embed=embed)
             else:
-                raise commands.ChannelNotFound
+                await ctx.send(":no_entry: 이 채널에서는 실행할 수 없는 명령어입니다.")
 
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
@@ -196,7 +190,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
             else:
-                raise commands.ChannelNotFound
+                await ctx.send(":no_entry: 이 채널에서는 실행할 수 없는 명령어입니다.")
 
     @commands.command(
         name="가챠정보", aliases=["가챠확률", "gachainfo"],
@@ -331,7 +325,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             await ctx.send(self.cannot_find_id)
 
-    @commands.check(if_report_ch)
     @commands.command(
         name="리폿", aliases=["신고", "report"],
         help="부적절한 사용자를 신고합니다.\n낮은 확률로 접수되면 최고 권한을 잃습니다."

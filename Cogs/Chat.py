@@ -10,11 +10,6 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
     def __init__(self, app):
         self.app = app
 
-    def not_manage_ch(self):
-        def predicate(ctx):
-            return ctx.message.channel.id not in [self.app.gacha_ch, 872938926019575879]
-        return commands.check(predicate)
-
     @commands.command(
         name="안녕", aliases=["인사", "ㅎㅇ", "hello", "hi"],
         help="짧은 인사를 건넵니다.", usage="*"
@@ -37,55 +32,51 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         await ctx.message.delete()
         await ctx.send(args)
 
+    @commands.has_role("언론 통제")
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tc"],
         help="잠시 후 사라지는 채팅을 전송합니다.", usage="* str()", pass_context=True
     )
     async def _say_timer(self, ctx, *, args):
-        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
-            await ctx.message.delete()
-            msg = await ctx.send(":clock12: " + args)
-            await asyncio.sleep(1)
-            await msg.edit(content=":clock3: " + args)
-            await asyncio.sleep(1)
-            await msg.edit(content=":clock6: " + args)
-            await asyncio.sleep(1)
-            await msg.edit(content=":clock9: " + args)
-            await asyncio.sleep(1)
-            await msg.edit(content=":clock12: " + args)
-            await asyncio.sleep(1)
-            await msg.edit(content=':boom: ', delete_after=1)
-        else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+        await ctx.message.delete()
+        msg = await ctx.send(":clock12: " + args)
+        await asyncio.sleep(1)
+        await msg.edit(content=":clock3: " + args)
+        await asyncio.sleep(1)
+        await msg.edit(content=":clock6: " + args)
+        await asyncio.sleep(1)
+        await msg.edit(content=":clock9: " + args)
+        await asyncio.sleep(1)
+        await msg.edit(content=":clock12: " + args)
+        await asyncio.sleep(1)
+        await msg.edit(content=':boom: ', delete_after=1)
 
     @commands.cooldown(1, 60., commands.BucketType.member)
+    @commands.has_role("언론 통제")
     @commands.command(
         name="청소", aliases=["일괄삭제", "clear", "purge"],
         help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."
              "\n특정 사용자의 채팅만을 지울 수도 있습니다. (쿨타임: 60초)", usage="* int((0, 999]) (@*member*)", pass_context=True
     )
     async def clean(self, ctx, num=1, member: discord.Member = None):
-        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
-            await ctx.message.delete()
-            if int(num) > 999:
-                await ctx.send(" :no_entry: 읽을 수 있는 채팅 기록은 최대 999개 입니다.")
-            else:
-                if member is None:
-                    deleted = await ctx.channel.purge(limit=int(num))
-                else:
-                    member = [member]
-
-                    def check(m):
-                        return m.author in member and m.channel == ctx.channel
-
-                    deleted = await ctx.channel.purge(limit=int(num), check=check)
-                await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
+        await ctx.message.delete()
+        if int(num) > 999:
+            await ctx.send(" :no_entry: 읽을 수 있는 채팅 기록은 최대 999개 입니다.")
         else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+            if member is None:
+                deleted = await ctx.channel.purge(limit=int(num))
+            else:
+                member = [member]
+
+                def check(m):
+                    return m.author in member and m.channel == ctx.channel
+
+                deleted = await ctx.channel.purge(limit=int(num), check=check)
+            await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
 
     @commands.command(
         name='패드립', aliases=["mb"],
-        help="저희 봇에 그런 기능은 없습니다?", usage="*"
+        help="저희 봇에 그런 기능은 없습니다?", usage="*", hidden=True
     )
     async def fdr(self, ctx):
         msg = await ctx.send("느금마")

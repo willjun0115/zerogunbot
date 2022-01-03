@@ -98,6 +98,8 @@ async def on_command_error(ctx, error):
         await ctx.send(":x: 값이 잘못되었습니다.")
     elif isinstance(error, commands.MissingPermissions):
         await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+    elif isinstance(error, commands.CommandOnCooldown):
+        await ctx.send(f" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {error.retry_after}초)")
 
 
 app.run(token)

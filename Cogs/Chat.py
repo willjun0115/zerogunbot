@@ -55,10 +55,11 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         else:
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
+    @commands.cooldown(1, 60., commands.BucketType.member)
     @commands.command(
         name="청소", aliases=["일괄삭제", "clear", "purge"],
         help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."
-             "\n특정 사용자의 채팅만을 지울 수도 있습니다.", usage="* int((0, 999]) (@*member*)", pass_context=True
+             "\n특정 사용자의 채팅만을 지울 수도 있습니다. (쿨타임: 60초)", usage="* int((0, 999]) (@*member*)", pass_context=True
     )
     async def clean(self, ctx, num=1, member: discord.Member = None):
         if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:

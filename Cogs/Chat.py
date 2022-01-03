@@ -59,7 +59,6 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.cooldown(1, 60., commands.BucketType.member)
-    @not_manage_ch()
     @commands.command(
         name="청소", aliases=["일괄삭제", "clear", "purge"],
         help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."

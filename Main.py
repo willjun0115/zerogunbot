@@ -102,7 +102,7 @@ async def on_command_error(ctx, error):
         await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
     elif isinstance(error, commands.CommandOnCooldown):
         await ctx.send(f" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {int(error.retry_after)}초)")
-    elif isinstance(error, commands.CheckFailure):
+    elif isinstance(error, commands.ChannelNotFound):
         await ctx.send(":no_entry: 이 채널에서 실행할 수 없는 명령어입니다.")
 
 

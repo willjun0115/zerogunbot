@@ -116,7 +116,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     embed.add_field(name="> 배당", value=str(prize) + " :coin:")
                     await ctx.send(embed=embed)
             else:
-                await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
+                raise commands.ChannelNotFound
 
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
@@ -196,7 +196,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
             else:
-                await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
+                raise commands.ChannelNotFound
 
     @commands.command(
         name="가챠정보", aliases=["가챠확률", "gachainfo"],

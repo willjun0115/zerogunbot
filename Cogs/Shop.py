@@ -147,9 +147,10 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     else:
                         await ctx.send("코인이 부족합니다.")
 
+    @commands.cooldown(5, 30., commands.BucketType.member)
     @commands.command(
         name="유료복권", aliases=["lottery+"],
-        help="코인을 소모하며 '복권보다 당첨 확률이 높습니다.\n(당첨 확률은 2.05%)", usage="*"
+        help="코인을 소모하며 '복권보다 당첨 확률이 높습니다.\n(당첨 확률은 2.25%)", usage="*"
     )
     async def lottery_p(self, ctx):
         log = await self.find_log(ctx, '$', ctx.author.id)

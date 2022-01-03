@@ -116,6 +116,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
+    @commands.check(if_gacha_ch)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
@@ -208,6 +209,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)
 
+    @commands.check(if_gacha_ch)
     @commands.command(
         name="복권", aliases=["ㅂㄱ", "lottery"],
         help="가챠에서 꽝이 나오면 복권 상금이 오릅니다.\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다.\n(당첨 확률은 1.25%)", usage="*"
@@ -347,7 +349,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 win = 0
                 embed.add_field(name="관리자는 신고할 수 없습니다.", value=ctx.author.name + " 님, 맞을래요?",
                                 inline=False)
-            elif get(ctx.guild.roles, name="0군 인증서").position < lv <= get(ctx.guild.roles, name="창씨개명").position:
+            elif get(ctx.guild.roles, name="0군 인증서").position < lv < get(ctx.guild.roles, name="관리자").position:
                 win = lv
             elif lv == get(ctx.guild.roles, name="0군 인증서").position:
                 win = 0

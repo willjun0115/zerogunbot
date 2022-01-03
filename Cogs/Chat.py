@@ -32,7 +32,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.message.delete()
             await ctx.send(args)
         else:
-            await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
+            await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tc"],

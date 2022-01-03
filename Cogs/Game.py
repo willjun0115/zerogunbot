@@ -15,6 +15,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     def if_gacha_ch(self, ctx):
         return ctx.message.channel.id == self.app.gacha_ch
 
+    def if_report_ch(self, ctx):
+        return ctx.message.channel.id == 872938926019575879
+
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
         find = None
@@ -331,6 +334,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             await ctx.send(self.cannot_find_id)
 
+    @commands.check(if_report_ch)
     @commands.command(
         name="리폿", aliases=["신고", "report"],
         help="부적절한 사용자를 신고합니다.\n낮은 확률로 접수되면 최고 권한을 잃습니다."

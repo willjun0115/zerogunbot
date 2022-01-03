@@ -384,7 +384,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if member_log is not None:
                 msg = await ctx.send(
                     ctx.author.display_name + " 님이 " + member.display_name + " 님에게 인디언 포커를 신청합니다."
-                                                             "\n수락하려면 :white_check_mark: 을 눌러주세요."
+                    "\n수락하려면 :white_check_mark: 을 눌러주세요."
                 )
                 reaction_list = ['✅', '❎']
                 for r in reaction_list:
@@ -420,7 +420,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         msg_ = await ctx.send("On ready...")
                         while len(called_party) < 2:
                             embed = discord.Embed(title="<인디언 포커>", description=f"{str(coin)} :coin:")
-                            embed.add_field(name="> :white_check_mark:", value=str([x.nick for x in called_party]),
+                            embed.add_field(name="> :white_check_mark:", value=str([x.display_name for x in called_party]),
                                             inline=True)
                             await msg_.edit(content=party[num].mention + " 님 차례입니다.", embed=embed)
                             for r in reaction_list:

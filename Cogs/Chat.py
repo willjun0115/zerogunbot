@@ -23,16 +23,14 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         else:
             await ctx.channel.send(ctx.author.name + '님, 안녕하세요!')
 
+    @commands.has_role("언론 통제")
     @commands.command(
         name="말하기", aliases=["say"],
         help="입력값을 채팅에 전송합니다.", usage="* str()", pass_context=True
     )
     async def _say(self, ctx, *, args):
-        if get(ctx.guild.roles, name='언론 통제') in ctx.message.author.roles:
-            await ctx.message.delete()
-            await ctx.send(args)
-        else:
-            await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
+        await ctx.message.delete()
+        await ctx.send(args)
 
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tc"],

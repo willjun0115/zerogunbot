@@ -150,7 +150,8 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     @commands.cooldown(5, 30., commands.BucketType.member)
     @commands.command(
         name="유료복권", aliases=["lottery+"],
-        help="코인을 소모하며 '복권보다 당첨 확률이 높습니다.\n(당첨 확률은 2.25%)", usage="*"
+        help="코인을 소모하며 '복권보다 당첨 확률이 높습니다.\n5회 사용 시 쿨타임 30초가 적용됩니다."
+             "\n(당첨 확률은 2.25%)", usage="*"
     )
     async def lottery_p(self, ctx):
         log = await self.find_log(ctx, '$', ctx.author.id)
@@ -165,7 +166,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 await ctx.send("코인이 부족합니다.")
             else:
                 rand = random.random()
-                if rand <= 0.0205:
+                if rand <= 0.0225:
                     await bot_log.edit(content=bot_log.content[:20] + str(10))
                     await log.edit(content=log.content[:20] + str(coin - price + prize))
                     await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")

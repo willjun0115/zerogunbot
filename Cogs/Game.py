@@ -12,6 +12,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = '로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
 
+    def if_gacha_ch(self, ctx):
+        return ctx.message.channel.id == self.app.gacha_ch
+
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
         find = None
@@ -80,6 +83,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             member_coin = int(member_log.content[20:])
             await member_log.edit(content=member_log.content[:20] + str(member_coin + prize))
 
+    @commands.check(if_gacha_ch)
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다."

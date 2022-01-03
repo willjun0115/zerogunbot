@@ -115,6 +115,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         )
         await ctx.send(embed=embed)
 
+    @commands.cooldown(1, 300., commands.BucketType.guild)
     @commands.command(
         name="0군인증", aliases=["0_certify"],
         help="0군 인증서 발급 투표를 진행합니다.", usage="* @*member*"

@@ -7,7 +7,7 @@ import ctypes
 import ctypes.util
 
 prefix = '%'
-app = commands.Bot(command_prefix=commands.when_mentioned_or(prefix), help_command=None)
+app = commands.Bot(command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True)
 app.prefix = prefix
 app.id = 811077328099606531
 app.gacha_ch = 811849095031029762

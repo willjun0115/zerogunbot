@@ -86,7 +86,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             member_coin = int(member_log.content[20:])
             await member_log.edit(content=member_log.content[:20] + str(member_coin + prize))
 
-    @commands.check(if_gacha_ch)
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다."
@@ -119,7 +118,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(":no_entry: 이 채널에서는 사용할 수 없는 명령어입니다.")
 
-    @commands.check(if_gacha_ch)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
@@ -212,7 +210,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)
 
-    @commands.check(if_gacha_ch)
     @commands.command(
         name="복권", aliases=["ㅂㄱ", "lottery"],
         help="가챠에서 꽝이 나오면 복권 상금이 오릅니다.\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다.\n(당첨 확률은 1.25%)", usage="*"

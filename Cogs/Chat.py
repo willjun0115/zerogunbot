@@ -10,8 +10,10 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
     def __init__(self, app):
         self.app = app
 
-    def not_manage_ch(self, ctx):
-        return ctx.message.channel.id not in [self.app.gacha_ch, 872938926019575879]
+    def not_manage_ch(self):
+        def predicate(ctx):
+            return ctx.message.channel.id not in [self.app.gacha_ch, 872938926019575879]
+        return commands.check(predicate)
 
     @commands.command(
         name="안녕", aliases=["인사", "ㅎㅇ", "hello", "hi"],
@@ -57,7 +59,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.send(" :no_entry: 이 명령을 실행하실 권한이 없습니다.")
 
     @commands.cooldown(1, 60., commands.BucketType.member)
-    @commands.check(not_manage_ch)
+    @not_manage_ch()
     @commands.command(
         name="청소", aliases=["일괄삭제", "clear", "purge"],
         help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."

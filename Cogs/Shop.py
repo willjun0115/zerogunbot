@@ -215,6 +215,26 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 else:
                     await ctx.send("코인이 부족합니다.")
 
+    @commands.command(
+        name="수은", aliases=["Hg"],
+        help="자신의 마이크, 헤드셋 음소거를 해제합니다.", usage="*"
+    )
+    async def mercury(self, ctx):
+        log = await self.find_log(ctx, '$', ctx.author.id)
+        if log is None:
+            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+        else:
+            price = self.app.shop.get("수은")
+            coin = int(log.content[20:])
+            if coin >= price:
+                if ctx.author.voice.deaf or ctx.author.voice.mute:
+                    await ctx.author.edit(deafen=False, mute=False)
+                    await log.edit(content=log.content[:20] + str(coin - price))
+                else:
+                    await ctx.send("마이크 및 헤드셋이 음소거 상태가 아닙니다.")
+            else:
+                await ctx.send("코인이 부족합니다.")
+
 
 def setup(app):
     app.add_cog(Shop(app))

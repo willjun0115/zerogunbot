@@ -44,7 +44,8 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         log_channel = ctx.guild.get_channel(self.app.log_ch)
         msg = await ctx.send("로그를 조회 중입니다... :mag:")
         members = {}
-        async for message in log_channel.history(limit=100):
+        messages = await log_channel.history(limit=100).flatten()
+        for message in messages:
             if message.content.startswith('$') is True:
                 mem = await ctx.guild.fetch_member(int(message.content[1:19]))
                 member_log = await self.find_log(ctx, '$', mem.id)

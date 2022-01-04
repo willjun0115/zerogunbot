@@ -37,7 +37,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
 
     @commands.cooldown(1, 600., commands.BucketType.channel)
     @commands.command(
-        name="토큰순위", aliases=["토큰랭크", "순위표", "랭크표", "rank"],
+        name="토큰순위", aliases=["순위표", "랭크표", "rank"],
         help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 10분)", usage="* (@*member*)"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
@@ -58,7 +58,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             n = 1
             for md in members[1:]:
                 n += 1
-                names += f"{n}. {md[0].display_name} \n"
+                names += f"{n}. {md[0].display_name}\n"
                 coins += str(md[1]) + "\n"
                 if n >= 10:
                     break

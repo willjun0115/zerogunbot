@@ -228,6 +228,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
+    @commands.cooldown(1, 30., commands.BucketType.member)
     @commands.command(
         name="가위바위보", aliases=["가바보", "rsp"],
         help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.",
@@ -275,6 +276,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             await ctx.send(self.cannot_find_id)
 
+    @commands.cooldown(1, 30., commands.BucketType.member)
     @commands.command(
         name="홀짝", aliases=["짝홀", "odd-even"],
         help="봇이 정한 랜덤 정수가 홀수인지 짝수인지 맞추는 게임입니다."
@@ -360,6 +362,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 embed.add_field(name="신고 미접수", value="죄송합니다. 신고가 접수되지 않았습니다.", inline=True)
             await ctx.send(embed=embed)
 
+    @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
         name="인디언포커", aliases=["IndianPoker", "IP", "ip"],
         help="인디언 포커를 신청합니다."
@@ -516,6 +519,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         await ctx.send("신청을 거절했습니다.")
 
+    @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
         name="블랙잭", aliases=["Blackjack", "BJ", "bj"],
         help="블랙잭을 신청합니다."
@@ -683,6 +687,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         embed.add_field(name=member.name, value=str(board[member]), inline=True)
                 await ctx.send(embed=embed)
 
+    @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
         name="시드포커", aliases=["SeedPoker", "SP", "sp"],
         help="시드 포커를 신청합니다."
@@ -809,6 +814,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     embed.add_field(name=member.name, value=str(board[member]), inline=True)
                 await ctx.send(embed=embed)
 
+    @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
         name="섯다", aliases=["ㅅㄷ"],
         help="섯다를 신청합니다."

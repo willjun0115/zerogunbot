@@ -117,6 +117,8 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
                 elif args == "유료복권":
                     await self.lottery_p(ctx)
+                elif args == "수은":
+                    await self.mercury(ctx)
                 else:
                     await ctx.send("상품을 찾지 못했습니다.")
 

@@ -32,7 +32,7 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
         await ctx.message.delete()
         await ctx.send(args)
 
-    @commands.has_role("언론 통제")
+    @commands.check_any(commands.has_role("언론 통제"), commands.is_owner())
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tc"],
         help="잠시 후 사라지는 채팅을 전송합니다.", usage="* str()", pass_context=True

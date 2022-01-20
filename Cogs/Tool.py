@@ -13,14 +13,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     def __init__(self, app):
         self.app = app
-        self.ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '320'
-            }],
-        }
 
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
@@ -72,24 +64,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                         break
             if command_notfound is True:
                 await ctx.send('명령어를 찾을 수 없습니다.')
-
-    @commands.has_permissions(administrator=True)
-    @commands.command(
-        name="스테이터스", aliases=["status"],
-        help="get the status of BOT. Only by Admin can this command be called.", usage="*", hidden=True
-    )
-    async def bot_status_command(self, ctx):
-        await ctx.send(
-            # f"client_name : {self.app.user.name}\n"
-            # f"client_id : {self.app.user.id}\n"
-            # f"owner_id : {self.app.owner_id}\n"
-            f"prefix : {self.app.prefix}\n"
-            # f"users_number : {len(self.app.users)}\n"
-            # f"guilds_number : {len(self.app.guilds)}\n"
-            # f"friends_number : {len(self.app.user.friends)}\n"
-            # f"created_at : {self.app.user.created_at}\n"
-            # f"locale : {self.app.user.locale}"
-        )
 
     @commands.command(
         name="사용법", aliases=["usage"],

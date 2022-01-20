@@ -31,27 +31,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                 break
         return find
 
-    @commands.has_permissions(administrator=True)
-    @commands.command(
-        name="스테이터스", aliases=["status", "%"],
-        help="get the status of BOT. Only by administrator can this command be called.", usage="*", hidden=True
-    )
-    async def bot_status(self, ctx):
-        await ctx.send(
-            "status\n"
-            # f"client_name : {self.app.user.name}\n"
-            # f"client_id : {self.app.user.id}\n"
-            # f"owner_id : {self.app.owner_id}\n"
-            # f"prefix : {self.app.prefix}\n"
-            # f"users_number : {len(self.app.users)}\n"
-            # f"guilds_number : {len(self.app.guilds)}\n"
-            # f"friends_number : {len(self.app.user.friends)}\n"
-            # f"created_at : {self.app.user.created_at}\n"
-            # f"locale : {self.app.user.locale}"
-        )
-
-
-
     @commands.command(
         name="도움말", aliases=["help", "?"],
         help="도움말을 불러옵니다.\n'%사용법'에서 명령어 사용법 참조.", usage="* (str(*command*))"
@@ -93,6 +72,37 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                         break
             if command_notfound is True:
                 await ctx.send('명령어를 찾을 수 없습니다.')
+
+    @commands.has_permissions(administrator=True)
+    @commands.command(
+        name="스테이터스", aliases=["status", "%"],
+        help="get the status of BOT. Only by administrator can this command be called.", usage="*", hidden=True
+    )
+    async def bot_status(self, ctx):
+        await ctx.send(
+            # f"client_name : {self.app.user.name}\n"
+            # f"client_id : {self.app.user.id}\n"
+            # f"owner_id : {self.app.owner_id}\n"
+            f"prefix : {self.app.prefix}\n"
+            # f"users_number : {len(self.app.users)}\n"
+            # f"guilds_number : {len(self.app.guilds)}\n"
+            # f"friends_number : {len(self.app.user.friends)}\n"
+            # f"created_at : {self.app.user.created_at}\n"
+            # f"locale : {self.app.user.locale}"
+        )
+
+    @bot_status.error
+    async def bot_status_error(self, ctx, error):
+        if isinstance(error, commands.UserInputError):
+            await ctx.send("Input error has raised.")
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.send("Check Failure occurred.")
+        elif isinstance(error, commands.CommandInvokeError):
+            await ctx.send("Command Invoke error has raised.")
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send("Max concurrency reached.")
+        elif isinstance(error, commands.ExtensionError):
+            await ctx.send("Extension error has raised.")
 
     @commands.command(
         name="사용법", aliases=["usage"],

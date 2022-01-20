@@ -162,7 +162,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
-        name="로그편집", aliases=["editlog", "edit"],
+        name="로그편집", aliases=["editlog"],
         help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
     async def edit_log(self, ctx, selector, member: discord.Member, val):
@@ -220,6 +220,15 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             await ctx.send(str(args))
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
+
+    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
+    @commands.command(
+        name="스테이터스", aliases=["status"],
+        help="봇의 상태를 열람합니다. (관리자 권한)", usage="*"
+    )
+    async def edit_log(self, ctx):
+        embed = discord.Embed(title="Status", description=f"client_id : {self.app.id}")
+        await ctx.send(embed=embed)
 
 
 def setup(app):

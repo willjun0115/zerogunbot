@@ -50,7 +50,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             # f"locale : {self.app.user.locale}"
         )
 
-    @bot_status.error()
+    @bot_status.error
     async def bot_status_error(self, ctx, error):
         if isinstance(error, commands.ConversionError):
             await ctx.send("Conversion error has raised.")

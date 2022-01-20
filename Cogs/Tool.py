@@ -221,29 +221,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
 
-    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
-    @commands.command(
-        name="스테이터스", aliases=["status"],
-        help="봇의 상태를 열람합니다. (관리자 권한)", usage="*"
-    )
-    async def bot_status_(self, ctx):
-        embed = discord.Embed(title="Status", description=f"prefix : {self.app.prefix}")
-        embed.add_field(
-            name="> Bot",
-            value=f"guilds_number : {len(ctx.bot.guilds)}\n"
-                  f"users_number : {len(ctx.bot.users)}\n"
-                  f"owner_id : {ctx.bot.owner_id}",
-            inline=True
-        )
-        embed.add_field(
-            name="> Client",
-            value=f"client_name : {ctx.bot.user.name}\n"
-                  f"client_id : {ctx.bot.user.id}\n"
-                  f"created_at : {ctx.bot.user.created_at}",
-            inline=True
-        )
-        await ctx.send(embed=embed)
-
 
 def setup(app):
     app.add_cog(Tool(app))

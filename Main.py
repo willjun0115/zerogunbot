@@ -89,6 +89,29 @@ async def reload_commands(ctx, extension=None):
         await ctx.send(f":white_check_mark: {extension}을(를) 다시 불러왔습니다.")
 
 
+@commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
+@app.command(
+    name="스테이터스", aliases=["status"]
+)
+async def bot_status(ctx):
+    embed = discord.Embed(title="Status", description=f"prefix : {app.prefix}")
+    embed.add_field(
+        name="> Bot",
+        value=f"guilds_number : {len(app.guilds)}\n"
+              f"users_number : {len(app.users)}\n"
+              f"owner_id : {app.owner_id}",
+        inline=True
+    )
+    embed.add_field(
+        name="> Client",
+        value=f"client_name : {app.user.name}\n"
+              f"client_id : {app.user.id}\n"
+              f"created_at : {app.user.created_at}",
+        inline=True
+    )
+    await ctx.send(embed=embed)
+
+
 @app.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):

@@ -96,7 +96,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(":no_entry_sign: 값이 없습니다.")
     elif isinstance(error, commands.BadArgument):
-        await ctx.send(":x: 값이 잘못되었습니다.")
+        await ctx.send(":no_entry_sign: 값이 잘못되었습니다.")
     elif isinstance(error, commands.MissingPermissions) or isinstance(error, commands.NotOwner):
         await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
     elif isinstance(error, commands.MissingRole):

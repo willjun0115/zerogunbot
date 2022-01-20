@@ -97,8 +97,6 @@ async def on_command_error(ctx, error):
         await ctx.send(":no_entry_sign: 값이 없습니다.")
     elif isinstance(error, commands.BadArgument):
         await ctx.send(":no_entry_sign: 값이 잘못되었습니다.")
-    elif isinstance(error, commands.NoPrivateMessage):
-        await ctx.send(":no_entry: 개인 메시지에서 이용할 수 없는 명령어입니다.")
     elif isinstance(error, commands.MissingPermissions) or isinstance(error, commands.NotOwner):
         await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
     elif isinstance(error, commands.MissingRole):

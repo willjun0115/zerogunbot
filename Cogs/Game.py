@@ -13,7 +13,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.cannot_find_id = '로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
 
     def in_game_ch(self, ctx):
-        return ctx.channel.id == 875618675263143957
+        return ctx.message.channel.id == 875618675263143957
 
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)

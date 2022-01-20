@@ -77,7 +77,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         )
         embed.add_field(
             name="> 접두사 (prefix)",
-            value="기본값(default): %"
+            value="기본값(default): % or @*bot*"
                   "\n명령 선언 시 가장 앞에 입력.",
             inline=False
         )
@@ -226,8 +226,31 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         name="스테이터스", aliases=["status"],
         help="봇의 상태를 열람합니다. (관리자 권한)", usage="*"
     )
-    async def edit_log(self, ctx):
-        embed = discord.Embed(title="Status", description=f"client_id : {self.app.id}")
+    async def bot_status(self, ctx):
+        appinfo = await self.app.application_info()
+        embed = discord.Embed(title="Status", description=f"prefix : {self.app.prefix}")
+        embed.add_field(
+            name="> Bot",
+            value=f"registered_commands_number : {len(self.app.commands)}\n"
+                  f"guilds_number : {len(self.app.guilds)}\n"
+                  f"users_number : {len(self.app.users)}",
+            inline=True
+        )
+        embed.add_field(
+            name="> Owner",
+            value=f"owner_name : {appinfo.owner.name}\n"
+                  f"owner_id : {self.app.owner_id}",
+            inline=True
+        )
+        if self.app.user is not None:
+            embed.add_field(
+                name="> Client",
+                value=f"client_name : {self.app.user.name}\n"
+                      f"client_id : {self.app.user.id}\n"
+                      f"created_at : {self.app.user.created_at}\n"
+                      f"locale : {self.app.user.locale}",
+                inline=True
+            )
         await ctx.send(embed=embed)
 
 

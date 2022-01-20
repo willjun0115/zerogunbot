@@ -38,10 +38,11 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
     )
     async def bot_status(self, ctx):
         await ctx.send(
+            "status\n"
             # f"client_name : {self.app.user.name}\n"
             # f"client_id : {self.app.user.id}\n"
             # f"owner_id : {self.app.owner_id}\n"
-            f"prefix : {self.app.prefix}\n"
+            # f"prefix : {self.app.prefix}\n"
             # f"users_number : {len(self.app.users)}\n"
             # f"guilds_number : {len(self.app.guilds)}\n"
             # f"friends_number : {len(self.app.user.friends)}\n"
@@ -49,18 +50,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             # f"locale : {self.app.user.locale}"
         )
 
-    ''' @bot_status.error
-    async def bot_status_error(self, ctx, error):
-        if isinstance(error, commands.UserInputError):
-            await ctx.send("Input error has raised.")
-        elif isinstance(error, commands.CheckFailure):
-            await ctx.send("Check Failure occurred.")
-        elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send("Command Invoke error has raised.")
-        elif isinstance(error, commands.MaxConcurrencyReached):
-            await ctx.send("Max concurrency reached.")
-        elif isinstance(error, commands.ExtensionError):
-            await ctx.send("Extension error has raised.") '''
+
 
     @commands.command(
         name="도움말", aliases=["help", "?"],

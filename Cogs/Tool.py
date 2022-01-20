@@ -76,9 +76,9 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
     @commands.has_permissions(administrator=True)
     @commands.command(
         name="스테이터스", aliases=["status"],
-        help="get the status of BOT. Only by administrator can this command be called.", usage="*", hidden=True
+        help="get the status of BOT. Only by Admin can this command be called.", usage="*", hidden=True
     )
-    async def bot_status(self, ctx):
+    async def bot_status_command(self, ctx):
         await ctx.send(
             # f"client_name : {self.app.user.name}\n"
             # f"client_id : {self.app.user.id}\n"

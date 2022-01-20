@@ -236,15 +236,14 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                   f"owner_id : {ctx.bot.owner_id}",
             inline=True
         )
-        if self.app.user is not None:
-            embed.add_field(
-                name="> Client",
-                value=f"client_name : {ctx.bot.user.name}\n"
-                      f"client_id : {ctx.bot.user.id}\n"
-                      f"created_at : {ctx.bot.user.created_at}\n"
-                      f"locale : {ctx.bot.user.locale}",
-                inline=True
-            )
+        embed.add_field(
+            name="> Client",
+            value=f"client_name : {ctx.bot.user.name}\n"
+                  f"client_id : {ctx.bot.user.id}\n"
+                  f"created_at : {ctx.bot.user.created_at}\n"
+                  f"locale : {ctx.bot.user.locale}",
+            inline=True
+        )
         await ctx.send(embed=embed)
 
 

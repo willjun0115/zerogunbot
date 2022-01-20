@@ -31,6 +31,39 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                 break
         return find
 
+    @commands.is_owner()
+    @commands.command(
+        name="스테이터스", aliases=["status", "%"],
+        help="get the status of BOT. Only by the owner of BOT can this command be called.", usage="*", hidden=True
+    )
+    async def bot_status(self, ctx):
+        await ctx.send(
+            f"client_name : {self.app.user.name}"
+            f"client_id : {self.app.user.id}"
+            f"owner_id : {self.app.owner_id}"
+            f"prefix : {self.app.prefix}"
+            f"users_number : {len(self.app.users)}"
+            f"guilds_number : {len(self.app.guilds)}"
+            f"friends_number : {len(self.app.user.friends)}"
+            f"created_at : {self.app.user.created_at}"
+            f"locale : {self.app.user.locale}"
+        )
+
+    @bot_status.error()
+    async def bot_status_error(self, ctx, error):
+        if isinstance(error, commands.ConversionError):
+            await ctx.send("Conversion error has raised.")
+        elif isinstance(error, commands.UserInputError):
+            await ctx.send("Input error has raised.")
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.send("Check Failure occurred.")
+        elif isinstance(error, commands.CommandInvokeError):
+            await ctx.send("Command Invoke error has raised.")
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send("Max concurrency reached.")
+        elif isinstance(error, commands.ExtensionError):
+            await ctx.send("Extension error has raised.")
+
     @commands.command(
         name="도움말", aliases=["help", "?"],
         help="도움말을 불러옵니다.\n'%사용법'에서 명령어 사용법 참조.", usage="* (str(*command*))"

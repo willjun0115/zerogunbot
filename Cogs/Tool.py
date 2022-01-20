@@ -49,14 +49,18 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             # f"locale : {self.app.user.locale}"
         )
 
-    @bot_status.error
+    ''' @bot_status.error
     async def bot_status_error(self, ctx, error):
         if isinstance(error, commands.UserInputError):
             await ctx.send("Input error has raised.")
         elif isinstance(error, commands.CheckFailure):
             await ctx.send("Check Failure occurred.")
+        elif isinstance(error, commands.CommandInvokeError):
+            await ctx.send("Command Invoke error has raised.")
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send("Max concurrency reached.")
         elif isinstance(error, commands.ExtensionError):
-            await ctx.send("Extension error has raised.")
+            await ctx.send("Extension error has raised.") '''
 
     @commands.command(
         name="도움말", aliases=["help", "?"],

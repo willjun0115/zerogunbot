@@ -12,11 +12,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = '로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
 
-    def in_game_ch(self):
-        async def predicate(ctx):
-            return ctx.channel.id == 875618675263143957
-
-        return commands.check(predicate)
+    def in_game_ch(self, ctx):
+        return ctx.channel.id == 875618675263143957
 
     async def find_log(self, ctx, selector, id):
         log_channel = ctx.guild.get_channel(self.app.log_ch)
@@ -284,7 +281,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             await ctx.send(self.cannot_find_id)
 
-    #@commands.cooldown(1, 30., commands.BucketType.member)
+    # @commands.cooldown(1, 30., commands.BucketType.member)
+    @commands.check(in_game_ch)
     @commands.command(
         name="홀짝", aliases=["짝홀", "odd-even"],
         help="봇이 정한 랜덤 정수가 홀수인지 짝수인지 맞추는 게임입니다."
@@ -292,7 +290,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n만약 0을 맞추면 20코인을 얻습니다.",
         usage="*"
     )
-    @in_game_ch()
     async def odd_or_even(self, ctx):
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is not None:

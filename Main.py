@@ -9,7 +9,7 @@ import ctypes.util
 prefix = '%'
 app = commands.Bot(command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True)
 app.prefix = prefix
-app.id = app.user.id
+app.id = 811077328099606531
 app.gacha_ch = 811849095031029762
 app.log_ch = 874970985307201546
 app.role_lst = [

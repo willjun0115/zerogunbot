@@ -93,7 +93,7 @@ async def reload_commands(ctx, extension=None):
 @app.command(
     name="스테이터스", aliases=["status"]
 )
-async def bot_status(ctx):
+async def bot_status_(ctx):
     embed = discord.Embed(title="Status", description=f"prefix : {app.prefix}")
     embed.add_field(
         name="> Bot",
@@ -106,7 +106,8 @@ async def bot_status(ctx):
         name="> Client",
         value=f"client_name : {app.user.name}\n"
               f"client_id : {app.user.id}\n"
-              f"created_at : {app.user.created_at}",
+              f"created_at : {app.user.created_at}\n"
+              f"locale : {app.user.locale}",
         inline=False
     )
     await ctx.send(embed=embed)

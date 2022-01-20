@@ -90,7 +90,7 @@ async def reload_commands(ctx, extension=None):
 
 
 @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
-@app.command(
+@app.group(
     name="스테이터스", aliases=["status"]
 )
 async def bot_status_(ctx):
@@ -106,8 +106,7 @@ async def bot_status_(ctx):
         name="> Client",
         value=f"client_name : {app.user.name}\n"
               f"client_id : {app.user.id}\n"
-              f"created_at : {app.user.created_at}\n"
-              f"locale : {app.user.locale}",
+              f"created_at : {app.user.created_at}",
         inline=False
     )
     await ctx.send(embed=embed)

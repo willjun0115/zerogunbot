@@ -206,7 +206,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="복권", aliases=["ㅂㄱ", "lottery"],
-        help="가챠에서 꽝이 나오면 복권 상금이 오릅니다.\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다.\n(당첨 확률은 1.25%)", usage="*"
+        help="가챠에서 꽝이 나오면 복권 상금이 오릅니다."
+             "\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다."
+             "\n(당첨 확률은 1.25%)", usage="*"
     )
     async def lottery(self, ctx):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
@@ -341,13 +343,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             win = 0
             embed = discord.Embed(title="<리폿 결과>", description="대상: " + member.name + " 님")
             lv = member.top_role.position
-            if lv == get(ctx.guild.roles, name="관리자").position:
+            if lv >= get(ctx.guild.roles, name="관리자").position:
                 win = 0
                 embed.add_field(name="관리자는 신고할 수 없습니다.", value=ctx.author.name + " 님, 맞을래요?",
                                 inline=False)
             elif get(ctx.guild.roles, name="0군 인증서").position < lv < get(ctx.guild.roles, name="관리자").position:
                 win = lv
-            elif lv == get(ctx.guild.roles, name="0군 인증서").position:
+            elif lv <= get(ctx.guild.roles, name="0군 인증서").position:
                 win = 0
             if rand <= win * 0.01:
                 await member.remove_roles(member.top_role)
@@ -523,7 +525,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="블랙잭", aliases=["Blackjack", "BJ", "bj"],
         help="블랙잭을 신청합니다."
-             "\nA는 1 or 11, J,Q,K는 10으로 계산하며,"
+             "\nA는 1 or 11으로, J,Q,K는 10으로 계산하며,"
              "\n패의 합이 21에 가장 가까운 사람이 승리합니다."
              "\n21를 초과하면 0점으로 처리됩니다."
              "\n시작하면 참가자마다 두 장의 카드를 받습니다."
@@ -689,140 +691,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
-        name="시드포커", aliases=["SeedPoker", "SP", "sp"],
-        help="시드 포커를 신청합니다."
-             "\n덱에는 1~15까지의 숫자가 있으며,"
-             "\n시작하면 참가자마다 한 장의 카드를 받습니다."
-             "\n순서대로 카드를 받을 지, 시드를 추가할 지 선택합니다."
-             "\n카드를 받으면 기존 카드와 받은 카드 중 하나를 버립니다."
-             "\n시드를 추가하면 시드에 새 카드를 추가합니다."
-             "\n덱에 있는 카드를 모두 쓰고 나면, 패가 가장 낮은 멤버에게"
-             "\n순서대로 시드 카드를 줍니다."
-             "\n가지고 있는 카드의 합이 가장 높은 사람이 승리합니다.", usage="*", hidden=True, enabled=False
-    )
-    async def seed_poker(self, ctx):
-        start, members = await self.gather_members(ctx, "시드 포커")
-        if start is True:
-            if len(members) < 3:
-                await ctx.send("시드 포커는 3인부터 가능합니다.")
-            elif len(members) > 7:
-                await ctx.send("시드 포커는 최대 7인까지 가능합니다.")
-            else:
-                deck = []
-                for i in range(1, 16):
-                    deck.append(i)
-                seed = []
-                waste = []
-                board = {}
-                for member in members:
-                    a = random.choice(deck)
-                    deck.remove(a)
-                    board[member] = a
-                    member_dm = await member.create_dm()
-                    await member_dm.send(str(a))
-                embed = discord.Embed(title="<시드 포커>",
-                                      description=f"{str(len(members))} :coin:")
-                embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
-                embed.add_field(name='> 시드', value=str(seed), inline=True)
-                embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
-                msg_ = await ctx.send(content=members[0].mention + " 님 카드를 받을 지, 시드에 추가할 지 선택해주세요.", embed=embed)
-                reaction_list = ['✅', '❎']
-                num = 0
-                while len(deck) > 0:
-                    for r in reaction_list:
-                        await msg_.add_reaction(r)
-
-                    def check(reaction, user):
-                        return str(reaction) in reaction_list and reaction.message.id == msg_.id \
-                               and user == members[num]
-
-                    try:
-                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
-                    except asyncio.TimeoutError:
-                        await ctx.send(members[num].name + " 님이 시간을 초과하여 자동으로 시드를 추가합니다.")
-                    else:
-                        if str(reaction) == '✅':
-                            c = random.choice(deck)
-                            deck.remove(c)
-                            user_dm = await user.create_dm()
-                            await user_dm.send(str(c))
-                            ask = await user_dm.send(
-                                user.name + " 님, 카드를 바꾸시겠습니까?")
-                            reaction_list = ['✅', '❎']
-                            for r in reaction_list:
-                                await ask.add_reaction(r)
-
-                            def check(reaction, user_):
-                                return str(
-                                    reaction) in reaction_list and reaction.message.id == ask.id and user_ == user
-
-                            try:
-                                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=60.0)
-                            except asyncio.TimeoutError:
-                                waste.append(c)
-                                await ask.delete()
-                                await ctx.send(members[num].name + " 님이 시간을 초과하여 자동으로 카드를 버립니다.")
-                            else:
-                                if str(reaction) == '✅':
-                                    waste.append(board.get(user))
-                                    board[user] = c
-                                else:
-                                    waste.append(c)
-                                await ask.delete()
-                        else:
-                            c = random.choice(deck)
-                            deck.remove(c)
-                            seed.append(c)
-                            seed.sort(reverse=True)
-                            if len(seed) > 3:
-                                waste.append(seed[3])
-                                seed = seed[0:3]
-                    num += 1
-                    if num >= len(members):
-                        num = 0
-                    embed = discord.Embed(title="<시드 포커>",
-                                          description=f"{str(len(members))} :coin:")
-                    embed.add_field(name='> 덱', value=str(len(deck)), inline=True)
-                    embed.add_field(name='> 시드', value=str(seed), inline=True)
-                    embed.add_field(name='> 버린 카드', value=str(waste), inline=True)
-                    await msg_.clear_reactions()
-                    await msg_.edit(content=members[num].mention + " 님 카드를 더 받을 지, 멈출 지 선택해주세요.", embed=embed)
-                v = list(board.values())
-                v.sort()
-                while len(seed) < 3:
-                    seed.append(0)
-                for member in members:
-                    if board[member] == v[0]:
-                        board[member] += seed[0]
-                    elif board[member] == v[1]:
-                        board[member] += seed[1]
-                    elif board[member] == v[2]:
-                        board[member] += seed[2]
-                winners = [ctx.author]
-                for member in members:
-                    if board[member] > board[winners[0]]:
-                        winners = [member]
-                    elif board[member] == board[winners[0]]:
-                        winners.append(member)
-                await self.calc_prize(ctx, 1, members, winners)
-                embed = discord.Embed(
-                    title='<시드 포커 결과>',
-                    description=', '.join([x.name for x in winners]) +
-                                f" 님 우승! (상금: {len(members) // len(winners)} :coin:)"
-                )
-                for member in members:
-                    embed.add_field(name=member.name, value=str(board[member]), inline=True)
-                await ctx.send(embed=embed)
-
-    @commands.cooldown(1, 60., commands.BucketType.guild)
-    @commands.command(
         name="섯다", aliases=["ㅅㄷ"],
         help="섯다를 신청합니다."
              "\n시작하면 참가자마다 두 장의 패를 받습니다."
              "\n모두 패를 받으면, 순서대로 베팅을 시작합니다."
              "\n⏏️: 하프, ‼️: 따당, ✅: 콜(체크), 💀: 다이"
              "\n모두 베팅을 마치고 나면, 패를 공개해 승자를 정합니다."
-             "\n가지고 있는 패의 족보가 높은 사람이 승리합니다.", usage="* (int(default=1))"
+             "\n가지고 있는 패의 족보가 높은 사람이 승리합니다."
+             "\n족보: 38광땡, 광땡, 땡, 알리, 독사, "
+             "구삥, 장삥, 장사, 세륙, 끗, 구사, 땡잡이, 암행어사", usage="* (int(default=1))"
     )
     async def seotda(self, ctx, seed=1):
         seed = int(seed)
@@ -851,7 +728,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 for i in range(1, 10):
                     pairs.append(str(i) + '땡')
                 pairs.append('장땡')
-                level_table = ['멍텅구리구사', '구사', '땡잡이', '암행어사'] + ends + middles + pairs + ['13광땡', '18광땡', '38광땡']
+                level_table = ['땡잡이', '암행어사', '멍텅구리구사', '구사'] + ends + middles + pairs + ['13광땡', '18광땡', '38광땡']
                 coin = len(members) * seed
                 pay = {}
                 for member in members:
@@ -995,7 +872,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             m_hand = board.get(member).split()
                             if m_hand[2] == '암행어사':
                                 winner = member
-                    elif w_hand[2] in pairs:
+                    elif w_hand[2] in pairs[:9]:
                         for member in call_members:
                             m_hand = board.get(member).split()
                             if m_hand[2] == '땡잡이':

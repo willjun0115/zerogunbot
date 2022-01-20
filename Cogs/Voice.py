@@ -9,6 +9,7 @@ import opuslib
 import youtube_dl
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 from gtts import gTTS
 
 ytdl_format_options = {
@@ -158,9 +159,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         embed = discord.Embed(title=f"\"{args}\"의 검색 결과 :mag:",
                               description="1~5를 입력해 선택하거나, x를 입력해 취소하세요.")
         for n in range(0, 5):
-            get_title = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('title')
-            get_href = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('href')
-            get_info = browser.find_elements_by_xpath('//a[@id="video-title"]')[n].get_attribute('aria-label')
+            get_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')
+            get_href = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
+            get_info = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('aria-label')
             get_info = get_info[len(get_title):]
             search_list[n+1] = get_href
             embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_info, inline=False)

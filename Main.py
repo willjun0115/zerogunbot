@@ -9,7 +9,7 @@ import ctypes.util
 prefix = '%'
 app = commands.Bot(command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True)
 app.prefix = prefix
-app.id = 811077328099606531
+app.id = app.user.id
 app.gacha_ch = 811849095031029762
 app.log_ch = 874970985307201546
 app.role_lst = [
@@ -94,20 +94,31 @@ async def reload_commands(ctx, extension=None):
     name="스테이터스", aliases=["status"]
 )
 async def bot_status(ctx):
+    appinfo = await app.application_info()
     embed = discord.Embed(title="Status", description=f"prefix : {app.prefix}")
     embed.add_field(
         name="> Bot",
         value=f"guilds_number : {len(app.guilds)}\n"
               f"users_number : {len(app.users)}\n"
-              f"owner_id : {app.owner_id}",
-        inline=True
+              f"owner_id : {app.owner_id}\n"
+              f"app_name : {appinfo.name}\n"
+              f"app_id : {appinfo.id}\n",
+        inline=False
     )
     embed.add_field(
         name="> Client",
         value=f"client_name : {app.user.name}\n"
               f"client_id : {app.user.id}\n"
-              f"created_at : {app.user.created_at}",
-        inline=True
+              f"created_at : {app.user.created_at}\n"
+              f"locale : {app.user.locale}",
+        inline=False
+    )
+    embed.add_field(
+        name="> Owner",
+        value=f"owner_name : {appinfo.owner.name}\n"
+              f"owner_id : {appinfo.owner.id}\n"
+              f"owner_discriminator : {appinfo.owner.discriminator}",
+        inline=False
     )
     await ctx.send(embed=embed)
 

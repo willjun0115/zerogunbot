@@ -139,64 +139,17 @@ async def bot_status(ctx):
 @admin_command.group(
     name="fetch", aliases=["find"], pass_context=True
 )
-async def bot_fetch(ctx, id, fetch_type=None):
+async def bot_fetch(ctx, id):
     id = int(id)
     result_type = None
+    result = app.get_user(id)
+    if result is not None:
+        result_type = "user"
     embed = discord.Embed(
         title="Fetch",
-        description=f"fetch result by id : {id} (type: {fetch_type})")
-    if result_type is None or fetch_type == "guild":
-        try:
-            fetch_result = app.get_guild(id)
-            result_type = "guild"
-            embed.add_field(name=result_type, value=f"name : {fetch_result.name}")
-        except discord.NotFound:
-            result_type = None
-        except discord.Forbidden:
-            result_type = "Forbidden"
-    if result_type is None or fetch_type == "channel":
-        try:
-            fetch_result = app.get_channel(id)
-            result_type = "channel"
-            embed.add_field(name=result_type, value=f"name : {fetch_result.name}")
-        except discord.NotFound:
-            result_type = None
-        except discord.Forbidden:
-            result_type = "Forbidden"
-    if result_type is None or fetch_type == "user":
-        try:
-            fetch_result = app.get_user(id)
-            result_type = "user"
-            embed.add_field(name=result_type, value=f"name : {fetch_result.name}#{fetch_result.discriminator}")
-        except discord.NotFound:
-            result_type = None
-        except discord.Forbidden:
-            result_type = "Forbidden"
-    if result_type is None or fetch_type == "emoji":
-        try:
-            fetch_result = app.get_channel(id)
-            result_type = "emoji"
-            embed.add_field(name=result_type, value=f"name : {fetch_result.name}")
-        except discord.NotFound:
-            result_type = None
-        except discord.Forbidden:
-            result_type = "Forbidden"
-    if result_type is None or fetch_type == "message":
-        try:
-            fetch_result = await ctx.fetch_message(id)
-            result_type = "message"
-            embed.add_field(name=result_type, value=f"content : {fetch_result.content}\n"
-                                                    f"created_at : {fetch_result.created_at}")
-        except discord.NotFound:
-            result_type = None
-        except discord.Forbidden:
-            result_type = "Forbidden"
-    if result_type is None:
-        await ctx.send("No object was found")
-    elif result_type == "Forbidden":
-        await ctx.send("Denied to access")
-    else:
-        await ctx.send(embed=embed)
+        description=f"fetch {result_type} by id : {id}")
+    embed.add_field(name=result.name, value=f"#{result.discriminator}\n created at {result.created_at}")
+    await ctx.send(embed=embed)
 
 
 @app.event

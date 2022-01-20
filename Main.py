@@ -100,14 +100,14 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingPermissions) or isinstance(error, commands.NotOwner):
         await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
     elif isinstance(error, commands.MissingRole):
-        await ctx.send(f":no_entry: 이 명령을 실행하려면 '{error.missing_role.name}' 역할이 필요합니다.")
+        await ctx.send(f":no_entry: 이 명령을 실행하려면 '{error.missing_role}' 역할이 필요합니다.")
     elif isinstance(error, commands.CheckAnyFailure):
         for e in error.errors:
             if isinstance(e, commands.MissingPermissions):
                 await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
                 break
             elif isinstance(e, commands.MissingRole):
-                await ctx.send(f":no_entry: 이 명령을 실행하려면 '{e.missing_role.name}' 역할이 필요합니다.")
+                await ctx.send(f":no_entry: 이 명령을 실행하려면 '{e.missing_role}' 역할이 필요합니다.")
                 break
     elif isinstance(error, commands.BotMissingPermissions) or isinstance(error, commands.BotMissingRole):
         await ctx.send(":no_entry: 봇이 명령을 실행할 권한이 부족합니다.")

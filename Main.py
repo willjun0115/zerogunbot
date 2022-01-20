@@ -106,8 +106,7 @@ async def bot_status_(ctx):
         name="> Client",
         value=f"client_name : {app.user.name}\n"
               f"client_id : {app.user.id}\n"
-              f"created_at : {app.user.created_at}\n"
-              f"locale : {app.user.locale}",
+              f"created_at : {app.user.created_at}",
         inline=False
     )
     await ctx.send(embed=embed)

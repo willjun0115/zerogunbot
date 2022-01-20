@@ -64,7 +64,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if file.endswith(".mp3"):
                 os.remove(file)
 
-    @commands.has_role("DJ")
+    @commands.check_any(commands.has_role("DJ"), commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(
         name="연결", aliases=["connect", "c", "join"],
         help="음성 채널에 연결합니다.", usage="*"
@@ -83,7 +83,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         else:
             await ctx.send(channel.name + "에 연결합니다.")
 
-    @commands.has_role("DJ")
+    @commands.check_any(commands.has_role("DJ"), commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(
         name="퇴장", aliases=["연결해제", "연결끊기", "disconnect", "dc", "leave"],
         help="음성 채널을 나갑니다.", usage="*"
@@ -102,7 +102,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         await ctx.message.author.move_to(afkchannel)
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
 
-    @commands.has_role("DJ")
+    @commands.check_any(commands.has_role("DJ"), commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(
         name="tts", aliases=["TTS"],
         help="입력받은 문자열을 tts 음성으로 출력합니다.", usage="* str()"
@@ -116,7 +116,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'),
                               after=lambda e: print(f'Player error: {e}') if e else None)
 
-    @commands.has_role("DJ")
+    @commands.check_any(commands.has_role("DJ"), commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(
         name="재생", aliases=["play", "p"],
         help="유튜브 url을 통해 음악을 재생합니다."
@@ -135,7 +135,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             msg = f'Now streaming: {player.title}'
         await ctx.send(msg)
 
-    @commands.has_role("DJ")
+    @commands.check_any(commands.has_role("DJ"), commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(
         name="검색", aliases=["search"],
         help="유튜브 검색을 통해 목록을 가져옵니다."
@@ -185,7 +185,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await self.ensure_voice(ctx)
                 await self.play_song(ctx, select)
 
-    @commands.has_role("DJ")
+    @commands.check_any(commands.has_role("DJ"), commands.is_owner(), commands.has_permissions(administrator=True))
     @commands.command(
         name="정지", aliases=["stop", "s"],
         help="음악 재생을 정지합니다.", usage="*"

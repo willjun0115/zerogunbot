@@ -116,7 +116,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         await ctx.send(embed=embed)
 
     @commands.cooldown(1, 300., commands.BucketType.guild)
-    @commands.has_role("0군 인증서")
+    @commands.check_any(commands.has_role("0군 인증서"), commands.is_owner())
     @commands.command(
         name="0군인증", aliases=["0_certify"],
         help="0군 인증서 발급 투표를 진행합니다.", usage="* @*member*"
@@ -168,7 +168,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             else:
                 await ctx.send(f"{member.name} 님이 0군 인증을 받지 못했습니다.")
 
-    @commands.has_permissions(administrator=True)
+    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
         name="로그편집", aliases=["editlog", "edit"],
         help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"

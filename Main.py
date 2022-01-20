@@ -140,6 +140,7 @@ async def bot_status(ctx):
     name="fetch", aliases=["find"], pass_context=True
 )
 async def bot_fetch(ctx, id, fetch_type=None):
+    id = int(id)
     result_type = None
     embed = discord.Embed(
         title="Fetch",

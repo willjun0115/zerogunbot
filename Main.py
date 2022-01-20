@@ -89,11 +89,32 @@ async def reload_commands(ctx, extension=None):
         await ctx.send(f":white_check_mark: {extension}을(를) 다시 불러왔습니다.")
 
 
-@commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
+@commands.is_owner()
 @app.group(
-    name="스테이터스", aliases=["status"]
+    name="admin"
 )
-async def bot_status_(ctx):
+async def admin_command(ctx):
+    return
+
+
+@admin_command.group(
+    name="command", aliases=["cmd"]
+)
+async def admin_command(ctx):
+    description = ""
+    for cmd in admin_command.commands:
+        description += f"{cmd.name}({cmd.aliases[0]})\n"
+    embed = discord.Embed(
+        title="Commands",
+        description=description
+    )
+    await ctx.send(embed=embed)
+
+
+@admin_command.group(
+    name="status", aliases=["stat"]
+)
+async def bot_status(ctx):
     appinfo = await app.application_info()
     embed = discord.Embed(
         title="Status",

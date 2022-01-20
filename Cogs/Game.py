@@ -32,8 +32,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(self.cannot_find_id)
         else:
             msg = await ctx.send(
-                ctx.author.name + f" 님이 {game_name}을(를) 신청합니다."
-                                  "\n참가하려면 :white_check_mark: 을 눌러주세요."
+                content=ctx.author.name + f" 님이 {game_name}을(를) 신청합니다."
+                                  "\n참가하려면 :white_check_mark: 을 눌러주세요.",
+                nonce=1
             )
             reaction_list = ['✅', '❎']
             while True:
@@ -281,8 +282,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             await ctx.send(self.cannot_find_id)
 
-    # @commands.cooldown(1, 30., commands.BucketType.member)
-    @commands.check(in_game_ch)
+    @commands.cooldown(1, 30., commands.BucketType.member)
     @commands.command(
         name="홀짝", aliases=["짝홀", "odd-even"],
         help="봇이 정한 랜덤 정수가 홀수인지 짝수인지 맞추는 게임입니다."

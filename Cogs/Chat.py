@@ -64,7 +64,10 @@ class Chat(commands.Cog, name="채팅", description="채팅과 관련된 카테�
             await ctx.send(" :no_entry: 읽을 수 있는 채팅 기록은 최대 999개 입니다.")
         else:
             if member is None:
-                deleted = await ctx.channel.purge(limit=int(num))
+                def check(m):
+                    return m.channel == ctx.channel and m.nonce != 1
+
+                deleted = await ctx.channel.purge(limit=int(num), check=check)
             else:
                 member = [member]
 

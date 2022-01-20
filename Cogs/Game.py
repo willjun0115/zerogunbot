@@ -33,8 +33,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             msg = await ctx.send(
                 content=ctx.author.name + f" 님이 {game_name}을(를) 신청합니다."
-                                  "\n참가하려면 :white_check_mark: 을 눌러주세요.",
-                nonce=1
+                                  "\n참가하려면 :white_check_mark: 을 눌러주세요."
             )
             reaction_list = ['✅', '❎']
             while True:

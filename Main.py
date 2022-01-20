@@ -100,7 +100,7 @@ async def admin_command(ctx):
 @admin_command.group(
     name="command", aliases=["cmd"]
 )
-async def admin_command(ctx):
+async def admin_help(ctx):
     description = ""
     for cmd in admin_command.commands:
         description += f"{cmd.name}({cmd.aliases[0]})\n"

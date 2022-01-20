@@ -95,28 +95,19 @@ async def reload_commands(ctx, extension=None):
 )
 async def bot_status_(ctx):
     appinfo = await app.application_info()
-    embed = discord.Embed(title="Status", description=f"prefix : {app.prefix}")
-    embed.add_field(
-        name="> Bot",
-        value=f"guilds_number : {len(app.guilds)}\n"
-              f"users_number : {len(app.users)}\n"
-              f"owner_id : {app.owner_id}",
-        inline=False
-    )
-    embed.add_field(
-        name="> Client",
-        value=f"client_name : {app.user.name}\n"
-              f"client_id : {app.user.id}\n"
-              f"created_at : {app.user.created_at}",
-        inline=False
-    )
-    embed.add_field(
-        name="> Application",
-        value=f"app_name : {appinfo.name}\n"
-              f"app_id : {appinfo.id}\n"
-              f"owner_name : {appinfo.owner.name}\n"
-              f"owner_id : {appinfo.owner.id}",
-        inline=False
+    embed = discord.Embed(
+        title="Status",
+        description=
+        f"prefix : {app.prefix}\n"
+        f"app_name : {appinfo.name}\n"
+        f"client_name : {app.user.name}#{app.user.discriminator}\n"
+        f"client_id : {app.user.id}\n"
+        f"guilds_number : {len(app.guilds)}\n"
+        f"users_number : {len(app.users)}\n"
+        f"created_at : {app.user.created_at}\n"
+        f"locale : {app.user.locale}\n"
+        f"owner_name : {appinfo.owner.name}\n"
+        f"owner_id : {appinfo.owner.id}"
     )
     await ctx.send(embed=embed)
 

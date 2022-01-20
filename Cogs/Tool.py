@@ -37,7 +37,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         help="get the status of BOT. Only by the owner of BOT can this command be called.", usage="*", hidden=True
     )
     async def bot_status(self, ctx):
-        await ctx.channel.trigger_typing()
         await ctx.send(
             # f"client_name : {self.app.user.name}\n"
             # f"client_id : {self.app.user.id}\n"

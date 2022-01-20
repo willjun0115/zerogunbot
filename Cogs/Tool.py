@@ -230,8 +230,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         embed = discord.Embed(title="Status", description=f"prefix : {self.app.prefix}")
         embed.add_field(
             name="> Bot",
-            value=f"registered_commands_number : {len(ctx.bot.commands)}\n"
-                  f"guilds_number : {len(ctx.bot.guilds)}\n"
+            value=f"guilds_number : {len(ctx.bot.guilds)}\n"
                   f"users_number : {len(ctx.bot.users)}\n"
                   f"owner_id : {ctx.bot.owner_id}",
             inline=True
@@ -240,8 +239,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
             name="> Client",
             value=f"client_name : {ctx.bot.user.name}\n"
                   f"client_id : {ctx.bot.user.id}\n"
-                  f"created_at : {ctx.bot.user.created_at}\n"
-                  f"locale : {ctx.bot.user.locale}",
+                  f"created_at : {ctx.bot.user.created_at}",
             inline=True
         )
         await ctx.send(embed=embed)

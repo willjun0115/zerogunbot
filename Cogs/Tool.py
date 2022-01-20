@@ -31,10 +31,10 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
                 break
         return find
 
-    @commands.is_owner()
+    @commands.has_permissions(administrator=True)
     @commands.command(
         name="스테이터스", aliases=["status", "%"],
-        help="get the status of BOT. Only by the owner of BOT can this command be called.", usage="*", hidden=True
+        help="get the status of BOT. Only by administrator can this command be called.", usage="*", hidden=True
     )
     async def bot_status(self, ctx):
         await ctx.send(

@@ -285,7 +285,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(self.cannot_find_id)
 
     #@commands.cooldown(1, 30., commands.BucketType.member)
-    @in_game_ch()
     @commands.command(
         name="홀짝", aliases=["짝홀", "odd-even"],
         help="봇이 정한 랜덤 정수가 홀수인지 짝수인지 맞추는 게임입니다."
@@ -293,6 +292,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n만약 0을 맞추면 20코인을 얻습니다.",
         usage="*"
     )
+    @in_game_ch()
     async def odd_or_even(self, ctx):
         log = await self.find_log(ctx, '$', ctx.author.id)
         if log is not None:

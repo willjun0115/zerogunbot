@@ -40,7 +40,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         await ctx.send(
             # f"client_name : {self.app.user.name}\n"
             # f"client_id : {self.app.user.id}\n"
-            f"owner_id : {self.app.owner_id}\n"
+            # f"owner_id : {self.app.owner_id}\n"
             f"prefix : {self.app.prefix}\n"
             # f"users_number : {len(self.app.users)}\n"
             # f"guilds_number : {len(self.app.guilds)}\n"

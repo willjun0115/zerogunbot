@@ -148,7 +148,26 @@ async def admin_fetch_guild(ctx, id):
         embed.add_field(
             name="name : " + guild.name,
             value=f"created at {guild.created_at}\n"
-                  f"region : {guild.region}\n"
+                  f"owner : {str(guild.owner)}",
+            inline=False
+        )
+    await ctx.send(embed=embed)
+
+
+@admin_fetch.group(name="get_guild", aliases=["get_server", "guild_cached"], pass_context=True)
+async def admin_fetch_guild_cached(ctx, id):
+    id = int(id)
+    embed = discord.Embed(title="Fetch", description=f"fetch guild by id : {id}")
+    try:
+        guild = app.get_guild(id)
+    except discord.NotFound:
+        embed.add_field(name="NotFound", value="No guild was found.")
+    except discord.Forbidden:
+        embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
+    else:
+        embed.add_field(
+            name="name : " + guild.name,
+            value=f"created at {guild.created_at}\n"
                   f"owner : {str(guild.owner)}\n"
                   f"members_number : {len(guild.members)}",
             inline=False
@@ -159,12 +178,13 @@ async def admin_fetch_guild(ctx, id):
             inline=False
         )
         embed.add_field(
-            name="channels", value="\n".join([c.name for c in guild.channels if c not in guild.voice_channels]),
+            name="channels",
+            value="\n".join([c.name for c in guild.channels if c not in guild.voice_channels]),
             inline=False
         )
         embed.add_field(
             name=":sound: voice channels",
-            value="\n".join([c.name for c in guild.voice_channels]),
+            value="\n".join([v.name for v in guild.voice_channels]),
             inline=False
         )
     await ctx.send(embed=embed)

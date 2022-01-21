@@ -98,15 +98,12 @@ async def admin_command(ctx):
 
 
 @admin_command.group(
-    name="command", aliases=["cmd"]
+    name="command", aliases=["cmd", "help"]
 )
 async def admin_help(ctx):
     description = ""
     for cmd in admin_command.commands:
-        if len(cmd.aliases) > 0:
-            description += f"{cmd.name}({cmd.aliases[0]})\n"
-        else:
-            description += f"{cmd.name}\n"
+        description += f"({cmd.full_parent_name}) {cmd.name}\n"
     embed = discord.Embed(
         title="Commands",
         description=description
@@ -117,7 +114,7 @@ async def admin_help(ctx):
 @admin_command.group(
     name="status", aliases=["stat"]
 )
-async def bot_status(ctx):
+async def admin_status(ctx):
     appinfo = await app.application_info()
     embed = discord.Embed(
         title="Status",
@@ -137,18 +134,55 @@ async def bot_status(ctx):
 
 
 @admin_command.group(
-    name="fetch", aliases=["find"], pass_context=True
+    name="fetch", aliases=["find", "get"], pass_context=True
 )
-async def bot_fetch(ctx, id):
+async def admin_fetch(ctx):
+    return
+
+
+@admin_fetch.group(
+    name="guild", aliases=["server"], pass_context=True
+)
+async def admin_fetch_guild(ctx, id):
     id = int(id)
-    result_type = None
-    result = await app.fetch_user(id)
-    if result is not None:
-        result_type = "user"
+    guild = await app.fetch_guild(id)
     embed = discord.Embed(
         title="Fetch",
-        description=f"fetch {result_type} by id : {id}")
-    embed.add_field(name=result.name, value=f"#{result.discriminator}\n created at {result.created_at}")
+        description=f"fetch guild by id : {id}"
+    )
+    if guild is None:
+        embed.add_field(
+            name="NotFound",
+            value="No guild was found."
+        )
+    else:
+        embed.add_field(
+            name=guild.name,
+            value=f"created at {guild.created_at}"
+        )
+    await ctx.send(embed=embed)
+
+
+@admin_fetch.group(
+    name="user", aliases=["member"], pass_context=True
+)
+async def admin_fetch_user(ctx, id):
+    id = int(id)
+    user = await app.fetch_user(id)
+    embed = discord.Embed(
+        title="Fetch",
+        description=f"fetch user by id : {id}"
+    )
+    if user is None:
+        embed.add_field(
+            name="NotFound",
+            value="No user was found."
+        )
+    else:
+        embed.add_field(
+            name=str(user),
+            value=f"created at {user.created_at}"
+        )
     await ctx.send(embed=embed)
 
 

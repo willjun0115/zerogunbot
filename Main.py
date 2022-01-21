@@ -187,11 +187,6 @@ async def admin_fetch_user(ctx, id):
             value=f"created at {user.created_at}\n",
             inline=False
         )
-        embed.add_field(
-            name="mutual guilds",
-            value="\n".join([g.name for g in user.mutual_guilds]),
-            inline=False
-        )
     await ctx.send(embed=embed)
 
 

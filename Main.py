@@ -90,30 +90,12 @@ async def reload_commands(ctx, extension=None):
 
 
 @commands.is_owner()
-@app.group(
-    name="admin"
-)
+@app.group(name="admin")
 async def admin_command(ctx):
     return
 
 
-@admin_command.group(
-    name="command", aliases=["cmd", "help"]
-)
-async def admin_help(ctx):
-    description = ""
-    for cmd in admin_command.commands:
-        description += f"({cmd.full_parent_name}) {cmd.name}\n"
-    embed = discord.Embed(
-        title="Commands",
-        description=description
-    )
-    await ctx.send(embed=embed)
-
-
-@admin_command.group(
-    name="status", aliases=["stat"]
-)
+@admin_command.group(name="status", aliases=["stat"])
 async def admin_status(ctx):
     appinfo = await app.application_info()
     embed = discord.Embed(
@@ -126,23 +108,39 @@ async def admin_status(ctx):
         f"guilds_number : {len(app.guilds)}\n"
         f"users_number : {len(app.users)}\n"
         f"created_at : {app.user.created_at}\n"
-        f"locale : {app.user.locale}\n"
         f"owner_name : {str(appinfo.owner)}\n"
         f"owner_id : {appinfo.owner.id}"
     )
     await ctx.send(embed=embed)
 
 
-@admin_command.group(
-    name="fetch", aliases=["find", "get"], pass_context=True
-)
+@admin_status.group(name="detail")
+async def admin_status_detail(ctx):
+    appinfo = await app.application_info()
+    embed = discord.Embed(
+        title="Detail",
+        description=
+        f"bot_public : {appinfo.bot_public}\n"
+        f"bot_require_code_grant : {appinfo.bot_require_code_grant}\n"
+        f"locale : {app.user.locale}"
+    )
+    guild_list = ""
+    user_list = ""
+    for guild in app.guilds:
+        guild_list += guild.name + "\n"
+    for user in app.users:
+        user_list += str(user) + "\n"
+    embed.add_field(name="guilds", value=guild_list)
+    embed.add_field(name="users", value=user_list)
+    await ctx.send(embed=embed)
+
+
+@admin_command.group(name="fetch", aliases=["find", "get"], pass_context=True)
 async def admin_fetch(ctx):
     return
 
 
-@admin_fetch.group(
-    name="guild", aliases=["server"], pass_context=True
-)
+@admin_fetch.group(name="guild", aliases=["server"], pass_context=True)
 async def admin_fetch_guild(ctx, id):
     id = int(id)
     guild = await app.fetch_guild(id)
@@ -163,9 +161,7 @@ async def admin_fetch_guild(ctx, id):
     await ctx.send(embed=embed)
 
 
-@admin_fetch.group(
-    name="user", aliases=["member"], pass_context=True
-)
+@admin_fetch.group(name="user", aliases=["member"], pass_context=True)
 async def admin_fetch_user(ctx, id):
     id = int(id)
     user = await app.fetch_user(id)
@@ -183,6 +179,21 @@ async def admin_fetch_user(ctx, id):
             name=str(user),
             value=f"created at {user.created_at}"
         )
+    await ctx.send(embed=embed)
+
+
+@admin_command.group(name="command", aliases=["cmd", "help"])
+async def admin_help(ctx):
+    description = ""
+    for cmd in admin_command.commands:
+        description += f"({cmd.full_parent_name}) {cmd.name}\n"
+        if cmd.commands is not None:
+            for sub_cmd in cmd.commands:
+                description += f"({cmd.full_parent_name}) {sub_cmd.name}\n"
+    embed = discord.Embed(
+        title="Commands",
+        description=description
+    )
     await ctx.send(embed=embed)
 
 

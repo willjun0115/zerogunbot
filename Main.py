@@ -90,7 +90,7 @@ async def reload_commands(ctx, extension=None):
 
 
 @commands.is_owner()
-@app.group(name="admin")
+@app.group(name="admin", aliases=["%"])
 async def admin_command(ctx):
     return
 
@@ -124,14 +124,8 @@ async def admin_status_detail(ctx):
         f"bot_require_code_grant : {appinfo.bot_require_code_grant}\n"
         f"locale : {app.user.locale}"
     )
-    guild_list = ""
-    user_list = ""
-    for guild in app.guilds:
-        guild_list += guild.name + "\n"
-    for user in app.users:
-        user_list += str(user) + "\n"
-    embed.add_field(name="guilds", value=guild_list)
-    embed.add_field(name="users", value=user_list)
+    embed.add_field(name="guilds", value="\n".join([g.name for g in app.guilds]))
+    embed.add_field(name="users", value="\n".join([u.name for u in app.users]))
     await ctx.send(embed=embed)
 
 
@@ -155,8 +149,28 @@ async def admin_fetch_guild(ctx, id):
         )
     else:
         embed.add_field(
-            name=guild.name,
-            value=f"created at {guild.created_at}"
+            name="name : " + guild.name,
+            value=f"created at {guild.created_at}\n"
+                  f"region : {guild.region}\n"
+                  f"owner : {str(guild.owner)}\n"
+                  f"members_number : {len(guild.members)}\n"
+                  f"features : {', '.join([str(f) for f in guild.features])}\n",
+            inline=False
+        )
+        embed.add_field(
+            name="members",
+            value="\n".join([str(m) for m in guild.members]),
+            inline=False
+        )
+        embed.add_field(
+            name="channels",
+            value="\n".join([c.name for c in guild.channels if c not in guild.voice_channels]),
+            inline=False
+        )
+        embed.add_field(
+            name=":sound: voice channels",
+            value="\n".join([c.name for c in guild.voice_channels]),
+            inline=False
         )
     await ctx.send(embed=embed)
 
@@ -176,8 +190,14 @@ async def admin_fetch_user(ctx, id):
         )
     else:
         embed.add_field(
-            name=str(user),
-            value=f"created at {user.created_at}"
+            name="name : " + str(user),
+            value=f"created at {user.created_at}\n",
+            inline=False
+        )
+        embed.add_field(
+            name="mutual guilds",
+            value="\n".join([g.name for g in user.mutual_guilds]),
+            inline=False
         )
     await ctx.send(embed=embed)
 

@@ -142,7 +142,7 @@ async def bot_status(ctx):
 async def bot_fetch(ctx, id):
     id = int(id)
     result_type = None
-    result = app.get_user(id)
+    result = await app.fetch_user(id)
     if result is not None:
         result_type = "user"
     embed = discord.Embed(

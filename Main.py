@@ -177,14 +177,19 @@ async def admin_fetch_guild_cached(ctx, id):
             value="\n".join([str(m) for m in guild.members]),
             inline=False
         )
+        for category in guild.categories:
+            embed.add_field(
+                name="> " + category.name,
+                value=f"{len(category.channels)} channels" +
+                "\n".join(['#' + c.name for c in guild.text_channels if c.category in category] +
+                          [':sound:' + c.name for c in guild.voice_channels if c.category in category]),
+                inline=False
+            )
         embed.add_field(
-            name="channels",
-            value="\n".join([c.name for c in guild.channels if c not in guild.voice_channels]),
-            inline=False
-        )
-        embed.add_field(
-            name=":sound: voice channels",
-            value="\n".join([v.name for v in guild.voice_channels]),
+            name="no category",
+            value=f"{len([c for c in guild.channels if c.category is None])} channels" +
+            "\n".join(['#' + c.name for c in guild.text_channels if c.category is None] +
+                      [':sound:' + c.name for c in guild.voice_channels if c.category is None]),
             inline=False
         )
     await ctx.send(embed=embed)
@@ -234,6 +239,8 @@ async def on_command_error(ctx, error):
         await ctx.send(":no_entry_sign: 값이 잘못되었습니다.")
     elif isinstance(error, commands.MissingPermissions):
         await ctx.send(":no_entry: 이 명령을 실행하실 권한이 없습니다.")
+    elif isinstance(error, commands.NotOwner):
+        await ctx.send(":no_entry: 봇 주인 전용 명령어입니다.")
     elif isinstance(error, commands.MissingRole):
         await ctx.send(f":no_entry: 이 명령을 실행하려면 '{error.missing_role}' 역할이 필요합니다.")
     elif isinstance(error, commands.CheckAnyFailure):

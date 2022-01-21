@@ -180,14 +180,14 @@ async def admin_fetch_guild_cached(ctx, id):
         for category in guild.categories:
             embed.add_field(
                 name="> " + category.name,
-                value=f"{len(category.channels)} channels" +
+                value=f"{len(category.channels)} channels\n" +
                 "\n".join(['#' + c.name for c in category.text_channels] +
                           [':sound:' + c.name for c in category.voice_channels]),
                 inline=False
             )
         embed.add_field(
             name="no category",
-            value=f"{len([c for c in guild.channels if c.category is None])} channels" +
+            value=f"{len([c for c in guild.channels if c.category is None and c not in guild.categories])} channels\n" +
             "\n".join(['#' + c.name for c in guild.text_channels if c.category is None] +
                       [':sound:' + c.name for c in guild.voice_channels if c.category is None]),
             inline=False

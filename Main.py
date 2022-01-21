@@ -137,16 +137,13 @@ async def admin_fetch(ctx):
 @admin_fetch.group(name="guild", aliases=["server"], pass_context=True)
 async def admin_fetch_guild(ctx, id):
     id = int(id)
-    guild = await app.fetch_guild(id)
-    embed = discord.Embed(
-        title="Fetch",
-        description=f"fetch guild by id : {id}"
-    )
-    if guild is None:
-        embed.add_field(
-            name="NotFound",
-            value="No guild was found."
-        )
+    embed = discord.Embed(title="Fetch", description=f"fetch guild by id : {id}")
+    try:
+        guild = await app.fetch_guild(id)
+    except discord.NotFound:
+        embed.add_field(name="NotFound", value="No guild was found.")
+    except discord.Forbidden:
+        embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
     else:
         embed.add_field(
             name="name : " + guild.name,
@@ -163,8 +160,7 @@ async def admin_fetch_guild(ctx, id):
             inline=False
         )
         embed.add_field(
-            name="channels",
-            value="\n".join([c.name for c in guild.channels if c not in guild.voice_channels]),
+            name="channels", value="\n".join([c.name for c in guild.channels if c not in guild.voice_channels]),
             inline=False
         )
         embed.add_field(
@@ -178,16 +174,13 @@ async def admin_fetch_guild(ctx, id):
 @admin_fetch.group(name="user", aliases=["member"], pass_context=True)
 async def admin_fetch_user(ctx, id):
     id = int(id)
-    user = await app.fetch_user(id)
-    embed = discord.Embed(
-        title="Fetch",
-        description=f"fetch user by id : {id}"
-    )
-    if user is None:
-        embed.add_field(
-            name="NotFound",
-            value="No user was found."
-        )
+    embed = discord.Embed(title="Fetch", description=f"fetch user by id : {id}")
+    try:
+        user = await app.fetch_user(id)
+    except discord.NotFound:
+        embed.add_field(name="NotFound", value="No user was found.")
+    except discord.Forbidden:
+        embed.add_field(name="Forbidden", value="Cannot fetch the user.")
     else:
         embed.add_field(
             name="name : " + str(user),

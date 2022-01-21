@@ -150,8 +150,7 @@ async def admin_fetch_guild(ctx, id):
             value=f"created at {guild.created_at}\n"
                   f"region : {guild.region}\n"
                   f"owner : {str(guild.owner)}\n"
-                  f"members_number : {len(guild.members)}\n"
-                  f"features : {', '.join([str(f) for f in guild.features])}\n",
+                  f"members_number : {len(guild.members)}",
             inline=False
         )
         embed.add_field(

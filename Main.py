@@ -124,13 +124,13 @@ async def bot_status(ctx):
         description=
         f"prefix : {app.prefix}\n"
         f"app_name : {appinfo.name}\n"
-        f"client_name : {app.user.name}#{app.user.discriminator}\n"
+        f"client_name : {str(app.user)}\n"
         f"client_id : {app.user.id}\n"
         f"guilds_number : {len(app.guilds)}\n"
         f"users_number : {len(app.users)}\n"
         f"created_at : {app.user.created_at}\n"
         f"locale : {app.user.locale}\n"
-        f"owner_name : {appinfo.owner.name}\n"
+        f"owner_name : {str(appinfo.owner)}\n"
         f"owner_id : {appinfo.owner.id}"
     )
     await ctx.send(embed=embed)

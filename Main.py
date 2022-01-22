@@ -62,21 +62,21 @@ async def on_member_join(member):
 
 @commands.has_permissions(administrator=True)
 @app.command(name="로드", aliases=["load"])
-async def load_commands(ctx, extension):
+async def load_command(ctx, extension):
     app.load_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 로드했습니다.")
 
 
 @commands.has_permissions(administrator=True)
 @app.command(name="언로드", aliases=["unload"])
-async def unload_commands(ctx, extension):
+async def unload_command(ctx, extension):
     app.unload_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 언로드했습니다.")
 
 
 @commands.has_permissions(administrator=True)
 @app.command(name="리로드", aliases=["reload"])
-async def reload_commands(ctx, extension=None):
+async def reload_command(ctx, extension=None):
     if extension is None:
         for file_name in os.listdir("Cogs"):
             if file_name.endswith(".py"):
@@ -97,19 +97,15 @@ async def admin_command(ctx):
 
 @admin_command.group(name="status", aliases=["stat"])
 async def admin_status(ctx):
-    appinfo = await app.application_info()
     embed = discord.Embed(
         title="Status",
         description=
         f"prefix : {app.prefix}\n"
-        f"app_name : {appinfo.name}\n"
         f"client_name : {str(app.user)}\n"
         f"client_id : {app.user.id}\n"
         f"guilds_number : {len(app.guilds)}\n"
         f"users_number : {len(app.users)}\n"
-        f"created_at : {app.user.created_at}\n"
-        f"owner_name : {str(appinfo.owner)}\n"
-        f"owner_id : {appinfo.owner.id}"
+        f"created_at : {app.user.created_at}"
     )
     await ctx.send(embed=embed)
 
@@ -120,6 +116,8 @@ async def admin_status_detail(ctx):
     embed = discord.Embed(
         title="Detail",
         description=
+        f"owner_name : {str(appinfo.owner)}\n"
+        f"owner_id : {appinfo.owner.id}\n"
         f"bot_public : {appinfo.bot_public}\n"
         f"bot_require_code_grant : {appinfo.bot_require_code_grant}\n"
         f"locale : {app.user.locale}"
@@ -214,7 +212,7 @@ async def admin_fetch_user(ctx, id):
     await ctx.send(embed=embed)
 
 
-@admin_command.group(name="command", aliases=["cmd", "help"])
+@admin_command.group(name="help", aliases=["command", "cmd", "?"])
 async def admin_help(ctx):
     description = ""
     for cmd in admin_command.commands:

@@ -95,7 +95,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="잠수", aliases=["afk"],
-        help="잠수방으로 이동합니다.", usage="*"
+        help="잠수방으로 이동합니다.", usage="*", hidden=True
     )
     async def submerge(self, ctx):
         afkchannel = ctx.guild.get_channel(760198518987685949)

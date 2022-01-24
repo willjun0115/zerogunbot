@@ -11,29 +11,20 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     def __init__(self, app):
         self.app = app
 
-    async def find_log(self, ctx, selector, id):
-        log_channel = ctx.guild.get_channel(self.app.log_ch)
-        find = None
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith(selector + str(id)) is True:
-                find = message
-                break
-        return find
-
     @commands.command(
         name="토큰", aliases=["코인", "token", "coin", "$"],
-        help="자신의 토큰 수를 확인합니다.\n토큰 로그에 기록되지 않았다면, 새로 ID를 등록합니다.",
+        help="자신의 토큰 수를 확인합니다.\n토큰 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
         usage="*"
     )
     async def check_token(self, ctx):
-        log_channel = ctx.guild.get_channel(self.app.log_ch)
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        db_channel = ctx.guild.get_channel(self.app.log_ch)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
             await ctx.send(str(coin) + ' :coin:')
         else:
-            await log_channel.send('$' + str(ctx.author.id) + ';0')
-            await ctx.send('토큰 로그에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
+            await db_channel.send('$' + str(ctx.author.id) + ';0')
+            await ctx.send('토큰 DB에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
     @commands.cooldown(1, 600., commands.BucketType.channel)
     @commands.command(
@@ -41,14 +32,14 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 10분)", usage="* (@*member*)"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
-        log_channel = ctx.guild.get_channel(self.app.log_ch)
-        msg = await ctx.send("로그를 조회 중입니다... :mag:")
+        db_channel = ctx.guild.get_channel(self.app.log_ch)
+        msg = await ctx.send("DB를 조회 중입니다... :mag:")
         members = {}
-        messages = await log_channel.history(limit=100).flatten()
+        messages = await db_channel.history(limit=100).flatten()
         for message in messages:
             if message.content.startswith('$') is True:
                 mem = await ctx.guild.fetch_member(int(message.content[1:19]))
-                member_log = await self.find_log(ctx, '$', mem.id)
+                member_log = await self.app.find_id(ctx, '$', mem.id)
                 members[mem] = int(member_log.content[20:])
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         if member is None:
@@ -68,7 +59,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await msg.edit(content=None, embed=embed)
         else:
             embed = discord.Embed(title="<토큰 랭킹>", description=member.display_name + " 님의 토큰 순위")
-            log = await self.find_log(ctx, '$', member.id)
+            log = await self.app.find_id(ctx, '$', member.id)
             if log is not None:
                 coin = int(log.content[20:])
                 mem_coin = (member, coin)
@@ -94,9 +85,9 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="상점의 상품 목록에서 역할이나 아이템을 구매합니다.", usage="* str(*role or item*)"
     )
     async def buy_item(self, ctx, *, args):
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send('DB에서 ID를 찾지 못했습니다.')
         else:
             item_found = False
             coin = int(log.content[20:])
@@ -131,15 +122,15 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         usage="*"
     )
     async def enhance_luck(self, ctx):
-            luck_log = await self.find_log(ctx, '%', ctx.author.id)
+            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
             if luck_log is not None:
                 luck = int(luck_log.content[20:])
                 await ctx.send(str(luck) + ' :four_leaf_clover:')
             else:
                 log_channel = ctx.guild.get_channel(self.app.log_ch)
-                log = await self.find_log(ctx, '$', ctx.author.id)
+                log = await self.app.find_id(ctx, '$', ctx.author.id)
                 if log is None:
-                    await ctx.send('로그에서 ID를 찾지 못했습니다.')
+                    await ctx.send('DB에서 ID를 찾지 못했습니다.')
                 else:
                     price = self.app.shop.get("행운")
                     coin = int(log.content[20:])
@@ -157,12 +148,12 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
              "\n(당첨 확률은 2.25%)", usage="*"
     )
     async def lottery_p(self, ctx):
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         price = self.app.shop.get("유료복권")
         if log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.')
+            await ctx.send('DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.')
         else:
-            bot_log = await self.find_log(ctx, '$', self.app.id)
+            bot_log = await self.app.find_id(ctx, '$', self.app.id)
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
             if coin < price:
@@ -183,9 +174,9 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
              "\n아무것도 입력하지 않으면 기본 닉네임으로 변경됩니다.", usage="* (str())"
     )
     async def nick_change(self, ctx, *, nickname=None):
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send('DB에서 ID를 찾지 못했습니다.')
         else:
             if get(ctx.guild.roles, name="창씨개명") in ctx.message.author.roles:
                 await ctx.send("창씨개명을 보유 중입니다.")
@@ -223,9 +214,9 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="자신의 마이크, 헤드셋 음소거를 해제합니다.", usage="*"
     )
     async def mercury(self, ctx):
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
-            await ctx.send('로그에서 ID를 찾지 못했습니다.')
+            await ctx.send('DB에서 ID를 찾지 못했습니다.')
         else:
             price = self.app.shop.get("수은")
             coin = int(log.content[20:])

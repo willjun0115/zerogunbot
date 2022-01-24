@@ -14,15 +14,6 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
     def __init__(self, app):
         self.app = app
 
-    async def find_log(self, ctx, selector, id):
-        log_channel = ctx.guild.get_channel(self.app.log_ch)
-        find = None
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith(selector + str(id)) is True:
-                find = message
-                break
-        return find
-
     @commands.command(
         name="도움말", aliases=["help", "?"],
         help="도움말을 불러옵니다.\n'%사용법'에서 명령어 사용법 참조.", usage="* (str(*command*))"
@@ -108,6 +99,7 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
         await ctx.send(embed=embed)
 
     @commands.cooldown(1, 300., commands.BucketType.guild)
+    @commands.bot_has_permissions(administrator=True)
     @commands.check_any(commands.has_role("0군 인증서"), commands.is_owner())
     @commands.command(
         name="0군인증", aliases=["0_certify"],
@@ -162,26 +154,26 @@ class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에
 
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
-        name="로그편집", aliases=["editlog"],
-        help="해당 멤버의 로그를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
+        name="DB편집", aliases=["editdb"],
+        help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
-    async def edit_log(self, ctx, selector, member: discord.Member, val):
-        log_channel = ctx.guild.get_channel(self.app.log_ch)
+    async def edit_db(self, ctx, selector, member: discord.Member, val):
+        db_channel = ctx.guild.get_channel(self.app.log_ch)
         if len(selector) == 1:
-            log = await self.find_log(ctx, selector, member.id)
-            if log is not None:
+            data = await self.app.find_id(ctx, selector, member.id)
+            if data is not None:
                 if val[0] == '+':
                     val = val[1:]
-                    await log.edit(content=log.content[:20] + str(int(log.content[20:]) + int(val)))
+                    await data.edit(content=data.content[:20] + str(int(data.content[20:]) + int(val)))
                 elif val[0] == '-':
                     val = val[1:]
-                    await log.edit(content=log.content[:20] + str(int(log.content[20:]) - int(val)))
+                    await data.edit(content=data.content[:20] + str(int(data.content[20:]) - int(val)))
                 else:
-                    await log.edit(content=log.content[:20] + str(val))
-                await ctx.send('로그를 업데이트했습니다.')
+                    await data.edit(content=data.content[:20] + str(val))
+                await ctx.send('DB를 업데이트했습니다.')
             else:
-                await log_channel.send(selector + str(member.id) + ';' + str(val))
-                await ctx.send('로그에 ' + member.name + ' 님의 ID를 기록했습니다.')
+                await db_channel.send(selector + str(member.id) + ';' + str(val))
+                await ctx.send('DB에 ' + member.name + ' 님의 ID를 기록했습니다.')
         else:
             await ctx.send("식별자는 1글자여야 합니다.")
 

@@ -9,7 +9,6 @@ import ctypes.util
 prefix = '%'
 app = commands.Bot(command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True)
 app.prefix = prefix
-app.id = 811077328099606531
 app.gacha_ch = 811849095031029762
 app.log_ch = 874970985307201546
 app.role_lst = [
@@ -58,6 +57,16 @@ async def on_member_join(member):
     if member.guild.id == 760194959336275988:
         channel = member.guild.get_channel(813664336811786270)
         await channel.send("새 멤버가 등장했습니다!\n0군 인증서를 발급받으려면 '%0군인증'을 진행해주세요.")
+
+
+async def find_id(ctx, selector, id):
+    db_channel = ctx.guild.get_channel(874970985307201546)
+    find = None
+    async for message in db_channel.history(limit=100):
+        if message.content.startswith(selector + str(id)) is True:
+            find = message
+            break
+    return find
 
 
 @commands.has_permissions(administrator=True)

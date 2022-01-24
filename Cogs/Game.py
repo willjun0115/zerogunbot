@@ -10,22 +10,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     def __init__(self, app):
         self.app = app
-        self.cannot_find_id = '로그에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
-
-    async def find_log(self, ctx, selector, id):
-        log_channel = ctx.guild.get_channel(self.app.log_ch)
-        find = None
-        async for message in log_channel.history(limit=100):
-            if message.content.startswith(selector + str(id)) is True:
-                find = message
-                break
-        return find
+        self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
-        author_log = await self.find_log(ctx, '$', ctx.author.id)
+        author_coin = await self.app.find_id(ctx, '$', ctx.author.id)
         start = False
-        if author_log is None:
+        if author_coin is None:
             await ctx.send(self.cannot_find_id)
         else:
             msg = await ctx.send(
@@ -51,8 +42,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             start = True
                             break
                         elif user not in members:
-                            member_log = await self.find_log(ctx, '$', user.id)
-                            if member_log is None:
+                            member_coin = await self.app.find_id(ctx, '$', user.id)
+                            if member_coin is None:
                                 await ctx.send(self.cannot_find_id)
                             else:
                                 members.append(user)
@@ -76,7 +67,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 prize = int((len(members)-1) // len(winners)) * int(coin)
             else:
                 prize = -1 * int(coin)
-            member_log = await self.find_log(ctx, '$', member.id)
+            member_log = await self.app.find_id(ctx, '$', member.id)
             member_coin = int(member_log.content[20:])
             await member_log.edit(content=member_log.content[:20] + str(member_coin + prize))
 
@@ -87,7 +78,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def gamble(self, ctx, bet):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
@@ -118,14 +109,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def gacha(self, ctx):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
             coin = int(log.content[20:])
             if ctx.channel == my_channel:
                 luck = 0
-                luck_log = await self.find_log(ctx, '%', ctx.author.id)
+                luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
                 if luck_log is not None:
                     luck = int(luck_log.content[20:])
                 msg = await ctx.send(
@@ -179,7 +170,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 result = '손실 :x:'
                             else:
                                 prize = "꽝"
-                                bot_log = await self.find_log(ctx, '$', self.app.user.id)
+                                bot_log = await self.app.find_id(ctx, '$', self.app.user.id)
                                 await bot_log.edit(content=bot_log.content[:20] + str(int(bot_log.content[20:]) + 1))
                         else:
                             if luck_log is not None:
@@ -212,11 +203,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def lottery(self, ctx):
         my_channel = ctx.guild.get_channel(self.app.gacha_ch)
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
-            bot_log = await self.find_log(ctx, '$', self.app.user.id)
+            bot_log = await self.app.find_id(ctx, '$', self.app.user.id)
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
             if ctx.channel == my_channel:
@@ -237,7 +228,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def rock_scissors_paper(self, ctx):
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
             msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
@@ -287,7 +278,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def odd_or_even(self, ctx):
-        log = await self.find_log(ctx, '$', ctx.author.id)
+        log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
             num = random.randint(0, 9)
@@ -355,7 +346,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await member.remove_roles(member.top_role)
                 embed.add_field(name="신고 접수", value="감사합니다. 신고가 접수되었습니다.\n" + member.name + " 님이 강등됩니다.",
                                 inline=True)
-                log = await self.find_log(ctx, '$', ctx.author.id)
+                log = await self.app.find_id(ctx, '$', ctx.author.id)
                 if log is not None:
                     coin = int(log.content[20:])
                     await log.edit(content=log.content[:20] + str(coin + lv * 10))
@@ -375,8 +366,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def indian_poker(self, ctx, member: discord.Member):
         party = (member, ctx.author)
         limit = 0
-        author_log = await self.find_log(ctx, '$', ctx.author.id)
-        member_log = await self.find_log(ctx, '$', member.id)
+        author_log = await self.app.find_id(ctx, '$', ctx.author.id)
+        member_log = await self.app.find_id(ctx, '$', member.id)
         if author_log is None:
             await ctx.send(f'로그에서 {ctx.author.name} 님의 ID를 찾지 못했습니다.')
         else:
@@ -889,7 +880,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 regame = True
                     if regame:
                         for member in die_members:
-                            member_log = await self.find_log(ctx, '$', member.id)
+                            member_log = await self.app.find_id(ctx, '$', member.id)
                             member_coin = int(member_log.content[20:])
                             await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
                         embed = discord.Embed(title="<섯다 결과>", description='재경기')
@@ -903,7 +894,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         for member in members:
                             if member == winner:
                                 pay[member] -= coin
-                            member_log = await self.find_log(ctx, '$', member.id)
+                            member_log = await self.app.find_id(ctx, '$', member.id)
                             member_coin = int(member_log.content[20:])
                             await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
                         embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')

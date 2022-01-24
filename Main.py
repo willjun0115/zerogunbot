@@ -227,10 +227,10 @@ async def admin_fetch_user(ctx, id):
 async def admin_help(ctx):
     description = ""
     for cmd in admin_command.commands:
-        description += f"({cmd.full_parent_name}) {cmd.name}\n"
+        description += f"({'/'.join(cmd.parents.reverse)}) {cmd.name}\n"
         if cmd.commands is not None:
             for sub_cmd in cmd.commands:
-                description += f"({cmd.full_parent_name}) {sub_cmd.name}\n"
+                description += f"({'/'.join(cmd.parents.reverse)}) {sub_cmd.name}\n"
     embed = discord.Embed(
         title="Commands",
         description=description

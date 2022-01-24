@@ -68,6 +68,8 @@ async def find_id(ctx, selector, id):
             break
     return find
 
+app.find_id = find_id
+
 
 @commands.has_permissions(administrator=True)
 @app.command(name="로드", aliases=["load"])

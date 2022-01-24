@@ -77,14 +77,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n베팅은 보유 토큰의 절반까지 가능합니다.", usage="* int((0, *token/2*])", pass_context=True
     )
     async def gamble(self, ctx, bet):
-        my_channel = ctx.guild.get_channel(self.app.gacha_ch)
         log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
             bet = int(bet)
             coin = int(log.content[20:])
-            if ctx.channel == my_channel:
+            if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
                 if coin < bet:
                     await ctx.send("코인이 부족합니다.")
                 elif bet > coin//2:
@@ -109,13 +108,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
     )
     async def gacha(self, ctx):
-        my_channel = ctx.guild.get_channel(self.app.gacha_ch)
         log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
             coin = int(log.content[20:])
-            if ctx.channel == my_channel:
+            if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
                 luck = 0
                 luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
                 if luck_log is not None:
@@ -203,7 +201,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n(당첨 확률은 1.25%)", usage="*"
     )
     async def lottery(self, ctx):
-        my_channel = ctx.guild.get_channel(self.app.gacha_ch)
         log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
@@ -211,7 +208,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             bot_log = await self.app.find_id(ctx, '$', self.app.user.id)
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
-            if ctx.channel == my_channel:
+            if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
                 rand = random.random()
                 if rand <= 0.0125:
                     await bot_log.edit(content=bot_log.content[:20] + str(10))
@@ -321,6 +318,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             await ctx.send(self.cannot_find_id)
 
+    @commands.bot_has_permissions(administrator=True)
     @commands.command(
         name="리폿", aliases=["신고", "report"],
         help="부적절한 사용자를 신고합니다.\n낮은 확률로 접수되면 최고 권한을 잃습니다."
@@ -328,8 +326,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n신고가 접수되면 보상으로 10 코인을 드립니다.", usage="* @*member*"
     )
     async def report(self, ctx, member: discord.Member):
-        my_channel = ctx.guild.get_channel(872938926019575879)
-        if ctx.channel == my_channel:
+        if ctx.channel == ctx.guild.get_channel(872938926019575879):
             await ctx.message.delete()
             rand = random.random()
             win = 0

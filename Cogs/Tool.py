@@ -9,7 +9,7 @@ import youtube_dl
 from discord import FFmpegPCMAudio
 
 
-class Tool(commands.Cog, name="도구", description="정보 조회 및 편집에 관한 카테고리입니다."):
+class Tool(commands.Cog, name="도구", description="다양한 기능에 관한 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app

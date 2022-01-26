@@ -365,6 +365,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
+    @commands.bot_has_permissions(administrator=True)
     @commands.command(
         name="룰렛", aliases=["ㄹㄹ", "roulette"],
         help="룰렛을 돌려 무작위 보상을 얻습니다."

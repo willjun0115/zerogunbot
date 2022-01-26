@@ -171,7 +171,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         member_coin = int(member_db.content[20:])
         allocated_coin = (coin + member_coin) // 2
         await db.edit(content=db.content[:20] + str(allocated_coin))
-        await member_db.edit(content=db.content[:20] + str(allocated_coin))
+        await member_db.edit(content=member_db.content[:20] + str(allocated_coin))
         return member.display_name + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
 
     async def prize_role_steal(self, ctx, db):
@@ -186,7 +186,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         member = ctx.guild.get_member(int(member_db.content[1:19]))
         role = random.choice(member.roles[2:])
         await ctx.author.add_roles(role)
-        await ctx.author.remove_roles(role)
+        await member.remove_roles(role)
         return member.display_name + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
 
     @commands.command(

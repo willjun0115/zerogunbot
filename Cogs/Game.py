@@ -13,15 +13,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.roulette_lst = [
             (":gem:", 2, self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."),
+            (":coin:", 9, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":skull:", 1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":black_joker:", 1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
-            (":arrows_counterclockwise:", 1, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
-            (":busts_in_silhouette:", 1, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
-            (":scales:", 1, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
+            (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
+            (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
+            (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
+            (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
+            (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
             (":pick:", 1, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
         ]
 
@@ -342,7 +342,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
-    @commands.cooldown(1, 5., commands.BucketType.member)
+    @commands.cooldown(1, 300., commands.BucketType.member)
     @commands.command(
         name="룰렛", aliases=["roulette"],
         help="룰렛을 돌려 무작위 보상을 얻습니다."
@@ -370,7 +370,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
                 if str(reaction) == '✅':
-                    await ctx.send("룰렛을 돌립니다...")
                     embed = discord.Embed(title="<:slot_machine: 룰렛>",
                                           description=ctx.author.display_name + " 님의 결과")
                     rand = random.random() * 100
@@ -379,7 +378,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for prize in self.roulette_lst:
                         if rand <= prize[1]:
                             result = prize[0]
-                            await ctx.send(result)
                             effect = await prize[2](ctx, db)
                             break
                         else:
@@ -387,7 +385,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if result is None:
                         embed.add_field(name="> 꽝", value="아무일도 일어나지 않았습니다.")
                     else:
-                        embed.add_field(name="> " + result, value=effect)
+                        embed.add_field(name=result, value=effect)
                     await ctx.send(embed=embed)
                 else:
                     await ctx.send(":negative_squared_cross_mark: 룰렛을 취소했습니다.")

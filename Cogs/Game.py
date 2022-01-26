@@ -121,9 +121,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return "모든 토큰을 잃었습니다."
 
     async def prize_joker(self, ctx, db):
-        roles = ctx.guild.roles[:get(ctx.guild.roles, name="관리자").position] - ctx.author.roles[2:]
-        await ctx.author.edit(roles=roles)
-        return ', '.join([r.name for r in roles]) + "(으)로 역할이 바뀌었습니다!"
+        roles = ctx.guild.roles[:get(ctx.guild.roles, name="관리자").position]
+        losts = ctx.author.roles[:2]
+        await ctx.author.add_roles(roles)
+        await ctx.author.remove_roles(losts)
+        return ', '.join([r.name for r in ctx.author.roles]) + "(으)로 역할이 바뀌었습니다!"
 
     async def prize_token_change(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
@@ -182,7 +184,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]
         )
         member = ctx.guild.fetch_member(int(member_db.content[1:19]))
-        role = random.choice(member.roles)
+        role = random.choice(member.roles[2:])
         await ctx.author.add_roles(role)
         await ctx.author.remove_roles(role)
         return member.display_name + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"

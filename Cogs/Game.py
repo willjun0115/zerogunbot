@@ -99,7 +99,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_luck(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
-        if luck_log is not None:
+        if luck_log is None:
             await db_channel.send('%' + str(ctx.author.id) + ';0')
             return "행운 효과를 얻었습니다!"
         else:
@@ -130,7 +130,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
-                m for m in messages if m.content.startswith('$') and int(m.content[1:19]) != self.app.user.id
+                m for m in messages
+                if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
             ]
         )
         member = ctx.guild.fetch_member(int(member_db.content[1:19]))
@@ -143,7 +144,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_role_change(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
         messages = await db_channel.history(limit=100).flatten()
-        member_db = random.choice(messages)
+        member_db = random.choice(
+            [
+                m for m in messages
+                if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
+            ]
+        )
         member = ctx.guild.fetch_member(int(member_db.content[1:19]))
         await ctx.author.edit(roles=member.roles)
         await member.edit(roles=ctx.author.roles)
@@ -152,7 +158,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_scales(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
         messages = await db_channel.history(limit=100).flatten()
-        member_db = random.choice(messages)
+        member_db = random.choice(
+            [
+                m for m in messages
+                if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
+            ]
+        )
         member = ctx.guild.fetch_member(int(member_db.content[1:19]))
         coin = int(db.content[20:])
         member_coin = int(member_db.content[20:])
@@ -164,7 +175,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_role_steal(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
         messages = await db_channel.history(limit=100).flatten()
-        member_db = random.choice(messages)
+        member_db = random.choice(
+            [
+                m for m in messages
+                if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
+            ]
+        )
         member = ctx.guild.fetch_member(int(member_db.content[1:19]))
         role = random.choice(member.roles)
         await ctx.author.add_roles(role)

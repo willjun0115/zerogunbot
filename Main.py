@@ -159,10 +159,21 @@ async def admin_context(ctx):
         f"prefix : {ctx.prefix}\n"
         f"author : {ctx.author}\n"
         f"bot : {str(ctx.bot.user)}\n"
-        f"guild : {ctx.guild.name}\n"
-        f"channel : {ctx.channel.name}\n"
         f"message_id : {ctx.message.id}\n"
         f"created_at : {ctx.message.created_at}"
+    )
+    await ctx.send(embed=embed)
+
+
+@admin_context.group(name="guild", aliases=["server"])
+async def admin_ctx_guild(ctx):
+    embed = discord.Embed(
+        title="Context Guild",
+        description=
+        f"guild_name : {ctx.guild.name}\n"
+        f"channel_name : {ctx.channel.name}\n"
+        f"guild_member_number : {len(ctx.guild.members)}\n"
+        f"channel_member_number : {len(ctx.channel.members)}"
     )
     await ctx.send(embed=embed)
 

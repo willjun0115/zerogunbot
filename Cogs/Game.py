@@ -128,7 +128,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_token_change(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
         messages = await db_channel.history(limit=100).flatten()
-        member_db = random.choice(messages)
+        member_db = random.choice(
+            [
+                m for m in messages if m.content.startswith('$') and int(m.content[1:19]) != self.app.user.id
+            ]
+        )
         member = ctx.guild.fetch_member(int(member_db.content[1:19]))
         coin = db.content[20:]
         member_coin = member_db.content[20:]
@@ -315,7 +319,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
-    @commands.cooldown(1, 60., commands.BucketType.member)
+    @commands.cooldown(1, 5., commands.BucketType.member)
     @commands.command(
         name="룰렛", aliases=["roulette"],
         help="룰렛을 돌려 무작위 보상을 얻습니다."

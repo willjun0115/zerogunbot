@@ -15,14 +15,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":gem:", 2, self.prize_gem, "상당한 토큰을 얻습니다."),
             (":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
-            (":smiling_imp:", 6, self.prize_coin, "토큰을 잃습니다."),
-            (":bomb:", 1, self.prize_coin, "역할을 무작위로 하나 잃습니다."),
-            (":skull:", 0.1, self.prize_coin, "토큰을 모두 잃습니다."),
-            (":black_joker:", 0.1, self.prize_coin, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
-            (":arrows_counterclockwise:", 0.2, self.prize_coin, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
-            (":busts_in_silhouette:", 0.2, self.prize_coin, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
-            (":scales:", 0.2, self.prize_coin, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
-            (":pick:", 0.2, self.prize_coin, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
+            (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
+            (":bomb:", 1, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
+            (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
+            (":arrows_counterclockwise:", 0.2, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
+            (":busts_in_silhouette:", 0.2, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
+            (":scales:", 0.2, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
+            (":pick:", 0.2, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
         ]
 
     async def gather_members(self, ctx, game_name="게임"):
@@ -101,7 +101,71 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
         if luck_log is not None:
             await db_channel.send('%' + str(ctx.author.id) + ';0')
-        return "행운"
+            return "행운 효과를 얻었습니다!"
+        else:
+            return "이미 행운 효과를 받고 있습니다."
+
+    async def prize_imp(self, ctx, db):
+        coin = int(db.content[20:])
+        prize = - random.randint(15, 60)
+        await db.edit(content=db.content[:20] + str(coin + prize))
+        return "-" + str(prize) + " :coin:"
+
+    async def prize_bomb(self, ctx, db):
+        role = random.choice(ctx.author.roles[2:])
+        await ctx.author.remove_roles(role)
+        return role.name + "을(를) 잃었습니다."
+
+    async def prize_skull(self, ctx, db):
+        await db.edit(content=db.content[:20]+'0')
+        return "모든 토큰을 잃었습니다."
+
+    async def prize_joker(self, ctx, db):
+        roles = ctx.guild.roles[:get(ctx.guild.roles, name="관리자").position] - ctx.author.roles[2:]
+        await ctx.author.edit(roles=roles)
+        return ', '.join([r.name for r in roles]) + "(으)로 역할이 바뀌었습니다!"
+
+    async def prize_token_change(self, ctx, db):
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        messages = await db_channel.history(limit=100).flatten()
+        member_db = random.choice(messages)
+        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        coin = db.content[20:]
+        member_coin = member_db.content[20:]
+        await db.edit(content=db.content[:20]+member_coin)
+        await member_db.edit(content=db.content[:20]+coin)
+        return member.display_name + f" 님과 토큰이 뒤바뀌었습니다!\n{coin} <-> {member_coin} :coin:"
+
+    async def prize_role_change(self, ctx, db):
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        messages = await db_channel.history(limit=100).flatten()
+        member_db = random.choice(messages)
+        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        await ctx.author.edit(roles=member.roles)
+        await member.edit(roles=ctx.author.roles)
+        return member.display_name + " 님과 역할이 뒤바뀌었습니다!"
+
+    async def prize_scales(self, ctx, db):
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        messages = await db_channel.history(limit=100).flatten()
+        member_db = random.choice(messages)
+        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        coin = int(db.content[20:])
+        member_coin = int(member_db.content[20:])
+        allocated_coin = (coin + member_coin) // 2
+        await db.edit(content=db.content[:20] + str(allocated_coin))
+        await member_db.edit(content=db.content[:20] + str(allocated_coin))
+        return member.display_name + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
+
+    async def prize_role_steal(self, ctx, db):
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        messages = await db_channel.history(limit=100).flatten()
+        member_db = random.choice(messages)
+        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        role = random.choice(member.roles)
+        await ctx.author.add_roles(role)
+        await ctx.author.remove_roles(role)
+        return member.display_name + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
 
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
@@ -279,17 +343,23 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     if str(reaction) == '✅':
+                        await ctx.send("룰렛을 돌립니다...")
                         embed = discord.Embed(title="<:slot_machine: 룰렛>",
                                               description=ctx.author.display_name + " 님의 결과")
                         rand = random.random() * 100
                         result = None
+                        effect = None
                         for prize in self.roulette_lst:
                             if rand <= prize[1]:
                                 result = prize[0]
+                                effect = await prize[2](ctx, db)
                                 break
                             else:
                                 rand -= prize[1]
-                        embed.add_field(name="> 결과", value=str(result))
+                        if result is None or effect is None:
+                            embed.add_field(name="> 꽝", value="아무일도 일어나지 않았습니다.")
+                        else:
+                            embed.add_field(name="> " + result, value=effect)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 룰렛을 취소했습니다.")
@@ -302,8 +372,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def roulette_info(self, ctx):
         embed = discord.Embed(title="<룰렛 정보>", description="룰렛 보상 목록")
-        embed.add_field(name="> ", value=f'(%)', inline=False)
-        embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
+        for prize in self.roulette_lst:
+            embed.add_field(name="> "+prize[0], value=prize[3] + '\n' + prize[2] + '%', inline=False)
         embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)
 

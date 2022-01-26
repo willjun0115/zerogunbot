@@ -30,7 +30,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         usage="*"
     )
     async def check_token(self, ctx):
-        db_channel = ctx.guild.get_channel(self.app.log_ch)
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
         log = await self.app.find_id(ctx, '$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
@@ -45,7 +45,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 10분)", usage="* (@*member*)"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
-        db_channel = ctx.guild.get_channel(self.app.log_ch)
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
         msg = await ctx.send("DB를 조회 중입니다... :mag:")
         members = {}
         messages = await db_channel.history(limit=100).flatten()

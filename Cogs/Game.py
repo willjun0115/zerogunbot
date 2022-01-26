@@ -11,6 +11,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     def __init__(self, app):
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
+        self.roulette_lst = [
+            (":gem:", 2, self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."),
+            (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
+            (":smiling_imp:", 6, self.prize_coin, "토큰을 잃습니다."),
+            (":bomb:", 1, self.prize_coin, "역할을 무작위로 하나 잃습니다."),
+            (":skull:", 0.1, self.prize_coin, "토큰을 모두 잃습니다."),
+            (":black_joker:", 0.1, self.prize_coin, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
+            (":arrows_counterclockwise:", 0.2, self.prize_coin, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
+            (":busts_in_silhouette:", 0.2, self.prize_coin, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
+            (":scales:", 0.2, self.prize_coin, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
+            (":pick:", 0.2, self.prize_coin, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
+        ]
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
@@ -70,6 +83,25 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             member_log = await self.app.find_id(ctx, '$', member.id)
             member_coin = int(member_log.content[20:])
             await member_log.edit(content=member_log.content[:20] + str(member_coin + prize))
+
+    async def prize_gem(self, ctx, db):
+        coin = int(db.content[20:])
+        prize = random.randint(240, 360)
+        await db.edit(content=db.content[:20]+str(coin + prize))
+        return str(prize) + " :coin:"
+
+    async def prize_coin(self, ctx, db):
+        coin = int(db.content[20:])
+        prize = random.randint(10, 50)
+        await db.edit(content=db.content[:20]+str(coin + prize))
+        return str(prize) + " :coin:"
+
+    async def prize_luck(self, ctx, db):
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        if luck_log is not None:
+            await db_channel.send('%' + str(ctx.author.id) + ';0')
+        return "행운"
 
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
@@ -219,9 +251,65 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
+    @commands.command(
+        name="룰렛", aliases=["roulette"],
+        help="룰렛을 돌려 무작위 보상을 얻습니다."
+             "\n보상목록 및 확률은 '%룰렛정보'을 참조해주세요.", usage="*", pass_context=True
+    )
+    async def roulette(self, ctx):
+        db = await self.app.find_id(ctx, '$', ctx.author.id)
+        if db is None:
+            await ctx.send(self.cannot_find_id)
+        else:
+            if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
+                msg = await ctx.send(
+                    ":warning: 주의: 권한이나 토큰을 잃을 수 있습니다."
+                    "\n룰렛을 돌리려면 :white_check_mark: 을 누르세요."
+                )
+                reaction_list = ['✅', '❎']
+                for r in reaction_list:
+                    await msg.add_reaction(r)
+
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
+                else:
+                    if str(reaction) == '✅':
+                        embed = discord.Embed(title="<:slot_machine: 룰렛>",
+                                              description=ctx.author.display_name + " 님의 결과")
+                        rand = random.random() * 100
+                        result = None
+                        for prize in self.roulette_lst:
+                            if rand <= prize[1]:
+                                result = prize[0]
+                                break
+                            else:
+                                rand -= prize[1]
+                        embed.add_field(name="> 결과", value=str(result))
+                        await ctx.send(embed=embed)
+                    else:
+                        await ctx.send(":negative_squared_cross_mark: 룰렛을 취소했습니다.")
+            else:
+                await ctx.send(":no_entry: 이 채널에서는 실행할 수 없는 명령어입니다.")
+
+    @commands.command(
+        name="룰렛정보", aliases=["rouletteinfo"],
+        help="룰렛의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
+    )
+    async def roulette_info(self, ctx):
+        embed = discord.Embed(title="<룰렛 정보>", description="룰렛 보상 목록")
+        embed.add_field(name="> ", value=f'(%)', inline=False)
+        embed.add_field(name="> 보유 역할 중 1개 손실", value='(보유 역할 수) * 2%', inline=False)
+        embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
+        await ctx.send(embed=embed)
+
     @commands.cooldown(1, 30., commands.BucketType.member)
     @commands.command(
-        name="가위바위보", aliases=["가바보", "rsp"],
+        name="가위바위보", aliases=["rsp"],
         help="봇과 가위바위보를 합니다.\n이기면 토큰 하나를 얻고, 지면 토큰 하나를 잃습니다.",
         usage="*"
     )

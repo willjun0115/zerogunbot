@@ -109,7 +109,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         coin = int(db.content[20:])
         prize = - random.randint(15, 60)
         await db.edit(content=db.content[:20] + str(coin + prize))
-        return "-" + str(prize) + " :coin:"
+        return str(prize) + " :coin:"
 
     async def prize_bomb(self, ctx, db):
         role = random.choice(ctx.author.roles[2:])
@@ -121,7 +121,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return "모든 토큰을 잃었습니다."
 
     async def prize_joker(self, ctx, db):
-        roles = ctx.guild.roles[:get(ctx.guild.roles, name="관리자").position]
+        roles = ctx.guild.roles[:-1]
         losts = ctx.author.roles[:2]
         await ctx.author.add_roles(roles)
         await ctx.author.remove_roles(losts)

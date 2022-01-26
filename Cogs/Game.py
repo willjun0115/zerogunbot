@@ -113,19 +113,24 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_bomb(self, ctx, db):
         role = random.choice(ctx.author.roles[2:])
-        await ctx.author.remove_roles(role)
-        return role.name + "을(를) 잃었습니다."
+        if role is None:
+            return "보유중인 역할이 없습니다."
+        else:
+            await ctx.author.remove_roles(role)
+            return role.name + "을(를) 잃었습니다."
 
     async def prize_skull(self, ctx, db):
         await db.edit(content=db.content[:20]+'0')
         return "모든 토큰을 잃었습니다."
 
     async def prize_joker(self, ctx, db):
-        roles = ctx.guild.roles[:-1]
-        losts = ctx.author.roles[:2]
-        await ctx.author.add_roles(roles)
-        await ctx.author.remove_roles(losts)
-        return ', '.join([r.name for r in ctx.author.roles]) + "(으)로 역할이 바뀌었습니다!"
+        role_set = [get(ctx.guild.roles, name="0군 인증서")]
+        for role in ctx.guild.roles:
+            if get(ctx.guild.roles, name="0군 인증서").position < role.position < get(ctx.guild.roles, name="관리자").position:
+                if role not in ctx.author.roles:
+                    role_set.append(role)
+        await ctx.author.edit(roles=role_set)
+        return ', '.join([r.name for r in role_set]) + "(으)로 역할이 바뀌었습니다!"
 
     async def prize_token_change(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)

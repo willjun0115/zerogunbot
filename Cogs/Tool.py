@@ -9,10 +9,28 @@ import youtube_dl
 from discord import FFmpegPCMAudio
 
 
-class Tool(commands.Cog, name="도구", description="다양한 기능에 관한 카테고리입니다."):
+class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
 
     def __init__(self, app):
         self.app = app
+
+    async def encrypt(self, num, args):
+        code = ""
+        for c in args:
+            x = ord(c)
+            x = x * 2 + num
+            cc = chr(x)
+            code = code + cc
+        return str(code)
+
+    async def decrypt(self, num, code):
+        args = ""
+        for c in code:
+            x = ord(c)
+            x = (x - num) // 2
+            cc = chr(x)
+            args = args + cc
+        return str(args)
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
@@ -181,17 +199,12 @@ class Tool(commands.Cog, name="도구", description="다양한 기능에 관한 
         name='암호화', aliases=["encrypt", "enc"],
         help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 999]) str()', pass_context=True
     )
-    async def chat_encode(self, ctx, num, *, args):
+    async def chat_encryption(self, ctx, num, *, args):
         await ctx.message.delete()
-        code = ""
         num = int(num)
         if 0 <= num < 1000:
-            for c in args:
-                x = ord(c)
-                x = x * 2 + num * 3
-                cc = chr(x)
-                code = code + cc
-            await ctx.send(str(code))
+            code = await self.encrypt(num, args)
+            await ctx.send(code)
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
 
@@ -199,17 +212,12 @@ class Tool(commands.Cog, name="도구", description="다양한 기능에 관한 
         name='복호화', aliases=["decrypt", "dec"],
         help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)', pass_context=True
     )
-    async def chat_decode(self, ctx, num, *, code):
+    async def chat_decryption(self, ctx, num, *, code):
         await ctx.message.delete()
-        args = ""
         num = int(num)
         if 0 <= num < 1000:
-            for c in code:
-                x = ord(c)
-                x = (x - num * 3) // 2
-                cc = chr(x)
-                args = args + cc
-            await ctx.send(str(args))
+            args = await self.decrypt(num, code)
+            await ctx.send(args)
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
 

@@ -10,7 +10,7 @@ prefix = '%'
 app = commands.Bot(command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True)
 app.prefix = prefix
 app.gacha_ch = 811849095031029762
-app.log_ch = 874970985307201546
+app.db_ch = 874970985307201546
 app.role_lst = [
     ("임시차단", 0.1, 4000),
     ("창씨개명", 0.5, 2000),
@@ -263,7 +263,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.BotMissingPermissions) or isinstance(error, commands.BotMissingRole):
         await ctx.send(":no_entry: 봇이 명령을 실행할 권한이 부족합니다.")
     elif isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(f" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {int(error.retry_after)}초)")
+        await ctx.send(" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {:0.1f}초)".format(error.retry_after))
 
 
 app.run(token)

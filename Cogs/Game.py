@@ -85,7 +85,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             coin = int(log.content[20:])
             if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
                 if coin < bet:
-                    await ctx.send("코인이 부족합니다.")
+                    await ctx.send("토큰이 부족합니다.")
                 elif bet > coin//2:
                     await ctx.send("베팅은 보유 토큰의 절반까지만 할 수 있습니다.")
                 elif bet <= 0:
@@ -270,9 +270,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.cooldown(1, 30., commands.BucketType.member)
     @commands.command(
         name="홀짝", aliases=["짝홀", "odd-even"],
-        help="봇이 정한 랜덤 정수가 홀수인지 짝수인지 맞추는 게임입니다."
-             "\n이기면 숫자만큼 토큰을 얻고, 지면 숫자만큼 잃습니다."
-             "\n만약 0을 맞추면 20코인을 얻습니다.",
+        help="봇이 무작위로 한자리 정수를 정합니다."
+             "\n봇이 정한 숫자의 홀짝을 맞히면 승리합니다."
+             "\n승리하면 봇이 정한 숫자만큼 토큰을 얻고, 패배하면 잃습니다."
+             "\n만약 0을 맞추면 15 ~ 30코인을 얻습니다.",
         usage="*"
     )
     async def odd_or_even(self, ctx):
@@ -309,7 +310,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if result == choice:
                     await ctx.send(ctx.author.display_name + " 님 승!")
                     if num == 0:
-                        await log.edit(content=log.content[:20] + str(coin + 20))
+                        prize = random.randint(15, 30)
+                        await log.edit(content=log.content[:20] + str(coin + prize))
                     else:
                         await log.edit(content=log.content[:20] + str(coin + num))
                 else:

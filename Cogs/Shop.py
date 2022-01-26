@@ -11,6 +11,19 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     def __init__(self, app):
         self.app = app
 
+    async def has_enough_token(self, ctx, price: int):
+        db = await self.app.find_id(ctx, '$', ctx.author.id)
+        if db is None:
+            await ctx.send("DB에서 ID를 찾지 못했습니다.\n'%토큰' 명령어를 통해 ID를 등록할 수 있습니다.")
+            return False, None
+        else:
+            coin = int(db.content[20:])
+            if coin >= price:
+                return True, db
+            else:
+                await ctx.send('토큰이 부족합니다.')
+                return False, db
+
     @commands.command(
         name="토큰", aliases=["코인", "token", "coin", "$"],
         help="자신의 토큰 수를 확인합니다.\n토큰 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
@@ -85,33 +98,27 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="상점의 상품 목록에서 역할이나 아이템을 구매합니다.", usage="* str(*role or item*)"
     )
     async def buy_item(self, ctx, *, args):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
-        if log is None:
-            await ctx.send('DB에서 ID를 찾지 못했습니다.')
-        else:
-            item_found = False
-            coin = int(log.content[20:])
-            for role in self.app.role_lst:
-                if args == role[0]:
-                    if coin >= role[2]:
-                        await ctx.author.add_roles(get(ctx.guild.roles, name=role[0]))
-                        await log.edit(content=log.content[:20]+str(coin-role[2]))
-                        await ctx.send("구매 완료!")
-                    else:
-                        await ctx.send("코인이 부족합니다.")
-                    item_found = True
-                    break
-            if item_found is False:
-                if args == "행운":
-                    await self.enhance_luck(ctx)
-                elif args == "닉변":
-                    await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
-                elif args == "유료복권":
-                    await self.lottery_p(ctx)
-                elif args == "수은":
-                    await self.mercury(ctx)
-                else:
-                    await ctx.send("상품을 찾지 못했습니다.")
+        item_found = False
+        for role in self.app.role_lst:
+            if args == role[0]:
+                is_enough, db = await self.has_enough_token(ctx, role[2])
+                if is_enough:
+                    await ctx.author.add_roles(get(ctx.guild.roles, name=role[0]))
+                    await db.edit(content=db.content[:20]+str(int(db.content[20:])-role[2]))
+                    await ctx.send("구매 완료!")
+                item_found = True
+                break
+        if item_found is False:
+            if args == "행운":
+                await self.enhance_luck(ctx)
+            elif args == "닉변":
+                await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
+            elif args == "유료복권":
+                await self.lottery_p(ctx)
+            elif args == "수은":
+                await self.mercury(ctx)
+            else:
+                await ctx.send("상품을 찾지 못했습니다.")
 
     @commands.command(
         name="행운", aliases=["luck+"],
@@ -122,24 +129,18 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         usage="*"
     )
     async def enhance_luck(self, ctx):
-            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
-            if luck_log is not None:
-                luck = int(luck_log.content[20:])
-                await ctx.send(str(luck) + ' :four_leaf_clover:')
-            else:
-                log_channel = ctx.guild.get_channel(self.app.log_ch)
-                log = await self.app.find_id(ctx, '$', ctx.author.id)
-                if log is None:
-                    await ctx.send('DB에서 ID를 찾지 못했습니다.')
-                else:
-                    price = self.app.shop.get("행운")
-                    coin = int(log.content[20:])
-                    if coin >= price:
-                        await log_channel.send('%' + str(ctx.author.id) + ';0')
-                        await log.edit(content=log.content[:20]+str(coin-price))
-                        await ctx.send(ctx.author.display_name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
-                    else:
-                        await ctx.send("코인이 부족합니다.")
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        if luck_log is not None:
+            luck = int(luck_log.content[20:])
+            await ctx.send(str(luck) + ' :four_leaf_clover:')
+        else:
+            price = self.app.shop.get("행운")
+            is_enough, db = await self.has_enough_token(ctx, price)
+            if is_enough:
+                await db_channel.send('%' + str(ctx.author.id) + ';0')
+                await db.edit(content=db.content[:20]+str(int(db.content[20:])-price))
+                await ctx.send(ctx.author.display_name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
 
     @commands.cooldown(5, 30., commands.BucketType.member)
     @commands.command(
@@ -148,25 +149,21 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
              "\n(당첨 확률은 2.25%)", usage="*"
     )
     async def lottery_p(self, ctx):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
         price = self.app.shop.get("유료복권")
-        if log is None:
-            await ctx.send('DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.')
-        else:
-            bot_log = await self.app.find_id(ctx, '$', self.app.id)
-            coin = int(log.content[20:])
-            prize = int(bot_log.content[20:])
-            if coin < price:
-                await ctx.send("코인이 부족합니다.")
+        is_enough, db = await self.has_enough_token(ctx, price)
+        if is_enough:
+            bot_db = await self.app.find_id(ctx, '$', self.app.id)
+            coin = int(db.content[20:])
+            prize = int(bot_db.content[20:])
+            coin -= price
+            rand = random.random()
+            if rand <= 0.0225:
+                await bot_db.edit(content=bot_db.content[:20] + str(10))
+                await db.edit(content=db.content[:20] + str(coin + prize))
+                await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
             else:
-                rand = random.random()
-                if rand <= 0.0225:
-                    await bot_log.edit(content=bot_log.content[:20] + str(10))
-                    await log.edit(content=log.content[:20] + str(coin - price + prize))
-                    await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
-                else:
-                    await log.edit(content=log.content[:20] + str(coin - price))
-                    await ctx.send("꽝 입니다. 다음에 도전하세요.")
+                await db.edit(content=db.content[:20] + str(coin))
+                await ctx.send("꽝 입니다. 다음에 도전하세요.")
 
     @commands.command(
         name="닉변", aliases=["nick"],
@@ -174,60 +171,49 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
              "\n아무것도 입력하지 않으면 기본 닉네임으로 변경됩니다.", usage="* (str())"
     )
     async def nick_change(self, ctx, *, nickname=None):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
-        if log is None:
-            await ctx.send('DB에서 ID를 찾지 못했습니다.')
-        else:
+        price = self.app.shop.get("닉변")
+        is_enough, db = await self.has_enough_token(ctx, price)
+        if is_enough:
             if get(ctx.guild.roles, name="창씨개명") in ctx.message.author.roles:
                 await ctx.send("창씨개명을 보유 중입니다.")
             else:
-                price = self.app.shop.get("닉변")
-                coin = int(log.content[20:])
-                if coin >= price:
-                    msg = await ctx.send(
-                        ":warning: 주의: 코인을 소모합니다."
-                        f"\n정말 닉네임을 {nickname}으로 변경하시겠습니까?"
-                    )
-                    reaction_list = ['✅', '❎']
-                    for r in reaction_list:
-                        await msg.add_reaction(r)
+                coin = int(db.content[20:])
+                msg = await ctx.send(
+                    ":warning: 주의: 코인을 소모합니다."
+                    f"\n정말 닉네임을 {nickname}으로 변경하시겠습니까?"
+                )
+                reaction_list = ['✅', '❎']
+                for r in reaction_list:
+                    await msg.add_reaction(r)
 
-                    def check(reaction, user):
-                        return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
 
-                    try:
-                        reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
-                    except asyncio.TimeoutError:
-                        await msg.edit(content="시간 초과!", delete_after=2)
-                    else:
-                        if str(reaction) == '✅':
-                            await ctx.author.edit(nick=nickname)
-                            await log.edit(content=log.content[:20] + str(coin - price))
-                            await ctx.send(ctx.author.name + " 님의 닉네임을 " + nickname + "(으)로 변경했습니다.")
-                        else:
-                            await ctx.send("닉네임 변경을 취소했습니다.")
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
                 else:
-                    await ctx.send("코인이 부족합니다.")
+                    if str(reaction) == '✅':
+                        await ctx.author.edit(nick=nickname)
+                        await db.edit(content=db.content[:20] + str(coin - price))
+                        await ctx.send(ctx.author.name + " 님의 닉네임을 " + nickname + "(으)로 변경했습니다.")
+                    else:
+                        await ctx.send("닉네임 변경을 취소했습니다.")
 
     @commands.command(
         name="수은", aliases=["Hg"],
         help="자신의 마이크, 헤드셋 음소거를 해제합니다.", usage="*"
     )
     async def mercury(self, ctx):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
-        if log is None:
-            await ctx.send('DB에서 ID를 찾지 못했습니다.')
-        else:
-            price = self.app.shop.get("수은")
-            coin = int(log.content[20:])
-            if coin >= price:
-                if ctx.author.voice.deaf or ctx.author.voice.mute:
-                    await ctx.author.edit(deafen=False, mute=False)
-                    await log.edit(content=log.content[:20] + str(coin - price))
-                else:
-                    await ctx.send("마이크 및 헤드셋이 음소거 상태가 아닙니다.")
+        price = self.app.shop.get("수은")
+        is_enough, db = await self.has_enough_token(ctx, price)
+        if is_enough:
+            if ctx.author.voice.deaf or ctx.author.voice.mute:
+                await ctx.author.edit(deafen=False, mute=False)
+                await db.edit(content=db.content[:20] + str(int(db.content[20:]) - price))
             else:
-                await ctx.send("코인이 부족합니다.")
+                await ctx.send("마이크 및 헤드셋이 음소거 상태가 아닙니다.")
 
 
 def setup(app):

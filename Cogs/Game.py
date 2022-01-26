@@ -213,7 +213,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_pill(self, ctx, db):
         coin = int(db.content[20:])
-        prize = random.choice((2, 0.5))
+        prize = random.choice([2, 0.5])
         await db.edit(content=db.content[:20]+str(int(coin * prize)))
         return str(coin) + ' x ' + str(prize) + " :coin:"
 
@@ -420,7 +420,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def roulette_info(self, ctx):
         embed = discord.Embed(title="<룰렛 정보>", description="룰렛 보상 목록")
         for prize in self.roulette_lst:
-            embed.add_field(name="> "+prize[0], value=prize[3] + '\n' + str(prize[1]) + '%', inline=False)
+            embed.add_field(name="> "+prize[0], value=str(prize[1]) + '%\n' + str(prize[3]), inline=False)
         embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
         await ctx.send(embed=embed)
 

@@ -95,7 +95,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_coin(self, ctx, db):
         coin = int(db.content[20:])
-        prize = random.randint(10, 50)
+        prize = random.randint(10, 30)
         await db.edit(content=db.content[:20]+str(coin + prize))
         return '+' + str(prize) + " :coin:"
 
@@ -201,7 +201,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = random.randint(10, 50)
         await bot_db.edit(content=bot_db.content[:20] + str(int(bot_db.content[20:]) + prize))
-        return '복권 상금 +' + str(prize) + " :coin:"
+        return '+' + str(prize) + " :coin:"
 
     async def prize_reduce(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
@@ -209,7 +209,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         if int(bot_db.content[20:]) - prize < 0:
             prize = int(bot_db.content[20:])
         await bot_db.edit(content=bot_db.content[:20] + str(int(bot_db.content[20:]) - prize))
-        return '복권 상금 -' + str(prize) + " :coin:"
+        return '-' + str(prize) + " :coin:"
 
     async def prize_pill(self, ctx, db):
         coin = int(db.content[20:])
@@ -366,7 +366,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
     @commands.command(
-        name="룰렛", aliases=["roulette"],
+        name="룰렛", aliases=["ㄹㄹ", "roulette"],
         help="룰렛을 돌려 무작위 보상을 얻습니다."
              "\n보상목록 및 확률은 '%룰렛정보'을 참조해주세요.", usage="*", pass_context=True
     )
@@ -400,15 +400,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         effect = None
                         for prize in self.roulette_lst:
                             if rand <= prize[1]:
-                                result = prize[0]
+                                result = prize[3]
+                                await ctx.send(prize[0])
                                 effect = await prize[2](ctx, db)
                                 break
                             else:
                                 rand -= prize[1]
                         if result is None:
-                            embed.add_field(name="> 꽝", value="아무일도 일어나지 않았습니다.")
+                            embed.add_field(name="꽝", value="아무일도 일어나지 않았습니다.")
                         else:
-                            embed.add_field(name='> ' + result, value=effect)
+                            embed.add_field(name=result, value=effect)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 룰렛을 취소했습니다.")

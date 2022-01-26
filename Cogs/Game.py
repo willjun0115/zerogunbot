@@ -16,13 +16,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
-            (":bomb:", 1, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
-            (":arrows_counterclockwise:", 0.2, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
-            (":busts_in_silhouette:", 0.2, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
-            (":scales:", 0.2, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
-            (":pick:", 0.2, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
+            (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":skull:", 1, self.prize_skull, "토큰을 모두 잃습니다."),
+            (":black_joker:", 1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
+            (":arrows_counterclockwise:", 1, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
+            (":busts_in_silhouette:", 1, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
+            (":scales:", 1, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
+            (":pick:", 1, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
         ]
 
     async def gather_members(self, ctx, game_name="게임"):
@@ -88,13 +88,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         coin = int(db.content[20:])
         prize = random.randint(240, 360)
         await db.edit(content=db.content[:20]+str(coin + prize))
-        return str(prize) + " :coin:"
+        return '+' + str(prize) + " :coin:"
 
     async def prize_coin(self, ctx, db):
         coin = int(db.content[20:])
         prize = random.randint(10, 50)
         await db.edit(content=db.content[:20]+str(coin + prize))
-        return str(prize) + " :coin:"
+        return '+' + str(prize) + " :coin:"
 
     async def prize_luck(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
@@ -374,6 +374,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for prize in self.roulette_lst:
                         if rand <= prize[1]:
                             result = prize[0]
+                            await ctx.send(result)
                             effect = await prize[2](ctx, db)
                             break
                         else:

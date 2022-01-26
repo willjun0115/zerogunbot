@@ -18,10 +18,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
+            (":black_joker:", 5, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
-            (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
+            (":scales:", 5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
             (":pick:", 1, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
         ]
 
@@ -342,7 +342,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(f"현재 당첨 상금: {prize} :coin:")
 
-    @commands.cooldown(1, 300., commands.BucketType.member)
+    @commands.cooldown(1, 1., commands.BucketType.member)
     @commands.command(
         name="룰렛", aliases=["roulette"],
         help="룰렛을 돌려 무작위 보상을 얻습니다."

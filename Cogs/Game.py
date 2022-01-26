@@ -136,7 +136,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
             ]
         )
-        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        member = ctx.guild.get_member(int(member_db.content[1:19]))
         coin = db.content[20:]
         member_coin = member_db.content[20:]
         await db.edit(content=db.content[:20]+member_coin)
@@ -152,7 +152,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
             ]
         )
-        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        member = ctx.guild.get_member(int(member_db.content[1:19]))
         await ctx.author.edit(roles=member.roles)
         await member.edit(roles=ctx.author.roles)
         return member.display_name + " 님과 역할이 뒤바뀌었습니다!"
@@ -166,7 +166,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
             ]
         )
-        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        member = ctx.guild.get_member(int(member_db.content[1:19]))
         coin = int(db.content[20:])
         member_coin = int(member_db.content[20:])
         allocated_coin = (coin + member_coin) // 2
@@ -183,7 +183,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
             ]
         )
-        member = ctx.guild.fetch_member(int(member_db.content[1:19]))
+        member = ctx.guild.get_member(int(member_db.content[1:19]))
         role = random.choice(member.roles[2:])
         await ctx.author.add_roles(role)
         await ctx.author.remove_roles(role)

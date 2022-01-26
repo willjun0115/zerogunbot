@@ -151,6 +151,22 @@ async def admin_status_detail(ctx):
     await ctx.send(embed=embed)
 
 
+@admin_command.group(name="context", aliases=["ctx"])
+async def admin_context(ctx):
+    embed = discord.Embed(
+        title="Context Status",
+        description=
+        f"prefix : {ctx.prefix}\n"
+        f"author : {ctx.author}\n"
+        f"bot : {str(ctx.bot.user)}\n"
+        f"guild : {ctx.guild.name}\n"
+        f"channel : {ctx.channel.name}\n"
+        f"message_id : {ctx.message.id}\n"
+        f"created_at : {ctx.message.created_at}"
+    )
+    await ctx.send(embed=embed)
+
+
 @admin_command.group(name="fetch", aliases=["find", "get"], pass_context=True)
 async def admin_fetch(ctx):
     return

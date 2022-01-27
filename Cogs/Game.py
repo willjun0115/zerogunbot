@@ -26,6 +26,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":chart_with_upwards_trend:", 3, self.prize_rise, "복권 상금이 상승합니다."),
             (":chart_with_downwards_trend:", 3, self.prize_reduce, "복권 상금이 감소합니다."),
             (":pill:", 0.5, self.prize_pill, "보유 토큰이 절반이 되거나, 두 배가 됩니다."),
+            (":cyclone:", 0.1, self.prize_cyclone, "토큰을 보유한 모든 유저의 토큰 20%가 복권 상금으로 들어갑니다."),
         ]
 
     async def gather_members(self, ctx, game_name="게임"):
@@ -115,10 +116,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return str(prize) + " :coin:"
 
     async def prize_bomb(self, ctx, db):
-        role = random.choice(ctx.author.roles[2:])
-        if role is None:
+        if ctx.author.roles[2:] is None:
             return "보유중인 역할이 없습니다."
         else:
+            role = random.choice(ctx.author.roles[2:])
             await ctx.author.remove_roles(role)
             return role.name + "을(를) 잃었습니다."
 
@@ -216,6 +217,22 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         prize = random.choice([2, 0.5])
         await db.edit(content=db.content[:20]+str(int(coin * prize)))
         return str(coin) + ' x ' + str(prize) + " :coin:"
+
+    async def prize_cyclone(self, ctx, db):
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        messages = await db_channel.history(limit=100).flatten()
+        members_db = [
+            m for m in messages
+            if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id]
+        ]
+        increment = 0
+        for member_db in members_db:
+            lose = int(member_db.content[:20]) // 5
+            increment += lose
+            await member_db.edit(content=member_db.content[:20]+str(int(member_db.content[:20])-lose))
+        bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
+        await bot_db.edit(content=bot_db.content[:20] + str(int(bot_db.content[20:]) + increment))
+        return f"0군봇이 모든 유저의 토큰의 20%를 빨아들였습니다!\n복권 상금 +{increment} :coin:"
 
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],

@@ -15,6 +15,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":gem:", 1.25, self.prize_gem, "상당한 토큰을 얻습니다."),
             (":coin:", 9, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
+            (":gift:", 3, self.prize_gift, "행운 효과를 받고 있으면 토큰을 얻습니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             (":cloud_lightning:", 1, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
@@ -110,6 +111,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return "행운 효과를 얻었습니다!"
         else:
             return "이미 행운 효과를 받고 있습니다."
+
+    async def prize_gift(self, ctx, db):
+        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        if luck_log is None:
+            return "행운 효과가 받고 있지 않습니다."
+        else:
+            gift = random.randint(30, 150)
+            await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
+            return str(gift) + " :coin: 을 얻었습니다!"
 
     async def prize_imp(self, ctx, db):
         coin = int(db.content[20:])

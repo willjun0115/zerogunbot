@@ -117,7 +117,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return str(prize) + " :coin:"
 
     async def prize_bomb(self, ctx, db):
-        if ctx.author.roles[2:] is None:
+        if len(ctx.author.roles[2:]) == 0:
             return "보유중인 역할이 없습니다."
         else:
             role = random.choice(ctx.author.roles[2:])

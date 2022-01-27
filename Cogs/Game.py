@@ -23,7 +23,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
             (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
-            (":pick:", 1.25, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
+            (":pick:", 1.25, self.prize_theft, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
+            (":magnet:", 1.25, self.prize_magnet, "무작위 멤버 한 명의 토큰을 10% 빼앗습니다."),
             (":chart_with_upwards_trend:", 5, self.prize_rise, "복권 상금이 상승합니다."),
             (":chart_with_downwards_trend:", 5, self.prize_reduce, "복권 상금이 감소합니다."),
             (":pill:", 0.5, self.prize_pill, "보유 토큰이 절반이 되거나, 두 배가 됩니다."),
@@ -198,7 +199,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         await member_db.edit(content=member_db.content[:20] + str(allocated_coin))
         return member.mention + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
 
-    async def prize_role_steal(self, ctx, db):
+    async def prize_theft(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
@@ -212,6 +213,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         await ctx.author.add_roles(role)
         await member.remove_roles(role)
         return member.mention + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
+
+    async def prize_magnet(self, ctx, db):
+        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        messages = await db_channel.history(limit=100).flatten()
+        member_db = random.choice(
+            [
+                m for m in messages
+                if m.content.startswith('$') and int(m.content[1:19]) not in [self.app.user.id, ctx.author.id]
+            ]
+        )
+        member = await ctx.guild.fetch_member(int(member_db.content[1:19]))
+        coin = round(int(member_db.content[20:]) * 0.1)
+        await db.edit(content=db.content[:20] + str(int(db.content[20:])+coin))
+        await member_db.edit(content=member_db.content[:20] + str(int(member_db.content[20:])-coin))
+        return member.mention + " 님의 토큰을 " + str(coin) + " :coin: 빼앗았습니다!"
 
     async def prize_rise(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)

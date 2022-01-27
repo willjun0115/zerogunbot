@@ -12,7 +12,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.roulette_lst = [
-            (":gem:", 1.5, self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":gem:", 1.25, self.prize_gem, "상당한 토큰을 얻습니다."),
             (":coin:", 9, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
@@ -23,9 +23,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
             (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
-            (":pick:", 1, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
-            (":chart_with_upwards_trend:", 3, self.prize_rise, "복권 상금이 상승합니다."),
-            (":chart_with_downwards_trend:", 3, self.prize_reduce, "복권 상금이 감소합니다."),
+            (":pick:", 1.25, self.prize_role_steal, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
+            (":chart_with_upwards_trend:", 5, self.prize_rise, "복권 상금이 상승합니다."),
+            (":chart_with_downwards_trend:", 5, self.prize_reduce, "복권 상금이 감소합니다."),
             (":pill:", 0.5, self.prize_pill, "보유 토큰이 절반이 되거나, 두 배가 됩니다."),
             (":cyclone:", 0.1, self.prize_cyclone, "토큰을 보유한 모든 유저의 토큰 20%가 복권 상금으로 들어갑니다."),
         ]
@@ -138,7 +138,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 return "행운 효과를 잃었습니다."
 
     async def prize_skull(self, ctx, db):
-        await db.edit(content=db.content[:20]+'0')
+        if int(db.content[20:]) > 0:
+            await db.edit(content=db.content[:20]+'0')
         return "모든 토큰을 잃었습니다."
 
     async def prize_joker(self, ctx, db):
@@ -242,6 +243,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         increment = 0
         for member_db in members_db:
             lose = int(member_db.content[:20]) // 5
+            if lose < 0:
+                lose = 0
             increment += lose
             await member_db.edit(content=member_db.content[:20]+str(int(member_db.content[:20])-lose))
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)

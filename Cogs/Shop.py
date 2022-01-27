@@ -142,7 +142,6 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 await db.edit(content=db.content[:20]+str(int(db.content[20:])-price))
                 await ctx.send(ctx.author.display_name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
 
-    @commands.cooldown(5, 30., commands.BucketType.member)
     @commands.command(
         name="유료복권", aliases=["lottery+"],
         help="코인을 소모하며 '복권보다 당첨 확률이 높습니다.\n5회 사용 시 쿨타임 30초가 적용됩니다."

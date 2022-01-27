@@ -91,13 +91,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
-        prize = random.randint(210, 350)
+        prize = random.randint(160, 240)
         await db.edit(content=db.content[:20]+str(coin + prize))
         return '+' + str(prize) + " :coin:"
 
     async def prize_coin(self, ctx, db):
         coin = int(db.content[20:])
-        prize = random.randint(10, 30)
+        prize = random.randint(10, 25)
         await db.edit(content=db.content[:20]+str(coin + prize))
         return '+' + str(prize) + " :coin:"
 

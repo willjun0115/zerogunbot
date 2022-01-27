@@ -20,7 +20,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             (":cloud_lightning:", 1, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
             (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
@@ -30,6 +29,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":chart_with_downwards_trend:", 5, self.prize_reduce, "복권 상금이 감소합니다."),
             (":pill:", 0.5, self.prize_pill, "보유 토큰이 절반이 되거나, 두 배가 됩니다."),
             (":cyclone:", 0.1, self.prize_cyclone, "토큰을 보유한 모든 유저의 토큰 20%가 복권 상금으로 들어갑니다."),
+            (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
         ]
 
     async def gather_members(self, ctx, game_name="게임"):
@@ -486,7 +486,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         for prize in self.roulette_lst:
             embed.add_field(name="> "+prize[0], value=str(prize[1]) + '%\n' + str(prize[3]), inline=True)
             rest -= prize[1]
-        embed.add_field(name="> 꽝", value='({:0.2f})%'.format(rest), inline=True)
+        embed.add_field(name="> 꽝", value='{:0.2f}%'.format(rest), inline=True)
         await ctx.send(embed=embed)
 
     @commands.cooldown(1, 30., commands.BucketType.member)

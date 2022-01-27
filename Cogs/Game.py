@@ -17,6 +17,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":cloud_lightning:", 4, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
@@ -122,6 +123,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             role = random.choice(ctx.author.roles[2:])
             await ctx.author.remove_roles(role)
             return role.name + "을(를) 잃었습니다."
+
+    async def prize_lightning(self, ctx, db):
+        if ctx.author.roles[2:] is None:
+            return "보유중인 역할이 없습니다."
+        else:
+            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+            if luck_log is None:
+                role = ctx.author.top_role
+                await ctx.author.remove_roles(role)
+                return role.name + "을(를) 잃었습니다."
+            else:
+                await luck_log.delete()
+                return "행운 효과를 잃었습니다."
 
     async def prize_skull(self, ctx, db):
         await db.edit(content=db.content[:20]+'0')

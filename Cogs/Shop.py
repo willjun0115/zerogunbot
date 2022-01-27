@@ -152,7 +152,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         price = self.app.shop.get("유료복권")
         is_enough, db = await self.has_enough_token(ctx, price)
         if is_enough:
-            bot_db = await self.app.find_id(ctx, '$', self.app.id)
+            bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
             coin = int(db.content[20:])
             prize = int(bot_db.content[20:])
             coin -= price

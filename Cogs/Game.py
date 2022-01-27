@@ -217,15 +217,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
         delta = random.random() * 5 + 5
-        await bot_db.edit(content=bot_db.content[:20] + str(prize + prize // delta))
-        return '+' + str(prize//delta) + " :coin: (+{0.1f}%)".format(100/delta)
+        await bot_db.edit(content=bot_db.content[:20] + str(prize + round(prize/delta)))
+        return '+' + str(round(prize/delta)) + " :coin: (+{0.1f}%)".format(100/delta)
 
     async def prize_reduce(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
         delta = random.random() * 5 + 5
-        await bot_db.edit(content=bot_db.content[:20] + str(prize - prize // delta))
-        return '-' + str(prize//delta) + " :coin: (-{0.1f}%)".format(100/delta)
+        await bot_db.edit(content=bot_db.content[:20] + str(prize - round(prize/delta)))
+        return '-' + str(round(prize/delta)) + " :coin: (-{0.1f}%)".format(100/delta)
 
     async def prize_pill(self, ctx, db):
         coin = int(db.content[20:])

@@ -455,9 +455,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def roulette_info(self, ctx):
         embed = discord.Embed(title="<룰렛 정보>", description="룰렛 보상 목록")
+        rest = 100
         for prize in self.roulette_lst:
-            embed.add_field(name="> "+prize[0], value=str(prize[1]) + '%\n' + str(prize[3]), inline=False)
-        embed.add_field(name="> 꽝", value='(Rest)%', inline=False)
+            embed.add_field(name="> "+prize[0], value=str(prize[1]) + '%\n' + str(prize[3]), inline=True)
+            rest -= prize[1]
+        embed.add_field(name="> 꽝", value='({:0.2f})%'.format(rest), inline=True)
         await ctx.send(embed=embed)
 
     @commands.cooldown(1, 30., commands.BucketType.member)

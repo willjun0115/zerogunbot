@@ -17,7 +17,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":cloud_lightning:", 4, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
+            (":cloud_lightning:", 1, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             (":black_joker:", 0.1, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),

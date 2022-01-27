@@ -150,7 +150,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         member_coin = member_db.content[20:]
         await db.edit(content=db.content[:20]+member_coin)
         await member_db.edit(content=db.content[:20]+coin)
-        return member.display_name + f" 님과 토큰이 뒤바뀌었습니다!\n{coin} <-> {member_coin} :coin:"
+        return member.mention + f" 님과 토큰이 뒤바뀌었습니다!\n{coin} <-> {member_coin} :coin:"
 
     async def prize_role_change(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
@@ -164,7 +164,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         member = await ctx.guild.fetch_member(int(member_db.content[1:19]))
         await ctx.author.edit(roles=member.roles)
         await member.edit(roles=ctx.author.roles)
-        return member.display_name + " 님과 역할이 뒤바뀌었습니다!"
+        return member.mention + " 님과 역할이 뒤바뀌었습니다!"
 
     async def prize_scales(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
@@ -181,7 +181,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         allocated_coin = (coin + member_coin) // 2
         await db.edit(content=db.content[:20] + str(allocated_coin))
         await member_db.edit(content=member_db.content[:20] + str(allocated_coin))
-        return member.display_name + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
+        return member.mention + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
 
     async def prize_role_steal(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
@@ -196,7 +196,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         role = random.choice(member.roles[2:])
         await ctx.author.add_roles(role)
         await member.remove_roles(role)
-        return member.display_name + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
+        return member.mention + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
 
     async def prize_rise(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)

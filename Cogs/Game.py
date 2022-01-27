@@ -214,17 +214,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_rise(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
-        prize = random.randint(10, 50)
-        await bot_db.edit(content=bot_db.content[:20] + str(int(bot_db.content[20:]) + prize))
-        return '+' + str(prize) + " :coin:"
+        prize = int(bot_db.content[20:])
+        delta = random.random() * 5 + 5
+        await bot_db.edit(content=bot_db.content[:20] + str(prize + prize // delta))
+        return '+' + str(prize//delta) + " :coin: (+{0.1f}%)".format(100/delta)
 
     async def prize_reduce(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
-        prize = random.randint(10, 50)
-        if int(bot_db.content[20:]) - prize < 0:
-            prize = int(bot_db.content[20:])
-        await bot_db.edit(content=bot_db.content[:20] + str(int(bot_db.content[20:]) - prize))
-        return '-' + str(prize) + " :coin:"
+        prize = int(bot_db.content[20:])
+        delta = random.random() * 5 + 5
+        await bot_db.edit(content=bot_db.content[:20] + str(prize - prize // delta))
+        return '-' + str(prize//delta) + " :coin: (-{0.1f}%)".format(100/delta)
 
     async def prize_pill(self, ctx, db):
         coin = int(db.content[20:])
@@ -614,6 +614,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(f'로그에서 {member.name} 님의 ID를 찾지 못했습니다.')
         else:
             limit += int(member_log.content[20:])
+        limit = limit // 2
         if author_log is not None:
             if member_log is not None:
                 msg = await ctx.send(
@@ -688,7 +689,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             else:
                                 if str(reaction) == '⏏️':
                                     if coin*2 > limit:
-                                        await ctx.send("판돈은 두 플레이어의 토큰의 합을 초과할 수 없습니다.")
+                                        await ctx.send("판돈은 두 플레이어의 토큰의 합의 절반을 초과할 수 없습니다.")
                                     else:
                                         called_party = []
                                         coin *= 2

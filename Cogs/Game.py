@@ -32,7 +32,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
             (":japanese_ogre:", 1, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
             (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
-            (":dove:", 0.01, self.prize_dove, "모든 멤버의 역할을 제거합니다."),
+            (":dove:", 0.05, self.prize_dove, "모든 멤버의 역할을 제거합니다."),
         ]
 
     async def prize_gem(self, ctx, db):

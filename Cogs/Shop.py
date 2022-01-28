@@ -42,7 +42,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     @commands.cooldown(1, 300., commands.BucketType.channel)
     @commands.command(
         name="토큰순위", aliases=["순위표", "랭크표", "rank"],
-        help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 10분)", usage="* (@*member*)"
+        help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 5분)", usage="* (@*member*)"
     )
     async def token_rank(self, ctx, member: discord.Member = None):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
@@ -52,8 +52,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         for message in messages:
             if message.content.startswith('$') is True:
                 mem = await ctx.guild.fetch_member(int(message.content[1:19]))
-                member_log = await self.app.find_id(ctx, '$', mem.id)
-                members[mem] = int(member_log.content[20:])
+                members[mem] = int(message.content[20:])
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
         if member is None:
             embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")

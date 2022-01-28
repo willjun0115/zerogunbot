@@ -13,12 +13,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.roulette_lst = [
             (":gem:", 1.25, self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":coin:", 9, self.prize_coin, "토큰을 조금 얻습니다."),
+            (":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
             (":gift:", 3, self.prize_gift, "행운 효과를 받고 있으면 토큰을 얻습니다. 행운 효과는 사라집니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":game_die:", 25, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
+            (":game_die:", 20, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             (":cloud_lightning:", 1.5, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
             (":chart_with_upwards_trend:", 5, self.prize_rise, "복권 상금이 상승합니다."),

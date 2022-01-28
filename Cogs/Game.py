@@ -137,7 +137,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return role.name + "을(를) 잃었습니다."
 
     async def prize_lightning(self, ctx, db):
-        if ctx.author.roles[2:] is None:
+        if len(ctx.author.roles[2:]) == 0:
             return "보유중인 역할이 없습니다."
         else:
             luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
@@ -413,11 +413,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(self.cannot_find_id)
         else:
             bot_log = await self.app.find_id(ctx, '$', self.app.user.id)
+            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+            luck = 0
+            if luck_log is not None:
+                luck = int(luck_log.content[20:])
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
             if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
-                rand = random.random()
-                if rand <= 0.0125:
+                rand = random.random() * 100
+                if rand <= 1 + (luck ** 0.5) * 0.1:
                     await bot_log.edit(content=bot_log.content[:20] + str(10))
                     await log.edit(content=log.content[:20] + str(coin + prize))
                     await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
@@ -454,6 +458,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 except asyncio.TimeoutError:
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
+                    await msg.delete()
                     if str(reaction) == '✅':
                         embed = discord.Embed(title="<:slot_machine: 룰렛>",
                                               description=ctx.author.display_name + " 님의 결과")

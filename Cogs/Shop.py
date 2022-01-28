@@ -39,7 +39,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await db_channel.send('$' + str(ctx.author.id) + ';0')
             await ctx.send('토큰 DB에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
-    @commands.cooldown(1, 600., commands.BucketType.channel)
+    @commands.cooldown(1, 300., commands.BucketType.channel)
     @commands.command(
         name="토큰순위", aliases=["순위표", "랭크표", "rank"],
         help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 10분)", usage="* (@*member*)"
@@ -113,56 +113,37 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 await self.enhance_luck(ctx)
             elif args == "닉변":
                 await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
-            elif args == "유료복권":
-                await self.lottery_p(ctx)
             elif args == "수은":
                 await self.mercury(ctx)
             else:
                 await ctx.send("상품을 찾지 못했습니다.")
 
     @commands.command(
-        name="행운", aliases=["luck+"],
+        name="행운", aliases=["luck"],
         help="행운 버프를 얻습니다."
-             "\n행운에 비례해 가챠 확률이 증가합니다. (행운 1 당 +0.1%)"
-             "\n행운 보유 중엔 손실 확률이 50% 감소합니다."
-             "\n역할을 얻으면 행운이 초기화됩니다.",
+             "\n행운은 가챠에서 일부 효과를 방어 또는 강화합니다."
+             "\n행운은 중첩 가능하며, 중첩에 비례해 복권 당첨 확률이 증가합니다."
+             "\n(+ 행운^0.5 * 0.1%)",
         usage="*"
     )
-    async def enhance_luck(self, ctx):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
-        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
-        if luck_log is not None:
-            luck = int(luck_log.content[20:])
-            await ctx.send(str(luck) + ' :four_leaf_clover:')
+    async def enhance_luck(self, ctx, num=1):
+        num = int(num)
+        if num < 0:
+            await ctx.send("0개 이상부터 구매할 수 있습니다.")
         else:
-            price = self.app.shop.get("행운")
-            is_enough, db = await self.has_enough_token(ctx, price)
-            if is_enough:
-                await db_channel.send('%' + str(ctx.author.id) + ';0')
-                await db.edit(content=db.content[:20]+str(int(db.content[20:])-price))
-                await ctx.send(ctx.author.display_name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
-
-    @commands.command(
-        name="유료복권", aliases=["lottery+"],
-        help="코인을 소모하며 '복권보다 당첨 확률이 높습니다.\n5회 사용 시 쿨타임 30초가 적용됩니다."
-             "\n(당첨 확률은 2.25%)", usage="*"
-    )
-    async def lottery_p(self, ctx):
-        price = self.app.shop.get("유료복권")
-        is_enough, db = await self.has_enough_token(ctx, price)
-        if is_enough:
-            bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
-            coin = int(db.content[20:])
-            prize = int(bot_db.content[20:])
-            coin -= price
-            rand = random.random()
-            if rand <= 0.0225:
-                await bot_db.edit(content=bot_db.content[:20] + str(10))
-                await db.edit(content=db.content[:20] + str(coin + prize))
-                await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
+            db_channel = ctx.guild.get_channel(self.app.db_ch)
+            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+            if luck_log is not None:
+                luck = int(luck_log.content[20:])
+                await luck_log.edit(content=luck_log.content[:20]+str(luck + num))
+                await ctx.send(f'+{num} :four_leaf_clover:')
             else:
-                await db.edit(content=db.content[:20] + str(coin))
-                await ctx.send("꽝 입니다. 다음에 도전하세요.")
+                price = self.app.shop.get("행운") * num
+                is_enough, db = await self.has_enough_token(ctx, price)
+                if is_enough:
+                    await db_channel.send('%' + str(ctx.author.id) + ';' + str(num))
+                    await db.edit(content=db.content[:20]+str(int(db.content[20:]) - price))
+                    await ctx.send(ctx.author.display_name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
 
     @commands.command(
         name="닉변", aliases=["nick"],

@@ -378,7 +378,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 else:
                     await msg.delete()
                     if str(reaction) == '✅':
-                        embed = discord.Embed(title="<:slot_machine: 룰렛>",
+                        embed = discord.Embed(title="<:game: 가챠>",
                                               description=ctx.author.display_name + " 님의 결과")
                         rand = random.random() * 100
                         result = None

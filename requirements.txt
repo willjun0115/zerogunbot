@@ -10,3 +10,4 @@ youtube_dl
 opuslib
 selenium
 gtts
+pyupbit

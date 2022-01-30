@@ -108,22 +108,20 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 item_found = True
                 break
         if item_found is False:
-            if args == "행운":
-                await self.enhance_luck(ctx)
-            elif args == "닉변":
+            if args == "닉변":
                 await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
             elif args == "수은":
                 await self.mercury(ctx)
             else:
                 await ctx.send("상품을 찾지 못했습니다.")
 
-    @commands.command(
+    @buy_item.command(
         name="행운", aliases=["luck"],
-        help="행운 버프를 얻습니다."
+        help="행운 효과를 얻습니다."
              "\n행운은 가챠에서 일부 효과를 방어 또는 강화합니다."
              "\n행운은 중첩 가능하며, 중첩에 비례해 복권 당첨 확률이 증가합니다."
              "\n(+ 행운^0.5 * 0.1%)",
-        usage="*"
+        usage="* int()"
     )
     async def enhance_luck(self, ctx, num=1):
         num = int(num)
@@ -143,6 +141,22 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     await db_channel.send('%' + str(ctx.author.id) + ';' + str(num))
                     await db.edit(content=db.content[:20]+str(int(db.content[20:]) - price))
                     await ctx.send(ctx.author.display_name + f" 님이 행운 버프를 받습니다. -{price} :coin:")
+
+    @commands.command(
+        name="행운", aliases=["luck"],
+        help="자신의 행운 중첩량을 확인합니다."
+             "\n행운은 가챠에서 일부 효과를 방어 또는 강화합니다."
+             "\n행운은 중첩 가능하며, 중첩에 비례해 복권 당첨 확률이 증가합니다."
+             "\n(+ 행운^0.5 * 0.1%)",
+        usage="*"
+    )
+    async def luck(self, ctx):
+        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        if luck_log is not None:
+            luck = int(luck_log.content[20:])
+            await ctx.send(f'{luck} :four_leaf_clover:')
+        else:
+            await ctx.send("행운 효과가 없습니다.")
 
     @commands.command(
         name="닉변", aliases=["nick"],

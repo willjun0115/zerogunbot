@@ -15,7 +15,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":gem:", 1.25, self.prize_gem, "상당한 토큰을 얻습니다."),
             (":coin:", 8, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
-            (":gift:", 3, self.prize_gift, "행운 효과를 받고 있으면 토큰을 얻습니다. 행운 효과는 사라집니다."),
+            (":gift:", 3, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다. 행운 중첩 수에 비례해 획득량이 증가합니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             (":game_die:", 20, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
@@ -51,17 +51,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         db_channel = ctx.guild.get_channel(self.app.db_ch)
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
         if luck_log is None:
-            await db_channel.send('%' + str(ctx.author.id) + ';0')
+            await db_channel.send('%' + str(ctx.author.id) + ';1')
             return "행운 효과를 얻었습니다!"
         else:
-            return "이미 행운 효과를 받고 있습니다."
+            luck = int(luck_log.content[20:])
+            await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
+            return f'+1 :four_leaf_clover:'
 
     async def prize_gift(self, ctx, db):
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
         if luck_log is None:
             return "행운 효과가 받고 있지 않습니다."
         else:
-            gift = random.randint(30, 150)
+            luck = int(luck_log.content[20:])
+            gift = random.randint(luck*5, luck*10)
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             await luck_log.delete()
             return str(gift) + " :coin: 을 얻었습니다!"

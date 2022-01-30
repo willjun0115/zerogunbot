@@ -11,6 +11,7 @@ import time
 import pyupbit
 import datetime
 import numpy as np
+import asyncpg
 
 
 access = os.environ.get("ACCESS")
@@ -86,6 +87,8 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     def __init__(self, app):
         self.app = app
+        self.BTCAutoTrade.start()
+        self.BTCAutoTrade.add_exception_type(asyncpg.PostgresConnectionError)
 
     async def encrypt(self, num, args):
         code = ""
@@ -129,13 +132,25 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         except Exception as e:
             print(e)
 
-    @commands.command(
-        name="BTC", aliases=["자동매매"],
+    @commands.group(
+        name="BTC", aliases=["btc"],
         help="비트코인 자동매매 태스크 실행 확인 명령어", usage="*", hidden=True
     )
-    async def BTCAutoTrade_check(self, ctx):
+    async def BTC(self, ctx):
         if self.BTCAutoTrade.is_running():
             await ctx.send("BTC AutoTrade is running")
+
+    @BTC.command(
+        name="start", usage="*", hidden=True
+    )
+    async def BTCAutoTrade_start(self, ctx):
+        await self.BTCAutoTrade.start()
+
+    @BTC.command(
+        name="stop", usage="*", hidden=True
+    )
+    async def BTCAutoTrade_stop(self, ctx):
+        await self.BTCAutoTrade.stop()
 
     @commands.command(
         name="도움말", aliases=["help", "?"],

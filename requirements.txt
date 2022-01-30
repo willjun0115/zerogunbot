@@ -12,3 +12,4 @@ selenium
 gtts
 pyupbit
 numpy
+asyncpg

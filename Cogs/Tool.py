@@ -87,7 +87,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     def __init__(self, app):
         self.app = app
-        self.BTCAutoTrade.start()
         self.BTCAutoTrade.add_exception_type(asyncpg.PostgresConnectionError)
 
     async def encrypt(self, num, args):

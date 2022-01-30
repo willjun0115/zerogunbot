@@ -227,10 +227,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_dice(self, ctx, db):
         coin = int(db.content[20:])
-        luck = 0
-        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
-        if luck_log is not None:
-            luck = int(luck_log.content[20:])
         prize = None
         rand = random.random() * 100
         for role in self.app.role_lst:
@@ -246,7 +242,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 rand -= role[1]
         if prize is None:
             prize = "꽝"
-        return prize
+        return prize + " 획득!"
 
     async def prize_oni(self, ctx, db):
         role = None

@@ -108,21 +108,19 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 item_found = True
                 break
         if item_found is False:
-            if args == "닉변":
+            if args.startswith("행운"):
+                if len(args[3:]) > 0:
+                    num = int(args[3:])
+                else:
+                    num = 1
+                await self.enhance_luck(ctx, num=num)
+            elif args == "닉변":
                 await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
             elif args == "수은":
                 await self.mercury(ctx)
             else:
                 await ctx.send("상품을 찾지 못했습니다.")
 
-    @buy_item.command(
-        name="행운", aliases=["luck"],
-        help="행운 효과를 얻습니다."
-             "\n행운은 가챠에서 일부 효과를 방어 또는 강화합니다."
-             "\n행운은 중첩 가능하며, 중첩에 비례해 복권 당첨 확률이 증가합니다."
-             "\n(+ 행운^0.5 * 0.1%)",
-        usage="* int()"
-    )
     async def enhance_luck(self, ctx, num=1):
         num = int(num)
         if num < 0:

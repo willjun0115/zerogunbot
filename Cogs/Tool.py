@@ -149,7 +149,8 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                     results.append(result)
                 if len(results) == 0:
                     await ctx.send("No update.")
-                await ctx.send('\n'.join(results))
+                else:
+                    await ctx.send('\n'.join(results))
             else:
                 await ctx.send(":negative_squared_cross_mark: 셋업을 취소했습니다.")
 

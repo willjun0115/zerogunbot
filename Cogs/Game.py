@@ -15,7 +15,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":gem:", 1.25, self.prize_gem, "상당한 토큰을 얻습니다."),
             (":coin:", 8, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
-            (":gift:", 3, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다. 행운 중첩 수에 비례해 획득량이 증가합니다."),
+            (":gift:", 3.5, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다. 행운 중첩 수에 비례해 획득량이 증가합니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             (":game_die:", 20, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
@@ -30,7 +30,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
             (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
-            (":japanese_ogre:", 1.25, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
+            (":japanese_ogre:", 1.5, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
             (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":dove:", 0.05, self.prize_dove, "모든 멤버의 역할을 제거합니다."),
         ]

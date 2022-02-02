@@ -7,7 +7,11 @@ import ctypes
 import ctypes.util
 
 prefix = '%'
-app = commands.Bot(command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True)
+intents = discord.Intents.default()
+intents.members = True
+app = commands.Bot(
+    command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True, intents=intents
+)
 app.prefix = prefix
 app.gacha_ch = 811849095031029762
 app.db_ch = 874970985307201546

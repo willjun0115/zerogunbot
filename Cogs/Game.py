@@ -420,7 +420,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         for role in self.app.role_lst:
             embed.add_field(
                 name="> " + role[0],
-                value=f'{(2 ** self.app.role_lst.index(role) / (2 ** len(self.app.role_lst) - 1)) * 100:0.2f}% ({str(role[2] // 10)} :coin:)',
+                value=f'{(2 ** self.app.role_lst.index(role) / (2 ** len(self.app.role_lst) - 1)) * 100:0.2f}% '
+                      f'({str(role[2] // 10)} :coin:)',
                 inline=False
             )
         await ctx.send(embed=embed)

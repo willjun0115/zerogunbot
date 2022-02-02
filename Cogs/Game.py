@@ -228,9 +228,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_dice(self, ctx, db):
         coin = int(db.content[20:])
         prize = None
-        rand = random.random() * 100
+        rand = random.random()
         for role in self.app.role_lst:
-            if rand <= role[1]:
+            if rand <= role[1] / 2 ** len(self.app.role_lst) - 1:
                 prize = role[0]
                 if get(ctx.guild.roles, name=prize) in ctx.author.roles:
                     prize += f" (+ {str(role[2] // 10)} :coin:)"
@@ -418,7 +418,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def gacha_info_detail(self, ctx):
         embed = discord.Embed(title="<가챠 세부 정보>", description="확률(%) (중복 시 얻는 코인)")
         for role in self.app.role_lst:
-            embed.add_field(name="> " + role[0], value=str(role[1]) + f'% ({str(role[2] // 10)} :coin:)', inline=False)
+            embed.add_field(
+                name="> " + role[0],
+                value=f'{(role[1] / 2 ** len(self.app.role_lst) - 1):0.2f}% ({str(role[2] // 10)} :coin:)',
+                inline=False
+            )
         await ctx.send(embed=embed)
 
     @commands.command(

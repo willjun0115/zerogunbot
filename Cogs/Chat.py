@@ -62,8 +62,6 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         await ctx.message.delete()
         if int(num) > 999:
             await ctx.send(" :no_entry: 읽을 수 있는 채팅 기록은 최대 999개 입니다.")
-        elif get(ctx.guild.roles, name="언론 통제") in ctx.channel.changed_roles:
-            await ctx.send(" :no_entry: 이 채널에서 사용할 수 없는 명령어입니다.")
         else:
             if member is None:
                 deleted = await ctx.channel.purge(limit=int(num))

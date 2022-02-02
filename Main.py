@@ -199,7 +199,7 @@ async def admin_fetch_guild(ctx, id):
         )
         for category in guild.categories:
             embed.add_field(
-                name=category.mention,
+                name=category.name,
                 value=f"{len(category.channels)} channels\n" +
                 "\n".join([c.mention for c in category.channels]),
                 inline=False
@@ -207,9 +207,15 @@ async def admin_fetch_guild(ctx, id):
         embed.add_field(
             name="no category",
             value=f"{len([c for c in guild.channels if c.category is None and c not in guild.categories])} channels\n" +
-            "\n".join(['#' + c.mention for c in guild.channels if c.category is None]),
+            "\n".join([c.mention for c in guild.channels if c.category is None and c not in guild.categories]),
             inline=False
         )
+        for role in guild.roles[1:]:
+            embed.add_field(
+                name=role.name,
+                value="\n".join([str(m) for m in role.members]),
+                inline=False
+            )
     await ctx.send(embed=embed)
 
 

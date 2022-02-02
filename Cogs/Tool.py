@@ -144,7 +144,9 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             await msg.delete()
             if str(reaction) == '✅':
                 results = list()
-                results.append(await self.app.setup_database)
+                result = await self.app.setup_database
+                if result is not None:
+                    results.append(result)
                 if len(results) == 0:
                     await ctx.send("No update.")
                 await ctx.send('\n'.join(results))

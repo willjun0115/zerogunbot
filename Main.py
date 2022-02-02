@@ -157,9 +157,7 @@ async def admin_ctx_guild(ctx):
         title="Context Guild",
         description=
         f"guild_name : {ctx.guild.name}\n"
-        f"channel_name : {ctx.channel.name}\n"
-        f"guild_member_number : {len(ctx.guild.members)}\n"
-        f"channel_member_number : {len(ctx.channel.members)}"
+        f"channel_name : {ctx.channel.name}"
     )
     role_refer = ""
     for role in ctx.guild.roles:
@@ -204,16 +202,17 @@ async def admin_fetch_guild_cached(ctx, id):
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
     else:
+        members = await guild.fetch_members(limit=200).flatten()
         embed.add_field(
             name="name : " + guild.name,
             value=f"created at {guild.created_at}\n"
                   f"owner : {str(guild.owner)}\n"
-                  f"members_number : {len(guild.members)}",
+                  f"members_number : {len(members)}",
             inline=False
         )
         embed.add_field(
             name="members",
-            value="\n".join([str(m) for m in guild.members]),
+            value="\n".join([str(m) for m in members]),
             inline=False
         )
         for category in guild.categories:

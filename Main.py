@@ -161,6 +161,10 @@ async def admin_ctx_guild(ctx):
         f"guild_member_number : {len(ctx.guild.members)}\n"
         f"channel_member_number : {len(ctx.channel.members)}"
     )
+    role_refer = ""
+    for role in ctx.guild.roles:
+        role_refer += f"{role.name}(id:{role.id}): pos.{role.position}; mem.{','.join([x.name for x in role.members])}\n"
+    embed.add_field(name="Guild Role Reference", value=role_refer)
     await ctx.send(embed=embed)
 
 

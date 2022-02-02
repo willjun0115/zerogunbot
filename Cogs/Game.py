@@ -252,7 +252,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             kings = role.members
             if len(kings) > 0:
                 for king in kings:
-                    await king.remove_roles()
+                    await king.remove_roles(role)
                 break
         return f"{', '.join([king.display_name for king in kings])} 님이 {role.name}을(를) 잃었습니다!"
 

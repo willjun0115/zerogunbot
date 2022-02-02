@@ -211,7 +211,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
     async def edit_db(self, ctx, selector, member: discord.Member, val):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         if len(selector) == 1:
             data = await self.app.find_id(ctx, selector, member.id)
             if data is not None:

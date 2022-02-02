@@ -98,7 +98,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="잠수방으로 이동합니다.", usage="*", hidden=True
     )
     async def submerge(self, ctx):
-        afkchannel = ctx.guild.get_channel(760198518987685949)
+        afkchannel = ctx.guild.afk_channel
         await ctx.message.author.move_to(afkchannel)
         await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
 

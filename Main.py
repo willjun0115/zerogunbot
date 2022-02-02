@@ -7,8 +7,7 @@ import ctypes
 import ctypes.util
 
 prefix = '%'
-intents = discord.Intents.default()
-intents.members = True
+intents = discord.Intents.all()
 app = commands.Bot(
     command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True, intents=intents
 )

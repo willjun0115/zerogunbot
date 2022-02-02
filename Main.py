@@ -205,17 +205,16 @@ async def admin_fetch_guild_cached(ctx, id):
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
     else:
-        members = await guild.fetch_members(limit=200).flatten()
         embed.add_field(
             name="name : " + guild.name,
             value=f"created at {guild.created_at}\n"
                   f"owner : {str(guild.owner)}\n"
-                  f"members_number : {len(members)}",
+                  f"members_number : {len(guild.members)}",
             inline=False
         )
         embed.add_field(
             name="members",
-            value="\n".join([str(m) for m in members]),
+            value="\n".join([str(m) for m in guild.members]),
             inline=False
         )
         for category in guild.categories:

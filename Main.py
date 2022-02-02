@@ -140,51 +140,29 @@ async def admin_status_detail(ctx):
     await ctx.send(embed=embed)
 
 
-@admin_command.group(name="context", aliases=["ctx"])
-async def admin_context(ctx):
-    embed = discord.Embed(
-        title="Context Status",
-        description=
-        f"prefix : {ctx.prefix}\n"
-        f"author : {ctx.author}\n"
-        f"bot : {str(ctx.bot.user)}\n"
-        f"message_id : {ctx.message.id}\n"
-        f"created_at : {ctx.message.created_at}"
-    )
-    await ctx.send(embed=embed)
-
-
-@admin_context.group(name="guild", aliases=["server"])
-async def admin_ctx_guild(ctx):
-    embed = discord.Embed(
-        title="Context Guild",
-        description=
-        f"guild_name : {ctx.guild.name}\n"
-        f"channel_name : {ctx.channel.name}"
-    )
-    role_refer = ""
-    for role in ctx.guild.roles:
-        role_refer += f"{role.name}(id:{role.id}): pos.{role.position}; mem.{','.join([x.name for x in role.members])}\n"
-    embed.add_field(name="Guild Role Reference", value=role_refer)
-    await ctx.send(embed=embed)
-
-
 @admin_command.group(name="fetch", aliases=["find", "get"], pass_context=True)
 async def admin_fetch(ctx):
     return
 
 
 @admin_fetch.group(name="guild", aliases=["server"], pass_context=True)
-async def admin_fetch_guild(ctx, id):
-    id = int(id)
-    embed = discord.Embed(title="Fetch", description=f"fetch guild by id : {id}")
+async def admin_fetch_guild(ctx, id=None):
+    if id is None:
+        id = ctx.guild.id
+    else:
+        id = int(id)
+    embed = discord.Embed(title="Fetch Guild", description=f"get guild by id : {id}")
     try:
         guild = app.get_guild(id)
     except discord.NotFound:
         embed.add_field(name="NotFound", value="No guild was found.")
+        await ctx.send(embed=embed)
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
+        await ctx.send(embed=embed)
     else:
+        embed.set_image(url=guild.banner_url)
+        embed.set_thumbnail(url=guild.icon_url)
         embed.add_field(
             name="name : " + guild.name,
             value=f"created at {guild.created_at}\n"
@@ -192,31 +170,42 @@ async def admin_fetch_guild(ctx, id):
                   f"members_number : {len(guild.members)}",
             inline=False
         )
-        embed.add_field(
-            name="members",
-            value="\n".join([str(m) for m in guild.members]),
-            inline=False
-        )
+        await ctx.send(embed=embed)
+        embed = discord.Embed(title="Members", description=f"list of members in {guild.name}")
+        for member in guild.members:
+            embed.add_field(
+                name=str(member),
+                value=f"id: {member.id}\n"
+                      f"created at {member.created_at}\n"
+                      f"joined at {member.joined_at}\n"
+                      f"raw status: {member.raw_status}\n"
+                      f"roles: {', '.join([role.name for role in member.roles])}",
+                inline=True
+            )
+        await ctx.send(embed=embed)
+        embed = discord.Embed(title="Channels", description=f"list of channels in {guild.name}")
         for category in guild.categories:
             embed.add_field(
                 name=category.name,
                 value=f"{len(category.channels)} channels\n" +
-                "\n".join([c.mention for c in category.channels]),
-                inline=False
+                      "\n".join([c.mention for c in category.channels]),
+                inline=True
             )
         embed.add_field(
             name="no category",
             value=f"{len([c for c in guild.channels if c.category is None and c not in guild.categories])} channels\n" +
-            "\n".join([c.mention for c in guild.channels if c.category is None and c not in guild.categories]),
-            inline=False
+                  "\n".join([c.mention for c in guild.channels if c.category is None and c not in guild.categories]),
+            inline=True
         )
+        await ctx.send(embed=embed)
+        embed = discord.Embed(title="Roles", description=f"list of roles in {guild.name}")
         for role in guild.roles[1:]:
             embed.add_field(
-                name=role.name,
+                name=str(role.position) + ") " + role.name,
                 value="\n".join([str(m) for m in role.members]),
-                inline=False
+                inline=True
             )
-    await ctx.send(embed=embed)
+        await ctx.send(embed=embed)
 
 
 @admin_fetch.group(name="user", aliases=["member"], pass_context=True)

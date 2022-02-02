@@ -190,16 +190,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_rise(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
-        delta = random.random() * 5 + 5
-        await bot_db.edit(content=bot_db.content[:20] + str(prize + round(prize/delta)))
-        return '+' + str(round(prize/delta)) + " :coin: (+{:0.1f}%)".format(100/delta)
+        delta = random.random() * 0.25 + 0.1
+        await bot_db.edit(content=bot_db.content[:20] + str(prize + round(prize*delta)))
+        return '+' + str(round(prize*delta)) + " :coin: (+{:0.1f}%)".format(100*delta)
 
     async def prize_reduce(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
-        delta = random.random() * 5 + 5
-        await bot_db.edit(content=bot_db.content[:20] + str(prize - round(prize/delta)))
-        return '-' + str(round(prize/delta)) + " :coin: (-{:0.1f}%)".format(100/delta)
+        delta = random.random() * 0.1 + 0.05
+        await bot_db.edit(content=bot_db.content[:20] + str(prize - round(prize*delta)))
+        return '-' + str(round(prize*delta)) + " :coin: (-{:0.1f}%)".format(100*delta)
 
     async def prize_pill(self, ctx, db):
         coin = int(db.content[20:])
@@ -254,7 +254,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 for king in kings:
                     await king.remove_roles(role)
                 break
-        return f"{', '.join([king.display_name for king in kings])} 님이 {role.name}을(를) 잃었습니다!"
+        return f"{', '.join([king.mention for king in kings])} 님이 {role.name}을(를) 잃었습니다!"
 
     async def prize_dove(self, ctx, db):
         db_channel = ctx.guild.get_channel(self.app.db_ch)
@@ -553,7 +553,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
-        name="인디언포커", aliases=["IndianPoker", "IP", "ip"],
+        name="인디언포커", aliases=["IndianPoker"],
         help="인디언 포커를 신청합니다."
              "\n시작하면 각자에게 개인 메세지로 상대의 패를 알려준 후, 토큰 베팅을 시작합니다."
              "\n레이즈하면 판 돈을 두 배로 올리며, 플레이어 양쪽이 콜하면 결과를 공개합니다."
@@ -711,7 +711,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
-        name="블랙잭", aliases=["Blackjack", "BJ", "bj"],
+        name="블랙잭", aliases=["Blackjack"],
         help="블랙잭을 신청합니다."
              "\nA는 1 or 11으로, J,Q,K는 10으로 계산하며,"
              "\n패의 합이 21에 가장 가까운 사람이 승리합니다."

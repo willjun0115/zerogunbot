@@ -161,7 +161,6 @@ async def admin_fetch_guild(ctx, id=None):
         embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
         await ctx.send(embed=embed)
     else:
-        embed.set_image(url=guild.banner_url)
         embed.set_thumbnail(url=guild.icon_url)
         embed.add_field(
             name="name : " + guild.name,
@@ -176,9 +175,8 @@ async def admin_fetch_guild(ctx, id=None):
             embed.add_field(
                 name=str(member),
                 value=f"id: {member.id}\n"
-                      f"created at {member.created_at}\n"
                       f"joined at {member.joined_at}\n"
-                      f"raw status: {member.raw_status}\n"
+                      f"status: {member.raw_status}\n"
                       f"roles: {', '.join([role.name for role in member.roles])}",
                 inline=True
             )

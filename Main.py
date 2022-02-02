@@ -62,7 +62,7 @@ async def on_member_join(member):
 
 
 async def find_id(ctx, selector, id):
-    db_channel = ctx.guild.get_channel(874970985307201546)
+    db_channel = get(ctx.guild.text_channels, name="db")
     find = None
     async for message in db_channel.history(limit=100):
         if message.content.startswith(selector + str(id)) is True:
@@ -70,7 +70,30 @@ async def find_id(ctx, selector, id):
             break
     return find
 
+
+async def setup_database(ctx):
+    db = get(ctx.guild.text_channels, name="db")
+    bot_perms = discord.PermissionOverwrite(
+        read_messages=True, read_message_history=True, send_messages=True, manage_messages=True
+    )
+    overwrites = {
+        ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False),
+        app.user: bot_perms
+    }
+    if db is None:
+        await ctx.guild.create_text_channel("db", topic="0군봇 데이터베이스 채널입니다. 절대 수정하거나 삭제하지 말아주세요."
+                                                        "\n또한, 해당 채널에 봇이 보내는 채팅 이외의 불필요한 메시지 전송은 지양해주세요.",
+                                            overwrites=overwrites)
+        return "database channel created"
+    else:
+        if db.overwrites_for(app.user) != bot_perms:
+            await db.set_permissions(app.user, overwrite=bot_perms)
+            return "database overwrites update"
+        else:
+            return None
+
 app.find_id = find_id
+app.setup_database = setup_database
 
 
 @commands.has_permissions(administrator=True)

@@ -48,7 +48,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return '+' + str(prize) + " :coin:"
 
     async def prize_luck(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
         if luck_log is None:
             await db_channel.send('%' + str(ctx.author.id) + ';1')
@@ -111,7 +111,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return ', '.join([r.name for r in role_set]) + "(으)로 역할이 바뀌었습니다!"
 
     async def prize_token_change(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -127,7 +127,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + f" 님과 토큰이 뒤바뀌었습니다!\n{coin} <-> {member_coin} :coin:"
 
     async def prize_role_change(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -141,7 +141,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + " 님과 역할이 뒤바뀌었습니다!"
 
     async def prize_scales(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -158,7 +158,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
 
     async def prize_theft(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -173,7 +173,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
 
     async def prize_magnet(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -208,7 +208,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return str(coin) + ' x ' + str(prize) + " :coin:"
 
     async def prize_cyclone(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         members_db = [
             m for m in messages
@@ -257,7 +257,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return f"{', '.join([king.mention for king in kings])} 님이 {role.name}을(를) 잃었습니다!"
 
     async def prize_dove(self, ctx, db):
-        db_channel = ctx.guild.get_channel(self.app.db_ch)
+        db_channel = get(ctx.guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         members_db = [
             m for m in messages
@@ -329,7 +329,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             bet = int(bet)
             coin = int(log.content[20:])
-            if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
+            if ctx.channel == get(ctx.guild.text_channels, name="가챠"):
                 if coin < bet:
                     await ctx.send("토큰이 부족합니다.")
                 elif bet > coin//2:
@@ -358,7 +358,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         if db is None:
             await ctx.send(self.cannot_find_id)
         else:
-            if ctx.channel == get(ctx.guild.channels, name="가챠"):
+            if ctx.channel == get(ctx.guild.text_channels, name="가챠"):
                 msg = await ctx.send(
                     ":warning: 주의: 권한이나 토큰을 잃을 수 있습니다."
                     "\n가챠를 돌리려면 :white_check_mark: 을 누르세요."
@@ -439,7 +439,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 luck = int(luck_log.content[20:])
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
-            if ctx.channel == ctx.guild.get_channel(self.app.gacha_ch):
+            if ctx.channel == get(ctx.guild.text_channels, name="가챠"):
                 rand = random.random() * 100
                 if rand <= 1 + (luck ** 0.5) * 0.1:
                     await bot_log.edit(content=bot_log.content[:20] + str(10))

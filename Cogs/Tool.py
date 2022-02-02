@@ -116,6 +116,41 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         )
         await ctx.send(embed=embed)
 
+    @commands.bot_has_permissions(administrator=True)
+    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
+    @commands.command(
+        name="셋업", aliases=["setup"],
+        help="0군봇의 더 많은 기능을 이용하기 위한 작업을 진행합니다."
+             "\n이 작업은 봇에게 관리자 권한이 요구되며, 채널 생성 등의 동작을 수반합니다.", usage="*"
+    )
+    async def zerogun_setup(self, ctx):
+        msg = await ctx.send(
+            ":warning: 주의: 이 작업은 채널 생성 등의 동작을 수반합니다."
+            "\n해당 작업을 실행한 이후에 서버나 채널에 변경사항이 생기면 다시 '셋업' 명령어를 통해 필요한 작업을 수행할 수 있습니다."
+            "\n셋업을 진행하려면 :white_check_mark: 을 누르세요."
+        )
+        reaction_list = ['✅', '❎']
+        for r in reaction_list:
+            await msg.add_reaction(r)
+
+        def check(reaction, user):
+            return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+
+        try:
+            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=30.0)
+        except asyncio.TimeoutError:
+            await msg.edit(content="시간 초과!", delete_after=2)
+        else:
+            await msg.delete()
+            if str(reaction) == '✅':
+                results = list()
+                results.append(await self.app.setup_database)
+                if len(results) == 0:
+                    await ctx.send("No update.")
+                await ctx.send('\n'.join(results))
+            else:
+                await ctx.send(":negative_squared_cross_mark: 셋업을 취소했습니다.")
+
     @commands.cooldown(1, 300., commands.BucketType.guild)
     @commands.bot_has_permissions(administrator=True)
     @commands.check_any(commands.has_role("0군 인증서"), commands.is_owner())

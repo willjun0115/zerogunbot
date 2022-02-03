@@ -136,8 +136,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]
         )
         member = await ctx.guild.fetch_member(int(member_db.content[1:19]))
-        await ctx.author.edit(roles=member.roles)
-        await member.edit(roles=ctx.author.roles)
+        member_roles = member.roles
+        author_roles = ctx.author.roles
+        await ctx.author.edit(roles=member_roles)
+        await member.edit(roles=author_roles)
         return member.mention + " 님과 역할이 뒤바뀌었습니다!"
 
     async def prize_scales(self, ctx, db):

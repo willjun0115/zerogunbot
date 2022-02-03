@@ -12,7 +12,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.roulette_lst = [
-            (":gem:", 1.25, self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":gem:", 1.75, self.prize_gem, "상당한 토큰을 얻습니다."),
             (":coin:", 8, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 4, self.prize_luck, "행운 효과를 받습니다."),
             (":gift:", 3, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다. 행운 중첩 수에 비례해 획득량이 증가합니다."),
@@ -20,7 +20,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             (":game_die:", 20, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":cloud_lightning:", 3, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
+            (":cloud_lightning:", 3.5, self.prize_lightning, "최고 역할을 잃습니다. 행운을 보유중이라면 행운을 대신 잃습니다."),
             (":chart_with_upwards_trend:", 5, self.prize_rise, "복권 상금이 상승합니다."),
             (":chart_with_downwards_trend:", 5, self.prize_reduce, "복권 상금이 감소합니다."),
             (":cyclone:", 0.1, self.prize_cyclone, "토큰을 보유한 모든 멤버의 토큰 20%가 복권 상금으로 들어갑니다."),
@@ -30,9 +30,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
             (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
-            (":japanese_ogre:", 2.5, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
+            (":japanese_ogre:", 2, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
             (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
-            (":dove:", 1, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
+            (":dove:", 0.5, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
         ]
 
     async def prize_gem(self, ctx, db):
@@ -249,14 +249,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_oni(self, ctx, db):
         role = None
         kings = []
+        king = None
         for role_data in self.app.role_lst:
             role = get(ctx.guild.roles, name=role_data[0])
             kings = role.members
             if len(kings) > 0:
-                for king in kings:
-                    await king.remove_roles(role)
+                king = random.choice(kings)
+                await king.remove_roles(role)
                 break
-        return f"{', '.join([king.mention for king in kings])} 님이 {role.name}을(를) 잃었습니다!"
+        return f"{king.mention} 님이 {role.name}을(를) 잃었습니다!"
 
     async def prize_dove(self, ctx, db):
         db_channel = get(ctx.guild.text_channels, name="db")

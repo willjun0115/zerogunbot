@@ -266,7 +266,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         for member_db in members_db:
             member = await ctx.guild.fetch_member(int(member_db.content[1:19]))
             await member.remove_roles(member.top_role)
-        return "모든 유저의 최고 역할이 사라졌습니다!"
+        return "모든 멤버의 최고 역할이 사라졌습니다!"
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
@@ -402,10 +402,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         name="가챠정보", aliases=["gachainfo"],
         help="가챠의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
     )
-    async def gacha_info(self, ctx):
+    async def gacha_info(self, ctx, order=None):
         embed = discord.Embed(title="<가챠 정보>", description="가챠 보상 목록")
         rest = 100
-        for prize in self.roulette_lst:
+        roulette_lst = self.roulette_lst
+        if order == "오름차순":
+            roulette_lst = sorted(self.roulette_lst, key=operator.itemgetter(1))
+        for prize in roulette_lst:
             embed.add_field(name="> " + prize[0], value=str(prize[1]) + '%\n' + str(prize[3]), inline=True)
             rest -= prize[1]
         embed.add_field(name="> 꽝", value='{:0.2f}%'.format(rest), inline=True)

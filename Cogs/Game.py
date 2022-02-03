@@ -267,7 +267,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ]
         for member_db in members_db:
             member = await ctx.guild.fetch_member(int(member_db.content[1:19]))
-            await member.remove_roles(member.top_role)
+            if member.top_role.position > 1:
+                await member.remove_roles(member.top_role)
         return "모든 멤버의 최고 역할이 사라졌습니다!"
 
     async def gather_members(self, ctx, game_name="게임"):

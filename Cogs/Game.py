@@ -228,9 +228,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_dice(self, ctx, db):
         coin = int(db.content[20:])
         prize = None
-        rand = random.random()
+        rand = random.random() * (2 ** len(self.app.role_lst) - 1)
         for role in self.app.role_lst:
-            if rand <= 2 ** self.app.role_lst.index(role) / (2 ** len(self.app.role_lst) - 1):
+            if rand <= 2 ** self.app.role_lst.index(role):
                 prize = role[0]
                 if get(ctx.guild.roles, name=prize) in ctx.author.roles:
                     prize += f" (+ {str(role[2] // 10)} :coin:)"
@@ -400,7 +400,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.group(
         name="가챠정보", aliases=["gachainfo"],
-        help="가챠의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
+        help="'가챠'의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
     )
     async def gacha_info(self, ctx, order=None):
         embed = discord.Embed(title="<가챠 정보>", description="가챠 보상 목록")
@@ -416,10 +416,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @gacha_info.command(
         name="세부정보", aliases=["detail"],
-        help="명령어 '가챠'의 확률 정보를 공개합니다.", usage="*"
+        help="명령어 '가챠'의 역할 획득 확률 정보를 공개합니다.", usage="*"
     )
     async def gacha_info_detail(self, ctx):
-        embed = discord.Embed(title="<가챠 세부 정보>", description="확률(%) (중복 시 얻는 코인)")
+        embed = discord.Embed(title="<세부 정보>", description="확률(%) (중복 시 얻는 코인)")
         for role in self.app.role_lst:
             embed.add_field(
                 name="> " + role[0],

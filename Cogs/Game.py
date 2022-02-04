@@ -222,7 +222,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if lose < 0:
                 lose = 0
             increment += lose
-            await member_db.edit(content=member_db.content[:20]+str(int(member_db.content[:20])-lose))
+            await member_db.edit(content=member_db.content[:20]+str(int(member_db.content[20:])-lose))
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         await bot_db.edit(content=bot_db.content[:20] + str(int(bot_db.content[20:]) + increment))
         return f"0군봇이 모든 유저의 토큰의 20%를 빨아들였습니다!\n복권 상금 +{increment} :coin:"

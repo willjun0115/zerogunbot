@@ -326,8 +326,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
-        help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다."
-             "\n베팅은 보유 토큰의 절반까지 가능합니다.", usage="* int((0, *token/2*])", pass_context=True
+        help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token/2*])", pass_context=True
     )
     async def gamble(self, ctx, bet):
         log = await self.app.find_id(ctx, '$', ctx.author.id)
@@ -440,7 +439,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         name="복권", aliases=["ㅂㄱ", "lottery"],
         help="가챠에서 꽝이 나오면 복권 상금이 오릅니다."
              "\n'복권' 명령어를 통해 당첨 시 상금을 얻습니다."
-             "\n(당첨 확률은 1.25%)", usage="*"
+             "\n(기본 당첨 확률은 1%)", usage="*"
     )
     async def lottery(self, ctx):
         log = await self.app.find_id(ctx, '$', ctx.author.id)

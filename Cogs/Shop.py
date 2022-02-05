@@ -152,7 +152,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
         if luck_log is not None:
             luck = int(luck_log.content[20:])
-            await ctx.send(f'{luck} :four_leaf_clover:')
+            await ctx.send(f'{luck} :four_leaf_clover: (복권 확률 +{(luck ** 0.5) * 0.1:0.2f}%)')
         else:
             await ctx.send("행운 효과가 없습니다.")
 

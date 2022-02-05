@@ -169,10 +169,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]
         )
         member = await ctx.guild.fetch_member(int(member_db.content[1:19]))
-        role = random.choice(member.roles[2:])
-        await ctx.author.add_roles(role)
-        await member.remove_roles(role)
-        return member.mention + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
+        if len(member.roles[2:]) > 0:
+            role = random.choice(member.roles[2:])
+            await ctx.author.add_roles(role)
+            await member.remove_roles(role)
+            return member.mention + " 님의 역할 중 " + role.name + "을(를) 빼앗았습니다!"
+        else:
+            return member.mention + " 님에게서 빼앗을 역할이 없습니다."
 
     async def prize_magnet(self, ctx, db):
         db_channel = get(ctx.guild.text_channels, name="db")

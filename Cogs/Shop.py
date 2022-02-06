@@ -128,14 +128,14 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         else:
             db_channel = get(ctx.guild.text_channels, name="db")
             luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
-            if luck_log is not None:
-                luck = int(luck_log.content[20:])
-                await luck_log.edit(content=luck_log.content[:20]+str(luck + num))
-                await ctx.send(f'+{num} :four_leaf_clover:')
-            else:
-                price = self.app.shop.get("행운") * num
-                is_enough, db = await self.has_enough_token(ctx, price)
-                if is_enough:
+            price = self.app.shop.get("행운") * num
+            is_enough, db = await self.has_enough_token(ctx, price)
+            if is_enough:
+                if luck_log is not None:
+                    luck = int(luck_log.content[20:])
+                    await luck_log.edit(content=luck_log.content[:20]+str(luck + num))
+                    await ctx.send(f'+{num} :four_leaf_clover:')
+                else:
                     await db_channel.send('%' + str(ctx.author.id) + ';' + str(num))
                     await db.edit(content=db.content[:20]+str(int(db.content[20:]) - price))
                     await ctx.send(ctx.author.display_name + f" 님이 행운 버프를 받습니다. -{price} :coin:")

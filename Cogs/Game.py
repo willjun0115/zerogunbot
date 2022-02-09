@@ -238,13 +238,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if rand <= 2 ** self.app.role_lst.index(role):
                 prize = role[0]
                 if get(ctx.guild.roles, name=prize) in ctx.author.roles:
-                    prize += f" (+ {str(role[2] // 10)} :coin:)"
-                    await db.edit(content=db.content[:20] + str(coin + role[2] // 10))
+                    prize += f" (+ {str(role[1] // 10)} :coin:)"
+                    await db.edit(content=db.content[:20] + str(coin + role[1] // 10))
                 else:
                     await ctx.author.add_roles(get(ctx.guild.roles, name=prize))
                 break
             else:
-                rand -= role[1]
+                rand -= 2 ** self.app.role_lst.index(role)
         if prize is None:
             prize = "꽝"
         return prize + " 획득!"
@@ -430,7 +430,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             embed.add_field(
                 name="> " + role[0],
                 value=f'{(2 ** self.app.role_lst.index(role) / (2 ** len(self.app.role_lst) - 1)) * 100:0.2f}% '
-                      f'({str(role[2] // 10)} :coin:)',
+                      f'({str(role[1] // 10)} :coin:)',
                 inline=False
             )
         await ctx.send(embed=embed)

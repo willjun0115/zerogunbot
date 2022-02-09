@@ -402,7 +402,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             embed.add_field(name=result, value=effect)
                         await ctx.send(embed=embed)
                     else:
-                        await ctx.send(":negative_squared_cross_mark: 룰렛을 취소했습니다.")
+                        await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
 
     @commands.group(
         name="가챠정보", aliases=["gachainfo"],

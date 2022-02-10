@@ -9,7 +9,10 @@ import ctypes.util
 prefix = '%'
 intents = discord.Intents.all()
 app = commands.Bot(
-    command_prefix=commands.when_mentioned_or(prefix), help_command=None, strip_after_prefix=True, intents=intents
+    command_prefix=commands.when_mentioned_or(prefix),
+    help_command=None,
+    strip_after_prefix=True,
+    intents=intents
 )
 app.prefix = prefix
 app.role_lst = [
@@ -94,22 +97,28 @@ app.find_id = find_id
 app.setup_database = setup_database
 
 
+@commands.is_owner()
+@app.group(name="admin", aliases=["%"])
+async def admin_command(ctx):
+    return
+
+
 @commands.has_permissions(administrator=True)
-@app.command(name="로드", aliases=["load"])
+@admin_command.command(name="load", aliases=["l"])
 async def load_command(ctx, extension):
     app.load_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 로드했습니다.")
 
 
 @commands.has_permissions(administrator=True)
-@app.command(name="언로드", aliases=["unload"])
+@admin_command.command(name="unload", aliases=["ul"])
 async def unload_command(ctx, extension):
     app.unload_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 언로드했습니다.")
 
 
 @commands.has_permissions(administrator=True)
-@app.command(name="리로드", aliases=["reload"])
+@admin_command.command(name="reload", aliases=["rl"])
 async def reload_command(ctx, extension=None):
     if extension is None:
         for file_name in os.listdir("Cogs"):
@@ -121,12 +130,6 @@ async def reload_command(ctx, extension=None):
         app.unload_extension(f"Cogs.{extension}")
         app.load_extension(f"Cogs.{extension}")
         await ctx.send(f":white_check_mark: {extension}을(를) 다시 불러왔습니다.")
-
-
-@commands.is_owner()
-@app.group(name="admin", aliases=["%"])
-async def admin_command(ctx):
-    return
 
 
 @admin_command.group(name="status", aliases=["stat"])

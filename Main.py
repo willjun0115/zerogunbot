@@ -103,22 +103,19 @@ async def admin_command(ctx):
     return
 
 
-@commands.has_permissions(administrator=True)
-@admin_command.command(name="load", aliases=["l"])
+@admin_command.group(name="load", aliases=["l"])
 async def load_command(ctx, extension):
     app.load_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 로드했습니다.")
 
 
-@commands.has_permissions(administrator=True)
-@admin_command.command(name="unload", aliases=["ul"])
+@admin_command.group(name="unload", aliases=["ul"])
 async def unload_command(ctx, extension):
     app.unload_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 언로드했습니다.")
 
 
-@commands.has_permissions(administrator=True)
-@admin_command.command(name="reload", aliases=["rl"])
+@admin_command.group(name="reload", aliases=["rl"])
 async def reload_command(ctx, extension=None):
     if extension is None:
         for file_name in os.listdir("Cogs"):
@@ -253,10 +250,10 @@ async def admin_fetch_user(ctx, id):
 async def admin_help(ctx):
     description = ""
     for cmd in admin_command.commands:
-        description += f"({'/'.join([p.name for p in sorted(cmd.parents, reverse=True)])}) {cmd.name}\n"
+        description += f"{cmd.name}\n"
         if cmd.commands is not None:
             for sub_cmd in cmd.commands:
-                description += f"({'/'.join([p.name for p in sorted(cmd.parents, reverse=True)])}) {sub_cmd.name}\n"
+                description += f"\t{sub_cmd.name}\n"
     embed = discord.Embed(
         title="Commands",
         description=description

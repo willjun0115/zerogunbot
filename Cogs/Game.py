@@ -221,7 +221,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ]
         increment = 0
         for member_db in members_db:
-            lose = int(member_db.content[:20]) // 5
+            lose = int(member_db.content[20:]) // 5
             if lose < 0:
                 lose = 0
             increment += lose

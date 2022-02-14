@@ -253,7 +253,7 @@ async def admin_help(ctx):
         description += f"{cmd.name}\n"
         if cmd.commands is not None:
             for sub_cmd in cmd.commands:
-                description += f"   {sub_cmd.name}\n"
+                description += f"> {sub_cmd.name}\n"
     embed = discord.Embed(
         title="Commands",
         description=description

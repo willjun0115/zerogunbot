@@ -37,9 +37,8 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await ctx.send(str(coin) + ' :coin:')
         else:
             await db_channel.send('$' + str(ctx.author.id) + ';0')
-            await ctx.send('토큰 DB에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
+            await ctx.send('토큰 DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
 
-    @commands.has_permissions(administrator=True)
     @commands.command(
         name="계좌", aliases=["account"],
         help="자신의 글로벌 어카운트의 토큰 수를 확인합니다.\n글로벌 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
@@ -54,7 +53,30 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await ctx.send(str(coin) + ' :coin:')
         else:
             await db_channel.send('$' + str(ctx.author.id) + ';0')
-            await ctx.send('글로벌 DB에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
+            await ctx.send('글로벌 DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
+
+    @commands.command(
+        name="이체", aliases=["계좌이체", "transfer"],
+        help="자신의 글로벌 어카운트에서 로컬 DB로 토큰을 이체합니다.",
+        usage="* int()"
+    )
+    async def check_global_account(self, ctx, num):
+        num = int(num)
+        global_data = await self.app.find_global_id(ctx, '$', ctx.author.id)
+        if global_data is not None:
+            global_coin = int(global_data.content[20:])
+            local_data = await self.app.find_id(ctx, '$', ctx.author.id)
+            if local_data is not None:
+                if global_coin >= num:
+                    local_coin = int(local_data.content[20:])
+                    await global_data.edit(content=local_data.content[:20] + str(global_coin - num))
+                    await local_data.edit(content=local_data.content[:20] + str(local_coin + num))
+                else:
+                    await ctx.send('잔고가 부족합니다.')
+            else:
+                await ctx.send('로컬 DB에서 ID를 찾을 수 없습니다.')
+        else:
+            await ctx.send('글로벌 DB에서 ID를 찾을 수 없습니다.')
 
     @commands.cooldown(1, 300., commands.BucketType.channel)
     @commands.command(

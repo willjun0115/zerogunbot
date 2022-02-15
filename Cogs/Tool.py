@@ -211,9 +211,9 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
         name="DB편집", aliases=["editdb"],
-        help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
+        help="로컬 DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
-    async def edit_db(self, ctx, selector, member: discord.Member, val):
+    async def edit_local_db(self, ctx, selector, member: discord.Member, val):
         db_channel = get(ctx.guild.text_channels, name="db")
         if len(selector) == 1:
             data = await self.app.find_id(ctx, selector, member.id)
@@ -229,7 +229,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 await ctx.send('DB를 업데이트했습니다.')
             else:
                 await db_channel.send(selector + str(member.id) + ';' + str(val))
-                await ctx.send('DB에 ' + member.name + ' 님의 ID를 기록했습니다.')
+                await ctx.send('DB에 ' + member.mention + ' 님의 ID를 기록했습니다.')
         else:
             await ctx.send("식별자는 1글자여야 합니다.")
 

@@ -14,6 +14,7 @@ app = commands.Bot(
     strip_after_prefix=True,
     intents=intents
 )
+app.global_guild_id = 943244634602213396
 app.prefix = prefix
 app.role_lst = [
     ("임시차단", 4000),
@@ -66,6 +67,17 @@ async def find_id(ctx, selector, id):
     db_channel = get(ctx.guild.text_channels, name="db")
     find = None
     async for message in db_channel.history(limit=100):
+        if message.content.startswith(selector + str(id)) is True:
+            find = message
+            break
+    return find
+
+
+async def find_global_id(ctx, selector, id):
+    global_guild = ctx.get_guild(app.global_guild_id)
+    db_channel = get(global_guild.text_channels, name="gdb")
+    find = None
+    async for message in db_channel.history(limit=500):
         if message.content.startswith(selector + str(id)) is True:
             find = message
             break

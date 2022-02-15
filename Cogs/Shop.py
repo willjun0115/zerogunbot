@@ -39,6 +39,23 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await db_channel.send('$' + str(ctx.author.id) + ';0')
             await ctx.send('토큰 DB에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
 
+    @commands.has_permissions(administrator=True)
+    @commands.command(
+        name="계좌", aliases=["account"],
+        help="자신의 글로벌 어카운트의 토큰 수를 확인합니다.\n글로벌 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
+        usage="*"
+    )
+    async def check_global_account(self, ctx):
+        global_guild = ctx.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="gdb")
+        data = await self.app.find_global_id(ctx, '$', ctx.author.id)
+        if data is not None:
+            coin = int(data.content[20:])
+            await ctx.send(str(coin) + ' :coin:')
+        else:
+            await db_channel.send('$' + str(ctx.author.id) + ';0')
+            await ctx.send('글로벌 DB에 ' + ctx.author.name + ' 님의 ID를 기록했습니다.')
+
     @commands.cooldown(1, 300., commands.BucketType.channel)
     @commands.command(
         name="토큰순위", aliases=["순위표", "랭크표", "rank"],

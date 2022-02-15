@@ -106,6 +106,7 @@ async def setup_database(ctx):
             return None
 
 app.find_id = find_id
+app.find_global_id = find_global_id
 app.setup_database = setup_database
 
 

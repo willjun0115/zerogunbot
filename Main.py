@@ -97,7 +97,7 @@ async def setup_database(ctx):
         await ctx.guild.create_text_channel("db", topic="0군봇 데이터베이스 채널입니다. 절대 수정하거나 삭제하지 말아주세요."
                                                         "\n또한, 해당 채널에 봇이 보내는 채팅 이외의 불필요한 메시지 전송은 지양해주세요.",
                                             overwrites=overwrites)
-        return "database channel has been created."
+        return "local database channel has been created."
     else:
         if db.overwrites_for(app.user) != bot_perms:
             await db.set_permissions(app.user, overwrite=bot_perms)

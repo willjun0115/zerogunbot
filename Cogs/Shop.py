@@ -60,7 +60,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         help="자신의 글로벌 어카운트에서 로컬 DB로 토큰을 이체합니다.",
         usage="* int()"
     )
-    async def check_global_account(self, ctx, num):
+    async def global_account_transfer(self, ctx, num):
         num = int(num)
         global_data = await self.app.find_global_id(ctx, '$', ctx.author.id)
         if global_data is not None:
@@ -71,6 +71,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                     local_coin = int(local_data.content[20:])
                     await global_data.edit(content=local_data.content[:20] + str(global_coin - num))
                     await local_data.edit(content=local_data.content[:20] + str(local_coin + num))
+                    await ctx.send(f"글로벌 어카운트로부터 {num} :coin: 을 이체했습니다.")
                 else:
                     await ctx.send('잔고가 부족합니다.')
             else:
@@ -114,7 +115,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             if log is not None:
                 coin = int(log.content[20:])
                 mem_coin = (member, coin)
-                embed.add_field(name=f"{str(members.index(mem_coin))}위", value=f"{str(coin)} :coin:")
+                embed.add_field(name=f"{members.index(mem_coin)}위", value=f"{coin} :coin:")
                 await msg.edit(content=None, embed=embed)
             else:
                 await msg.edit(content='로그에서 ID를 찾지 못했습니다.')

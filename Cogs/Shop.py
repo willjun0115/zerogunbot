@@ -87,7 +87,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     async def token_shop(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="'%구매 ~'를 통해 상품 구매")
         for role in self.app.role_lst:
-            embed.add_field(name="> " + role[0], value=f'{role[2]} :coin:', inline=True)
+            embed.add_field(name="> " + role[0], value=f'{role[1]} :coin:', inline=True)
         for item in self.app.shop.keys():
             embed.add_field(name="> " + item, value=f'{self.app.shop.get(item)} :coin:', inline=True)
         await ctx.send(embed=embed)
@@ -103,7 +103,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 is_enough, db = await self.has_enough_token(ctx, role[2])
                 if is_enough:
                     await ctx.author.add_roles(get(ctx.guild.roles, name=role[0]))
-                    await db.edit(content=db.content[:20]+str(int(db.content[20:])-role[2]))
+                    await db.edit(content=db.content[:20]+str(int(db.content[20:])-role[1]))
                     await ctx.send("구매 완료!")
                 item_found = True
                 break

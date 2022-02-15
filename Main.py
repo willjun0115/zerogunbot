@@ -74,7 +74,7 @@ async def find_id(ctx, selector, id):
 
 
 async def find_global_id(ctx, selector, id):
-    global_guild = ctx.get_guild(app.global_guild_id)
+    global_guild = app.get_guild(app.global_guild_id)
     db_channel = get(global_guild.text_channels, name="gdb")
     find = None
     async for message in db_channel.history(limit=500):

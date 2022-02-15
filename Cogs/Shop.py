@@ -100,7 +100,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         item_found = False
         for role in self.app.role_lst:
             if args == role[0]:
-                is_enough, db = await self.has_enough_token(ctx, role[2])
+                is_enough, db = await self.has_enough_token(ctx, role[1])
                 if is_enough:
                     await ctx.author.add_roles(get(ctx.guild.roles, name=role[0]))
                     await db.edit(content=db.content[:20]+str(int(db.content[20:])-role[1]))

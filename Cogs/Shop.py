@@ -45,8 +45,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         usage="*"
     )
     async def check_global_account(self, ctx):
-        global_guild = self.app.get_guild(self.app.global_guild_id)
-        db_channel = get(global_guild.text_channels, name="gdb")
+        db_channel = get(self.app.global_guild.text_channels, name="gdb")
         data = await self.app.find_global_id(ctx, '$', ctx.author.id)
         if data is not None:
             coin = int(data.content[20:])

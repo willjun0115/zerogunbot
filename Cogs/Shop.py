@@ -37,7 +37,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await ctx.send(str(coin) + ' :coin:')
         else:
             await db_channel.send('$' + str(ctx.author.id) + ';0')
-            await ctx.send('토큰 DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
+            await ctx.send('DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
 
     @commands.command(
         name="계좌", aliases=["account"],
@@ -84,41 +84,31 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         name="토큰순위", aliases=["순위표", "랭크표", "rank"],
         help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 5분)", usage="* (@*member*)"
     )
-    async def token_rank(self, ctx, member: discord.Member = None):
+    async def token_rank(self, ctx, num=10):
+        num = int(num)
         db_channel = get(ctx.guild.text_channels, name="db")
         msg = await ctx.send("DB를 조회 중입니다... :mag:")
         members = {}
         messages = await db_channel.history(limit=100).flatten()
         for message in messages:
             if message.content.startswith('$') is True:
-                mem = await ctx.guild.fetch_member(int(message.content[1:19]))
-                members[mem] = int(message.content[20:])
+                member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                members[member] = int(message.content[20:])
         members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
-        if member is None:
-            embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
-            winner = members[0]
-            names = ""
-            coins = ""
-            n = 1
-            for md in members[1:]:
-                n += 1
-                names += f"{n}. {md[0].display_name}\n"
-                coins += str(md[1]) + "\n"
-                if n >= 10:
-                    break
-            embed.add_field(name=f"1. " + winner[0].display_name + " :crown:", value=names, inline=True)
-            embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
-            await msg.edit(content=None, embed=embed)
-        else:
-            embed = discord.Embed(title="<토큰 랭킹>", description=member.display_name + " 님의 토큰 순위")
-            log = await self.app.find_id(ctx, '$', member.id)
-            if log is not None:
-                coin = int(log.content[20:])
-                mem_coin = (member, coin)
-                embed.add_field(name=f"{members.index(mem_coin)}위", value=f"{coin} :coin:")
-                await msg.edit(content=None, embed=embed)
-            else:
-                await msg.edit(content='로그에서 ID를 찾지 못했습니다.')
+        embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
+        winner = members[0]
+        names = ""
+        coins = ""
+        n = 1
+        for md in members[1:]:
+            n += 1
+            names += f"{n}. {md[0].display_name}\n"
+            coins += str(md[1]) + "\n"
+            if n >= num:
+                break
+        embed.add_field(name=f"1. " + winner[0].display_name + " :crown:", value=names, inline=True)
+        embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
+        await msg.edit(content=None, embed=embed)
 
     @commands.command(
         name="상점", aliases=["shop", "tokenshop", "coinshop"],

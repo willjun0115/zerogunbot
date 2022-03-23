@@ -36,16 +36,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ]
 
     async def gacha_events(self, items: list):
-        events = []
         if ":smiling_imp:" in items:
             if ":gem:" in items or ":coin:" in items:
-                events.append((":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."))
+                items.append((":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."))
         if ":four_leaf_clover:" in items and ":game_die:" in items:
-            events.append((":game_die:", 15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
+            items.append((":game_die:", 15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
         if items == [":coin:", ":coin:", ":coin:"]:
             for i in range(0, 2):
-                events.append((":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."))
-        return events
+                items.append((":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."))
+        return items
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])

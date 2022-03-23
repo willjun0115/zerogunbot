@@ -18,14 +18,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":gift:", 2.25, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다.\n행운 중첩 수에 비례해 획득량이 증가합니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":game_die:", 15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
+            (":game_die:", 10, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":cloud_lightning:", 2.5, self.prize_lightning, "최고 역할을 잃습니다.\n행운을 보유중이라면 행운 효과를 대신 잃습니다."),
-            (":chart_with_upwards_trend:", 6, self.prize_rise, "복권 상금이 상승합니다."),
-            (":chart_with_downwards_trend:", 4, self.prize_reduce, "복권 상금이 감소합니다."),
+            (":cloud_lightning:", 1.5, self.prize_lightning, "최고 역할을 잃습니다.\n행운을 보유중이라면 행운 효과를 대신 잃습니다."),
+            (":chart_with_upwards_trend:", 7.5, self.prize_rise, "복권 상금이 상승합니다."),
+            (":chart_with_downwards_trend:", 5, self.prize_reduce, "복권 상금이 감소합니다."),
             (":cyclone:", 0.1, self.prize_cyclone, "토큰을 보유한 모든 멤버의 토큰 20%가 복권 상금으로 들어갑니다."),
-            (":pick:", 1.25, self.prize_theft, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
-            (":magnet:", 1.25, self.prize_magnet, "무작위 멤버 한 명의 토큰을 10% 빼앗습니다."),
+            (":pick:", 1, self.prize_theft, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
+            (":magnet:", 1, self.prize_magnet, "무작위 멤버 한 명의 토큰을 10% 빼앗습니다."),
             (":pill:", 0.5, self.prize_pill, "보유 토큰이 절반이 되거나, 두 배가 됩니다."),
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
@@ -34,19 +34,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":dove:", 0.25, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
         ]
-
-    async def gacha_events(self, items: list):
-        events = []
-        if ":smiling_imp:" in items:
-            if ":gem:" in items or ":coin:" in items:
-                events.append((":smiling_imp:", 0, self.prize_imp, "토큰을 잃습니다."))
-        if ":four_leaf_clover:" in items and ":game_die:" in items:
-            events.append((":game_die:", 0, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
-        if items == [":coin:", ":coin:", ":coin:"]:
-            events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
-        if ":bomb:" in items and ":smiling_imp:" in items:
-            events.append((":bomb:", 0, self.prize_bomb, "역할을 무작위로 하나 잃습니다."))
-        return events
+        self.event_lst = [
+            (":coin:", ":coin: * 3", self.prize_coin, "토큰을 조금 얻습니다."),
+            (":smiling_imp:", ":smiling_imp: + :coin:, :smiling_imp: + :gem:", self.prize_imp, "토큰을 잃습니다."),
+            (":game_die:", ":game_die: + :four_leaf_clover:", self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
+            (":bomb:", ":bomb: + :smiling_imp:", self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+        ]
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
@@ -208,16 +201,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_rise(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
-        delta = random.random() * 0.125 + 0.075
-        await bot_db.edit(content=bot_db.content[:20] + str(prize + round(prize*delta)))
-        return '+' + str(round(prize*delta)) + " :coin: (+{:0.1f}%)".format(100*delta)
+        delta = random.randint(10, 30)
+        await bot_db.edit(content=bot_db.content[:20] + str(prize + delta))
+        return '+' + str(delta) + " :coin:"
 
     async def prize_reduce(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
-        delta = random.random() * 0.075 + 0.05
-        await bot_db.edit(content=bot_db.content[:20] + str(prize - round(prize*delta)))
-        return '-' + str(round(prize*delta)) + " :coin: (-{:0.1f}%)".format(100*delta)
+        delta = random.randint(10, 20)
+        await bot_db.edit(content=bot_db.content[:20] + str(prize - delta))
+        return '-' + str(delta) + " :coin:"
 
     async def prize_pill(self, ctx, db):
         coin = int(db.content[20:])
@@ -287,6 +280,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if member.top_role.position > 1:
                 await member.remove_roles(member.top_role)
         return "모든 멤버의 최고 역할이 사라졌습니다!"
+
+    async def gacha_events(self, items: list):
+        events = []
+        if ":smiling_imp:" in items:
+            if ":gem:" in items or ":coin:" in items:
+                events.append((":smiling_imp:", 0, self.prize_imp, "토큰을 잃습니다."))
+        if ":four_leaf_clover:" in items and ":game_die:" in items:
+            events.append((":game_die:", 0, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
+        if items == [":coin:", ":coin:", ":coin:"]:
+            events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
+        if ":bomb:" in items and ":smiling_imp:" in items:
+            events.append((":bomb:", 0, self.prize_bomb, "역할을 무작위로 하나 잃습니다."))
+        return events
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
@@ -427,16 +433,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         name="가챠정보", aliases=["gachainfo"],
         help="'가챠'의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
     )
-    async def gacha_info(self, ctx, order=None):
+    async def gacha_info(self, ctx):
         embed = discord.Embed(title="<가챠 정보>", description="가챠 보상 목록")
         rest = 100
-        lst = self.gacha_lst
-        if order == "오름차순":
-            lst = sorted(self.gacha_lst, key=operator.itemgetter(1))
-        for prize in lst:
-            embed.add_field(name="> " + prize[0], value=str(prize[1]) + '%\n' + str(prize[3]), inline=True)
+        for prize in self.gacha_lst:
+            embed.add_field(name="> " + prize[0], value=str(prize[1]) + '%\n' + prize[3], inline=True)
             rest -= prize[1]
-        embed.add_field(name="> 꽝", value='{:0.2f}%'.format(rest), inline=True)
+        embed.add_field(name="> 꽝", value='{:0.2f}%'.format(rest), inline=False)
+        for event in self.event_lst:
+            embed.add_field(name="> " + event[0], value="조건: " + event[1] + '\n' + event[3], inline=True)
         await ctx.send(embed=embed)
 
     @gacha_info.command(

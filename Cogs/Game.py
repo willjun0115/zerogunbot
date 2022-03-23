@@ -36,15 +36,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ]
 
     async def gacha_events(self, items: list):
+        events = []
         if ":smiling_imp:" in items:
             if ":gem:" in items or ":coin:" in items:
-                items.append((":smiling_imp:", 0, self.prize_imp, "토큰을 잃습니다."))
+                events.append((":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."))
         if ":four_leaf_clover:" in items and ":game_die:" in items:
-            items.append((":game_die:", 0, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
+            events.append((":game_die:", 15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
         if items == [":coin:", ":coin:", ":coin:"]:
             for i in range(0, 2):
-                items.append(":coin:")
-        return items
+                events.append((":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."))
+        return events
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
@@ -407,7 +408,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 else:
                                     rand -= prize[1]
                         await ctx.send(' '.join([item[0] for item in items]))
-                        items = await self.gacha_events(items)
+                        items = await self.gacha_events([item[0] for item in items])
                         for prize in items:
                             effect = await prize[2](ctx, db)
                             if effect is not None:
@@ -434,10 +435,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         await ctx.send(embed=embed)
 
     @gacha_info.command(
-        name="세부정보", aliases=["detail"],
+        name="역할", aliases=["roles"],
         help="명령어 '가챠'의 역할 획득 확률 정보를 공개합니다.", usage="*"
     )
-    async def gacha_info_detail(self, ctx):
+    async def gacha_info_roles(self, ctx):
         embed = discord.Embed(title="<세부 정보>", description="확률(%) (중복 시 얻는 코인)")
         for role in self.app.role_lst:
             embed.add_field(

@@ -13,12 +13,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.gacha_lst = [
             (":gem:", 1.5, self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":coin:", 8, self.prize_coin, "토큰을 조금 얻습니다."),
+            (":coin:", 10, self.prize_coin, "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 7, self.prize_luck, "행운 효과를 받습니다."),
             (":gift:", 2.25, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다.\n행운 중첩 수에 비례해 획득량이 증가합니다."),
             (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":game_die:", 20, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
+            (":game_die:", 15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             (":cloud_lightning:", 2.5, self.prize_lightning, "최고 역할을 잃습니다.\n행운을 보유중이라면 행운 효과를 대신 잃습니다."),
             (":chart_with_upwards_trend:", 6, self.prize_rise, "복권 상금이 상승합니다."),
@@ -34,6 +34,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":dove:", 0.25, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
         ]
+
+    async def gacha_events(self, items: list):
+        if ":smiling_imp:" in items:
+            if ":gem:" in items or ":coin:" in items:
+                items.append((":smiling_imp:", 0, self.prize_imp, "토큰을 잃습니다."))
+        if ":four_leaf_clover:" in items and ":game_die:" in items:
+            items.append((":game_die:", 0, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
+        if items == [":coin:", ":coin:", ":coin:"]:
+            for i in range(0, 2):
+                items.append(":coin:")
+        return items
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
@@ -71,7 +82,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_imp(self, ctx, db):
         coin = int(db.content[20:])
-        prize = - random.randint(15, 75)
+        prize = - random.randint(15, 40)
         await db.edit(content=db.content[:20] + str(coin + prize))
         return str(prize) + " :coin:"
 
@@ -386,20 +397,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         embed = discord.Embed(title="<:video_game: 가챠>",
                                               description=ctx.author.display_name + " 님의 결과")
                         rand = random.random() * 100
-                        result = None
-                        effect = None
-                        for prize in self.gacha_lst:
-                            if rand <= prize[1]:
-                                result = prize[3]
-                                await ctx.send(prize[0])
-                                effect = await prize[2](ctx, db)
-                                break
-                            else:
-                                rand -= prize[1]
-                        if result is None:
-                            embed.add_field(name="꽝", value="아무일도 일어나지 않았습니다.")
-                        else:
-                            embed.add_field(name=result, value=effect)
+                        items = []
+                        result = str()
+                        while len(items) < 3:
+                            for prize in self.gacha_lst:
+                                if rand <= prize[1]:
+                                    items.append(prize)
+                                    break
+                                else:
+                                    rand -= prize[1]
+                        await ctx.send(''.join([item[0] for item in items]))
+                        items = await self.gacha_events(items)
+                        for prize in items:
+                            effect = await prize[2](ctx, db)
+                            result += effect + '\n'
+                        embed.add_field(name="결과", value=result)
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")

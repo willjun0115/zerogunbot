@@ -396,21 +396,22 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if str(reaction) == '✅':
                         embed = discord.Embed(title="<:video_game: 가챠>",
                                               description=ctx.author.display_name + " 님의 결과")
-                        rand = random.random() * 100
                         items = []
                         result = str()
                         while len(items) < 3:
+                            rand = random.random() * 100
                             for prize in self.gacha_lst:
                                 if rand <= prize[1]:
                                     items.append(prize)
                                     break
                                 else:
                                     rand -= prize[1]
-                        await ctx.send(''.join([item[0] for item in items]))
+                        await ctx.send(' '.join([item[0] for item in items]))
                         items = await self.gacha_events(items)
                         for prize in items:
                             effect = await prize[2](ctx, db)
-                            result += effect + '\n'
+                            if effect is not None:
+                                result += effect + '\n'
                         embed.add_field(name="결과", value=result)
                         await ctx.send(embed=embed)
                     else:

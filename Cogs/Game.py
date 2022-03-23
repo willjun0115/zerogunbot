@@ -35,10 +35,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":dove:", 0.25, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
         ]
         self.event_lst = [
-            (":coin:", ":coin: * 3", self.prize_coin, "토큰을 조금 얻습니다."),
-            (":smiling_imp:", ":smiling_imp: + :coin:, :smiling_imp: + :gem:", self.prize_imp, "토큰을 잃습니다."),
-            (":game_die:", ":game_die: + :four_leaf_clover:", self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
-            (":bomb:", ":bomb: + :smiling_imp:", self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":coin:", [":coin: * 3"], self.prize_coin, "토큰을 조금 얻습니다."),
+            (":smiling_imp:", [":smiling_imp: + :coin:", ":smiling_imp: + :gem:"], self.prize_imp, "토큰을 잃습니다."),
+            (":game_die:", [":game_die: + :four_leaf_clover:"], self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
+            (":bomb:", [":bomb: + :smiling_imp:"], self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
         ]
 
     async def prize_gem(self, ctx, db):
@@ -441,7 +441,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             rest -= prize[1]
         embed.add_field(name="> 꽝", value='{:0.2f}%'.format(rest), inline=False)
         for event in self.event_lst:
-            embed.add_field(name="> " + event[0], value="조건: " + event[1] + '\n' + event[3], inline=True)
+            embed.add_field(name="> " + '\n'.join(event[1]), value=event[3], inline=True)
         await ctx.send(embed=embed)
 
     @gacha_info.command(

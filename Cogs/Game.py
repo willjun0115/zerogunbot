@@ -38,7 +38,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":cheese:", 3, self.item_none, "아무 일도 일어나지 않습니다."),
         ]
         self.event_lst = [
-            (":coin:", (":coin:", ":coin:", ":coin:"), self.prize_coin, "토큰을 조금 얻습니다."),
+            # (":coin:", (":coin:", ":coin:", ":coin:"), self.prize_coin, "상당한 토큰을 얻습니다."),
             (":mouse:", (":mouse:", ":gem:"), self.prize_imp, "토큰을 잃습니다."),
             (":game_die:", (":game_die:", ":four_leaf_clover:"), self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             (":bomb:", (":bomb:", ":fire:"), self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
@@ -301,19 +301,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def gacha_events(self, items: list):
         events = []
-        if ":mouse:" in items:
-            if ":gem:" in items or ":coin:" in items:
-                events.append((":smiling_imp:", 0, self.prize_imp, "토큰을 잃습니다."))
-            if ":cheese:" in items:
-                events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
-        if ":four_leaf_clover:" in items and ":game_die:" in items:
-            events.append((":game_die:", 0, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
-        if items == [":coin:", ":coin:", ":coin:"]:
-            events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
-        if ":bomb:" in items and ":fire:" in items:
-            events.append((":bomb:", 0, self.prize_bomb, "역할을 무작위로 하나 잃습니다."))
-        if ":pick:" in items and ":gem:" in items:
-            events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
         for event in self.event_lst:
             cond = event[1]
             meet = False

@@ -303,13 +303,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         events = []
         for event in self.event_lst:
             cond = event[1]
-            meet = False
+            meet = 0
             for c in cond:
                 if c in items:
-                    meet = True
-                else:
-                    meet = False
-            if meet:
+                    meet += 1
+            if meet > 1:
                 events.append((event[0], 0, event[2], str()))
         return events
 

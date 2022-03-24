@@ -45,6 +45,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":bomb:", [":mouse: + :cheese:"], self.prize_gem, "상당한 토큰을 얻습니다."),
             (":bomb:", [":pick: + :gem:"], self.prize_gem, "상당한 토큰을 얻습니다."),
         ]
+        self.events_dict = {
+            ":gem:": self.prize_gem,
+            ":moneybag:": self.prize_gem,
+            ":coin:": self.prize_coin,
+        }
 
     async def item_none(self, ctx, db):
         return None
@@ -446,22 +451,23 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="'가챠'의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
     )
     async def gacha_info(self, ctx):
-        embed = discord.Embed(title="<가챠 정보>", description="가챠 보상 목록")
+        embed = discord.Embed(
+            title="<가챠 정보>",
+            description="'%가챠정보 확률' 또는 '%가챠정보 이벤트'로 추가 세부 정보를 확인할 수 있습니다."
+        )
         rest = 100
         for prize in self.gacha_lst:
             embed.add_field(name="> " + prize[0], value=str(prize[1]) + '%\n' + prize[3], inline=True)
             rest -= prize[1]
         embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
-        for event in self.event_lst:
-            embed.add_field(name="> " + '\n'.join(event[1]), value=event[3], inline=True)
         await ctx.send(embed=embed)
 
     @gacha_info.command(
-        name="역할", aliases=["roles"],
+        name="역할", aliases=["role", "roles"],
         help="명령어 '가챠'의 역할 획득 확률 정보를 공개합니다.", usage="*"
     )
     async def gacha_info_roles(self, ctx):
-        embed = discord.Embed(title="<세부 정보>", description="확률(%) (중복 시 얻는 코인)")
+        embed = discord.Embed(title="<역할 정보>", description="확률(%) (중복 시 얻는 코인)")
         for role in self.app.role_lst:
             embed.add_field(
                 name="> " + role[0],
@@ -469,6 +475,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                       f'({str(role[1] // 10)} :coin:)',
                 inline=False
             )
+        await ctx.send(embed=embed)
+
+    @gacha_info.command(
+        name="이벤트", aliases=["event", "events"],
+        help="명령어 '가챠'의 이벤트 정보를 공개합니다.", usage="*"
+    )
+    async def gacha_info_events(self, ctx):
+        embed = discord.Embed(title="<이벤트 정보>", description="이벤트 발생 조건 및 효과")
+        for event in self.event_lst:
+            embed.add_field(name="> " + '\n'.join(event[1]), value=event[3], inline=True)
         await ctx.send(embed=embed)
 
     @commands.command(

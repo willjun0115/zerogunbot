@@ -38,17 +38,22 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":cheese:", 3, self.item_none, "아무 일도 일어나지 않습니다."),
         ]
         self.event_lst = [
-            (":coin:", [":coin: * 3"], self.prize_coin, "토큰을 조금 얻습니다."),
-            (":mouse:", [":mouse: + :coin:", ":mouse: + :gem:"], self.prize_imp, "토큰을 잃습니다."),
-            (":game_die:", [":game_die: + :four_leaf_clover:"], self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
-            (":bomb:", [":bomb: + :fire:"], self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":bomb:", [":mouse: + :cheese:"], self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":bomb:", [":pick: + :gem:"], self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":coin:", (":coin:", ":coin:", ":coin:"), self.prize_coin, "토큰을 조금 얻습니다."),
+            (":mouse:", (":mouse:", ":gem:"), self.prize_imp, "토큰을 잃습니다."),
+            (":game_die:", (":game_die:", ":four_leaf_clover:"), self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
+            (":bomb:", (":bomb:", ":fire:"), self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":bomb:", (":mouse:", ":cheese:"), self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":bomb:", (":pick:", ":gem:"), self.prize_gem, "상당한 토큰을 얻습니다."),
         ]
         self.events_dict = {
             ":gem:": self.prize_gem,
             ":moneybag:": self.prize_gem,
             ":coin:": self.prize_coin,
+            ":four_leaf_clover:": self.item_none,
+            ":bomb:": self.item_none,
+            ":fire:": self.item_none,
+            ":game_die:": self.item_none,
+            ":pick:": self.item_none,
         }
 
     async def item_none(self, ctx, db):
@@ -309,6 +314,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             events.append((":bomb:", 0, self.prize_bomb, "역할을 무작위로 하나 잃습니다."))
         if ":pick:" in items and ":gem:" in items:
             events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
+        for event in self.event_lst:
+            cond = event[1]
+            meet = False
+            for c in cond:
+                if c in items:
+                    meet = True
+                else:
+                    meet = False
+            if meet:
+                events.append((event[0], 0, event[2], str()))
         return events
 
     async def gather_members(self, ctx, game_name="게임"):
@@ -484,7 +499,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def gacha_info_events(self, ctx):
         embed = discord.Embed(title="<이벤트 정보>", description="이벤트 발생 조건 및 효과")
         for event in self.event_lst:
-            embed.add_field(name="> " + '\n'.join(event[1]), value=event[3], inline=True)
+            embed.add_field(name="> " + ' + '.join(event[1]), value=event[3], inline=True)
         await ctx.send(embed=embed)
 
     @commands.command(

@@ -26,20 +26,28 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":cyclone:", 0.1, self.prize_cyclone, "토큰을 보유한 모든 멤버의 토큰 20%가 복권 상금으로 들어갑니다."),
             (":pick:", 1, self.prize_theft, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
             (":magnet:", 1, self.prize_magnet, "무작위 멤버 한 명의 토큰을 10% 빼앗습니다."),
-            (":pill:", 0.5, self.prize_pill, "보유 토큰이 절반이 되거나, 두 배가 됩니다."),
+            (":pill:", 0.5, self.prize_pill, "토큰이 두 배가 되거나, 절반이 됩니다."),
             (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
             (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
             (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
             (":japanese_ogre:", 1, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
             (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":dove:", 0.25, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
+            (":fire:", 3.5, self.item_none, "아무 일도 일어나지 않습니다."),
+            (":mouse:", 3, self.item_none, "아무 일도 일어나지 않습니다."),
+            (":cheese:", 3, self.item_none, "아무 일도 일어나지 않습니다."),
         ]
         self.event_lst = [
             (":coin:", [":coin: * 3"], self.prize_coin, "토큰을 조금 얻습니다."),
-            (":smiling_imp:", [":smiling_imp: + :coin:", ":smiling_imp: + :gem:"], self.prize_imp, "토큰을 잃습니다."),
+            (":mouse:", [":mouse: + :coin:", ":mouse: + :gem:"], self.prize_imp, "토큰을 잃습니다."),
             (":game_die:", [":game_die: + :four_leaf_clover:"], self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
-            (":bomb:", [":bomb: + :smiling_imp:"], self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":bomb:", [":bomb: + :fire:"], self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":bomb:", [":mouse: + :cheese:"], self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":bomb:", [":pick: + :gem:"], self.prize_gem, "상당한 토큰을 얻습니다."),
         ]
+
+    async def item_none(self, ctx, db):
+        return None
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
@@ -203,14 +211,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         prize = int(bot_db.content[20:])
         delta = random.randint(10, 30)
         await bot_db.edit(content=bot_db.content[:20] + str(prize + delta))
-        return '+' + str(delta) + " :coin:"
+        return '복권 상금 +' + str(delta) + " :coin:"
 
     async def prize_reduce(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
         delta = random.randint(10, 20)
         await bot_db.edit(content=bot_db.content[:20] + str(prize - delta))
-        return '-' + str(delta) + " :coin:"
+        return '복권 상금 -' + str(delta) + " :coin:"
 
     async def prize_pill(self, ctx, db):
         coin = int(db.content[20:])
@@ -283,15 +291,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def gacha_events(self, items: list):
         events = []
-        if ":smiling_imp:" in items:
+        if ":mouse:" in items:
             if ":gem:" in items or ":coin:" in items:
                 events.append((":smiling_imp:", 0, self.prize_imp, "토큰을 잃습니다."))
+            if ":cheese:" in items:
+                events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
         if ":four_leaf_clover:" in items and ":game_die:" in items:
             events.append((":game_die:", 0, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."))
         if items == [":coin:", ":coin:", ":coin:"]:
             events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
-        if ":bomb:" in items and ":smiling_imp:" in items:
+        if ":bomb:" in items and ":fire:" in items:
             events.append((":bomb:", 0, self.prize_bomb, "역할을 무작위로 하나 잃습니다."))
+        if ":pick:" in items and ":gem:" in items:
+            events.append((":gem:", 0, self.prize_gem, "상당한 토큰을 얻습니다."))
         return events
 
     async def gather_members(self, ctx, game_name="게임"):

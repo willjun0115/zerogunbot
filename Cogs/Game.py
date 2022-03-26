@@ -460,7 +460,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                     rand -= event[0]
                         eve_msg = await ctx.send(' '.join(items))
                         events = await self.gacha_events(items)
-                        await eve_msg.edit(content=events)
+                        await asyncio.sleep(1)
+                        await eve_msg.edit(content=' '.join(events))
                         for item in items:
                             event = self.events.get(item)
                             effect = await event[1](ctx, db)

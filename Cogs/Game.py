@@ -66,13 +66,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":cheese:", 3, self.event_none, "아무 일도 일어나지 않습니다."),
         ]
         self.event_lst = [
-            # (":coin:", (":coin:", ":coin:", ":coin:"), self.prize_coin, "상당한 토큰을 얻습니다."),
-            (":mouse:", (":mouse:", ":gem:"), self.prize_imp, "토큰을 잃습니다."),
+            (":smiling_imp:", (":mouse:", ":gem:"), self.prize_imp, "토큰을 잃습니다."),
             (":game_die:", (":game_die:", ":four_leaf_clover:"), self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             (":bomb:", (":bomb:", ":fire:"), self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":moneybag:", (":mouse:", ":cheese:"), self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":moneybag:", (":pick:", ":gem:"), self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":fire:", (":four_leaf_clover:", ":fire:"), self.event_lose_luck, "행운 중첩을 하나 잃습니다."),
+            (":gem:", (":mouse:", ":cheese:"), self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":gem:", (":pick:", ":gem:"), self.prize_gem, "상당한 토큰을 얻습니다."),
         ]
 
     async def event_none(self, ctx, db):
@@ -328,7 +326,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return "모든 멤버의 최고 역할이 사라졌습니다!"
 
     async def gacha_events(self, items: list):
-        events = []
+        new_items = items
         for event in self.event_lst:
             cond = event[1]
             meet = 0
@@ -336,8 +334,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if c in items:
                     meet += 1
             if meet > 1:
-                events.append((event[0], 0, event[2], str()))
-        return events
+                new_items.append(event[0])
+        return new_items
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
@@ -453,22 +451,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         result = str()
                         while len(items) < 3:
                             rand = random.random() * 100
-                            for prize in self.gacha_lst:
-                                if rand <= prize[1]:
-                                    items.append(prize)
+                            for item in self.events.keys():
+                                event = self.events.get(item)
+                                if rand <= event[0]:
+                                    items.append(item)
                                     break
                                 else:
-                                    rand -= prize[1]
-                        await ctx.send(' '.join([item[0] for item in items]))
-                        events = await self.gacha_events([item[0] for item in items])
-                        for prize in items:
-                            effect = await prize[2](ctx, db)
+                                    rand -= event[0]
+                        eve_msg = await ctx.send(' '.join(items))
+                        events = await self.gacha_events(items)
+                        await eve_msg.edit(content=events)
+                        for item in items:
+                            event = self.events.get(item)
+                            effect = await event[1](ctx, db)
                             if effect is not None:
                                 result += effect + '\n'
-                        for event in events:
-                            effect = await event[2](ctx, db)
-                            if effect is not None:
-                                result += effect + ' (event)\n'
                         embed.add_field(name="결과", value=result)
                         await ctx.send(embed=embed)
                     else:

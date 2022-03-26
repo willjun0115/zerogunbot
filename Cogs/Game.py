@@ -482,9 +482,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             description="'%가챠정보 역할' 또는 '%가챠정보 이벤트'로 추가 세부 정보를 확인할 수 있습니다."
         )
         rest = 100
-        events_lst = sorted(self.events.items(), key=operator.itemgetter(1), reverse=False)
-        for event in events_lst:
-            embed.add_field(name="> " + event[0], value=str(event[1]) + '%\n' + event[3], inline=True)
+        for item in self.events.keys():
+            event = self.events.get(item)
+            embed.add_field(name="> " + item, value=str(event[0]) + '%\n' + event[2], inline=True)
             rest -= event[1]
         embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
         await ctx.send(embed=embed)

@@ -4,6 +4,7 @@ import asyncio
 from discord.utils import get
 from discord.ext import commands
 import operator
+from collections import OrderedDict
 
 
 class Game(commands.Cog, name="게임", description="오락 및 도박과 관련된 카테고리입니다.\n토큰을 수급할 수 있습니다."):
@@ -11,6 +12,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     def __init__(self, app):
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
+        self.events = OrderedDict()
         self.events = {
             ":gem:": (3.5, self.prize_gem, "상당한 토큰을 얻습니다."),
             ":coin:": (15, self.prize_coin, "토큰을 조금 얻습니다."),
@@ -485,7 +487,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         for item in self.events.keys():
             event = self.events.get(item)
             embed.add_field(name="> " + item, value=str(event[0]) + '%\n' + event[2], inline=True)
-            rest -= event[1]
+            rest -= event[0]
         embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
         await ctx.send(embed=embed)
 

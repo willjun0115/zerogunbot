@@ -11,15 +11,25 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     def __init__(self, app):
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
+        self.events = {
+            ":gem:": self.prize_gem,
+            ":moneybag:": self.prize_gem,
+            ":coin:": self.prize_coin,
+            ":four_leaf_clover:": self.event_none,
+            ":bomb:": self.event_none,
+            ":fire:": self.event_none,
+            ":game_die:": self.event_none,
+            ":pick:": self.event_none,
+        }
         self.gacha_lst = [
             (":gem:", 3.5, self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":coin:", 15, self.prize_coin, "토큰을 조금 얻습니다."),
+            (":coin:", 15, self.events.get(":coin:"), "토큰을 조금 얻습니다."),
             (":four_leaf_clover:", 7, self.prize_luck, "행운 효과를 받습니다."),
             (":gift:", 2.5, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다.\n행운 중첩 수에 비례해 획득량이 증가합니다."),
-            (":smiling_imp:", 6.6, self.prize_imp, "토큰을 잃습니다."),
+            (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
             (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             (":game_die:", 10, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
-            (":bomb:", 4.4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
+            (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             (":cloud_lightning:", 1.5, self.prize_lightning, "최고 역할을 잃습니다.\n행운을 보유중이라면 행운 효과를 대신 잃습니다."),
             (":chart_with_upwards_trend:", 10, self.prize_rise, "복권 상금이 상승합니다."),
             (":chart_with_downwards_trend:", 5, self.prize_reduce, "복권 상금이 감소합니다."),
@@ -33,35 +43,35 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             (":japanese_ogre:", 1, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
             (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             (":dove:", 0.25, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
-            (":fire:", 3.5, self.item_none, "아무 일도 일어나지 않습니다."),
-            (":mouse:", 3, self.item_none, "아무 일도 일어나지 않습니다."),
-            (":cheese:", 3, self.item_none, "아무 일도 일어나지 않습니다."),
+            (":fire:", 3.5, self.event_none, "아무 일도 일어나지 않습니다."),
+            (":mouse:", 2, self.event_none, "아무 일도 일어나지 않습니다."),
+            (":cheese:", 3, self.event_none, "아무 일도 일어나지 않습니다."),
         ]
         self.event_lst = [
             # (":coin:", (":coin:", ":coin:", ":coin:"), self.prize_coin, "상당한 토큰을 얻습니다."),
             (":mouse:", (":mouse:", ":gem:"), self.prize_imp, "토큰을 잃습니다."),
             (":game_die:", (":game_die:", ":four_leaf_clover:"), self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             (":bomb:", (":bomb:", ":fire:"), self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":bomb:", (":mouse:", ":cheese:"), self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":bomb:", (":pick:", ":gem:"), self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":moneybag:", (":mouse:", ":cheese:"), self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":moneybag:", (":pick:", ":gem:"), self.prize_gem, "상당한 토큰을 얻습니다."),
+            (":fire:", (":four_leaf_clover:", ":fire:"), self.event_lose_luck, "행운 중첩을 하나 잃습니다."),
         ]
-        self.events_dict = {
-            ":gem:": self.prize_gem,
-            ":moneybag:": self.prize_gem,
-            ":coin:": self.prize_coin,
-            ":four_leaf_clover:": self.item_none,
-            ":bomb:": self.item_none,
-            ":fire:": self.item_none,
-            ":game_die:": self.item_none,
-            ":pick:": self.item_none,
-        }
 
-    async def item_none(self, ctx, db):
+    async def event_none(self, ctx, db):
         return None
+
+    async def event_lose_luck(self, ctx, db):
+        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        if luck_log is None:
+            return None
+        else:
+            luck = int(luck_log.content[20:])
+            await luck_log.edit(content=luck_log.content[:20] + str(luck - 1))
+            return f'행운 -1 :four_leaf_clover:'
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
-        prize = random.randint(160, 220)
+        prize = random.randint(150, 200)
         await db.edit(content=db.content[:20]+str(coin + prize))
         return '+' + str(prize) + " :coin:"
 
@@ -80,12 +90,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             luck = int(luck_log.content[20:])
             await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
-            return f'+1 :four_leaf_clover:'
+            return f'행운 +1 :four_leaf_clover:'
 
     async def prize_gift(self, ctx, db):
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
         if luck_log is None:
-            return "행운 효과가 받고 있지 않습니다."
+            return None
         else:
             luck = int(luck_log.content[20:])
             gift = 30 + luck * random.randint(6, 9)
@@ -95,13 +105,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_imp(self, ctx, db):
         coin = int(db.content[20:])
-        prize = - random.randint(15, 40)
+        prize = - random.randint(20, 50)
         await db.edit(content=db.content[:20] + str(coin + prize))
         return str(prize) + " :coin:"
 
     async def prize_bomb(self, ctx, db):
         if len(ctx.author.roles[2:]) == 0:
-            return "보유중인 역할이 없습니다."
+            return None
         else:
             role = random.choice(ctx.author.roles[2:])
             await ctx.author.remove_roles(role)
@@ -109,7 +119,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_lightning(self, ctx, db):
         if len(ctx.author.roles[2:]) == 0:
-            return "보유중인 역할이 없습니다."
+            return None
         else:
             luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
             if luck_log is None:
@@ -484,7 +494,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def gacha_info_events(self, ctx):
         embed = discord.Embed(title="<이벤트 정보>", description="이벤트 발생 조건 및 효과")
         for event in self.event_lst:
-            embed.add_field(name="> " + ' + '.join(event[1]), value=event[3], inline=True)
+            embed.add_field(name="> " + ' '.join(event[1]), value=event[3], inline=True)
         await ctx.send(embed=embed)
 
     @commands.command(

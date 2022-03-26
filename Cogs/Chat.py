@@ -12,7 +12,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
 
     @commands.command(
         name="안녕", aliases=["인사", "ㅎㅇ", "hello", "hi"],
-        help="짧은 인사를 건넵니다.", usage="*"
+        help="짧은 인사를 건넵니다.", usage="*", hidden=True
     )
     async def hello(self, ctx):
         what_message = random.randint(1, 3)

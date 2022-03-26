@@ -75,7 +75,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 await ctx.send('명령어를 찾을 수 없습니다.')
 
     @commands.command(
-        name="사용법", aliases=["usage"],
+        name="사용법", aliases=["문법", "usage"],
         help="명령 선언에 대한 기본적인 법칙을 설명합니다.", usage="*"
     )
     async def usage_help(self, ctx):

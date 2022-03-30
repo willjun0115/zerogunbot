@@ -17,12 +17,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":gem:": (3.5, self.prize_gem, "상당한 토큰을 얻습니다."),
             ":coin:": (15, self.prize_coin, "토큰을 조금 얻습니다."),
             ":four_leaf_clover:": (7, self.prize_luck, "행운 효과를 받습니다."),
-            ":gift:": (2.5, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다.\n행운 중첩 수에 비례해 획득량이 증가합니다."),
+            ":gift:": (3, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다.\n행운 중첩 수에 비례해 획득량이 증가합니다."),
             ":smiling_imp:": (6, self.prize_imp, "토큰을 잃습니다."),
             ":skull:": (0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             ":game_die:": (10, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             ":bomb:": (4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            ":cloud_lightning:": (1.5, self.prize_lightning, "최고 역할을 잃습니다.\n행운을 보유중이라면 행운 효과를 대신 잃습니다."),
+            ":cloud_lightning:": (1.5, self.prize_lightning, "최고 역할을 잃습니다."),
             ":chart_with_upwards_trend:": (10, self.prize_rise, "복권 상금이 상승합니다."),
             ":chart_with_downwards_trend:": (5, self.prize_reduce, "복권 상금이 감소합니다."),
             ":cyclone:": (0.1, self.prize_cyclone, "토큰을 보유한 모든 멤버의 토큰 20%가 복권 상금으로 들어갑니다."),
@@ -34,56 +34,32 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":scales:": (0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
             ":japanese_ogre:": (1, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
             ":black_joker:": (0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
-            ":dove:": (0.25, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
-            ":fire:": (3.5, self.event_none, "아무 일도 일어나지 않습니다."),
+            ":dove:": (0.1, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
+            ":fire:": (2.5, self.event_fire, "행운 효과를 보유중이라면 행운 효과를 절반 잃습니다."),
             ":mouse:": (2, self.event_none, "아무 일도 일어나지 않습니다."),
             ":cheese:": (3, self.event_none, "아무 일도 일어나지 않습니다."),
         }
-        self.gacha_lst = [
-            (":gem:", 3.5, self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":coin:", 15, self.events.get(":coin:"), "토큰을 조금 얻습니다."),
-            (":four_leaf_clover:", 7, self.prize_luck, "행운 효과를 받습니다."),
-            (":gift:", 2.5, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다.\n행운 중첩 수에 비례해 획득량이 증가합니다."),
-            (":smiling_imp:", 6, self.prize_imp, "토큰을 잃습니다."),
-            (":skull:", 0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            (":game_die:", 10, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
-            (":bomb:", 4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":cloud_lightning:", 1.5, self.prize_lightning, "최고 역할을 잃습니다.\n행운을 보유중이라면 행운 효과를 대신 잃습니다."),
-            (":chart_with_upwards_trend:", 10, self.prize_rise, "복권 상금이 상승합니다."),
-            (":chart_with_downwards_trend:", 5, self.prize_reduce, "복권 상금이 감소합니다."),
-            (":cyclone:", 0.1, self.prize_cyclone, "토큰을 보유한 모든 멤버의 토큰 20%가 복권 상금으로 들어갑니다."),
-            (":pick:", 1, self.prize_theft, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
-            (":magnet:", 1, self.prize_magnet, "무작위 멤버 한 명의 토큰을 10% 빼앗습니다."),
-            (":pill:", 0.5, self.prize_pill, "토큰이 두 배가 되거나, 절반이 됩니다."),
-            (":arrows_counterclockwise:", 0.25, self.prize_token_change, "무작위 멤버 한 명과 토큰이 뒤바뀝니다."),
-            (":busts_in_silhouette:", 0.25, self.prize_role_change, "무작위 멤버 한 명과 역할이 뒤바뀝니다."),
-            (":scales:", 0.5, self.prize_scales, "무작위 멤버 한 명과 토큰을 합쳐 동등하게 나눠 가집니다."),
-            (":japanese_ogre:", 1, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
-            (":black_joker:", 0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
-            (":dove:", 0.25, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
-            (":fire:", 3.5, self.event_none, "아무 일도 일어나지 않습니다."),
-            (":mouse:", 2, self.event_none, "아무 일도 일어나지 않습니다."),
-            (":cheese:", 3, self.event_none, "아무 일도 일어나지 않습니다."),
-        ]
         self.event_lst = [
-            (":smiling_imp:", (":mouse:", ":gem:"), self.prize_imp, "토큰을 잃습니다."),
-            (":game_die:", (":game_die:", ":four_leaf_clover:"), self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
-            (":bomb:", (":bomb:", ":fire:"), self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
-            (":gem:", (":mouse:", ":cheese:"), self.prize_gem, "상당한 토큰을 얻습니다."),
-            (":gem:", (":pick:", ":gem:"), self.prize_gem, "상당한 토큰을 얻습니다."),
+            ((":mouse:", ":gem:"), ":smiling_imp:"),
+            ((":game_die:", ":four_leaf_clover:"), ":game_die:"),
+            ((":bomb:", ":fire:"), ":bomb:"),
+            ((":mouse:", ":cheese:"), ":gem:"),
+            ((":pick:", ":gem:"), ":gem:"),
+            ((":fire:", ":four_leaf_clover:"), ":fire:"),
+            ((":cloud_lightning:", ":four_leaf_clover:"), "-:cloud_lightning:"),
         ]
 
     async def event_none(self, ctx, db):
         return None
 
-    async def event_lose_luck(self, ctx, db):
+    async def event_fire(self, ctx, db):
         luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
         if luck_log is None:
             return None
         else:
             luck = int(luck_log.content[20:])
-            await luck_log.edit(content=luck_log.content[:20] + str(luck - 1))
-            return f'행운 -1 :four_leaf_clover:'
+            await luck_log.edit(content=luck_log.content[:20] + str(luck//2))
+            return f'행운 -{luck//2} :four_leaf_clover:'
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
@@ -137,14 +113,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         if len(ctx.author.roles[2:]) == 0:
             return None
         else:
-            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
-            if luck_log is None:
-                role = ctx.author.top_role
-                await ctx.author.remove_roles(role)
-                return role.name + "을(를) 잃었습니다."
-            else:
-                await luck_log.delete()
-                return "행운 효과를 잃었습니다."
+            role = ctx.author.top_role
+            await ctx.author.remove_roles(role)
+            return role.name + "을(를) 잃었습니다."
 
     async def prize_skull(self, ctx, db):
         if int(db.content[20:]) > 0:
@@ -327,14 +298,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def gacha_events(self, items: list):
         new_items = items
+        if items == [items[0], items[0], items[0]]:
+            new_items.append(items[0])
         for event in self.event_lst:
-            cond = event[1]
+            cond = event[0]
             meet = 0
             for c in cond:
                 if c in items:
                     meet += 1
             if meet > 1:
-                new_items.append(event[0])
+                if event[1].startswith('-'):
+                    new_items.remove(event[1][1:])
+                else:
+                    new_items.append(event[1])
         return new_items
 
     async def gather_members(self, ctx, game_name="게임"):
@@ -509,9 +485,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="명령어 '가챠'의 이벤트 정보를 공개합니다.", usage="*"
     )
     async def gacha_info_events(self, ctx):
-        embed = discord.Embed(title="<이벤트 정보>", description="이벤트 발생 조건 및 효과")
+        embed = discord.Embed(title="<이벤트 정보>", description="이벤트 발생 우선순위대로 나열합니다.")
         for event in self.event_lst:
-            embed.add_field(name="> " + ' '.join(event[1]), value=event[3], inline=True)
+            embed.add_field(
+                name="> " + ' '.join(event[0]),
+                value=event[1],
+                inline=True
+            )
         await ctx.send(embed=embed)
 
     @commands.command(

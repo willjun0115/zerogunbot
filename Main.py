@@ -263,29 +263,30 @@ async def admin_fetch_user(ctx, id):
 
 @admin_command.group(name="search", aliases=["s"], pass_context=True)
 async def admin_search(ctx, *, args):
+    cannot_find = True
     embed = discord.Embed(title="Search", description=f"search for : {args}")
     try:
         for guild in app.guilds:
             if args == guild.name:
                 await admin_fetch_guild(ctx, guild.id)
+                cannot_find = False
                 break
-    except discord.NotFound:
-        embed.add_field(name="NotFound", value="No guild was found.")
-        await ctx.send(embed=embed)
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
         await ctx.send(embed=embed)
-    try:
-        for user in app.users:
-            if args == user.name:
-                await admin_fetch_user(ctx, user.id)
-                break
-    except discord.NotFound:
-        embed.add_field(name="NotFound", value="No user was found.")
-        await ctx.send(embed=embed)
-    except discord.Forbidden:
-        embed.add_field(name="Forbidden", value="Cannot fetch the user.")
-        await ctx.send(embed=embed)
+    if cannot_find:
+        try:
+            for user in app.users:
+                if args == user.name or args == user.display_name:
+                    await admin_fetch_user(ctx, user.id)
+                    cannot_find = False
+                    break
+        except discord.Forbidden:
+            embed.add_field(name="Forbidden", value="Cannot fetch the user.")
+            await ctx.send(embed=embed)
+        if cannot_find:
+            embed.add_field(name="NotFound", value="Cannot find any component.")
+            await ctx.send(embed=embed)
 
 
 @admin_command.group(name="help", aliases=["command", "cmd", "?"])

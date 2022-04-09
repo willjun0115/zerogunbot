@@ -17,15 +17,15 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
     async def hello(self, ctx):
         what_message = random.randint(1, 3)
         if what_message == 1:
-            await ctx.channel.send('안녕하세요? ' + ctx.author.name + '님, 오늘도 좋은하루 보내세요!')
+            await ctx.channel.send('안녕하세요? ' + ctx.author.name + ' 님, 오늘도 좋은하루 보내세요!')
         elif what_message == 2:
-            await ctx.channel.send('안녕하세요? ' + ctx.author.name + '님, 오늘 하루 힘내세요!')
+            await ctx.channel.send('안녕하세요? ' + ctx.author.name + ' 님, 오늘 하루 힘내세요!')
         else:
-            await ctx.channel.send(ctx.author.name + '님, 안녕하세요!')
+            await ctx.channel.send(ctx.author.name + ' 님, 안녕하세요!')
 
     @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())
     @commands.command(
-        name="말하기", aliases=["say"],
+        name="말하기", aliases=["say", "chat"],
         help="입력값을 채팅에 전송합니다.", usage="* str()", pass_context=True
     )
     async def _say(self, ctx, *, args):
@@ -34,22 +34,23 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
 
     @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())
     @commands.command(
-        name="타이머챗", aliases=["timerchat", "tc"],
-        help="잠시 후 사라지는 채팅을 전송합니다.", usage="* str()", pass_context=True
+        name="타이머챗", aliases=["timerchat", "tchat"],
+        help="시간이 지나면 사라지는 채팅을 전송합니다.", usage="* int() str()", pass_context=True
     )
-    async def _say_timer(self, ctx, *, args):
+    async def _say_timer(self, ctx, sec, *, args):
         await ctx.message.delete()
-        msg = await ctx.send(":clock12: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock3: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock6: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock9: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=":clock12: " + args)
-        await asyncio.sleep(1)
-        await msg.edit(content=':boom: ', delete_after=1)
+        msg = await ctx.send(args)
+        await asyncio.sleep(int(sec))
+        await msg.delete()
+
+    @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())
+    @commands.command(
+        name="도배", aliases=["bulkchat", "bchat"],
+        help="입력값을 반복 입력해 전송합니다.", usage="* int() str()", pass_context=True
+    )
+    async def _say_bulk(self, ctx, num, *, args):
+        await ctx.message.delete()
+        msg = await ctx.send(args * int(num))
 
     @commands.cooldown(1, 60., commands.BucketType.member)
     @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())

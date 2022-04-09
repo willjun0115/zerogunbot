@@ -5,6 +5,7 @@ from discord.utils import get
 import os
 import ctypes
 import ctypes.util
+import datetime
 
 prefix = '%'
 intents = discord.Intents.all()
@@ -152,7 +153,7 @@ async def admin_status(ctx):
         f"client_id : {app.user.id}\n"
         f"guilds_number : {len(app.guilds)}\n"
         f"users_number : {len(app.users)}\n"
-        f"created_at : {app.user.created_at}"
+        f"created_at : {app.user.created_at + datetime.timedelta(hours=9)} (UTC+9:00)"
     )
     await ctx.send(embed=embed)
 

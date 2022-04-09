@@ -157,7 +157,7 @@ async def admin_status(ctx):
     await ctx.send(embed=embed)
 
 
-@admin_status.group(name="detail")
+@admin_status.group(name="detail", aliases=["+"])
 async def admin_status_detail(ctx):
     appinfo = await app.application_info()
     embed = discord.Embed(
@@ -174,7 +174,7 @@ async def admin_status_detail(ctx):
     await ctx.send(embed=embed)
 
 
-@admin_command.group(name="fetch", aliases=["find", "get"], pass_context=True)
+@admin_command.group(name="fetch", aliases=["find", "get", "f"], pass_context=True)
 async def admin_fetch(ctx):
     return
 
@@ -245,18 +245,46 @@ async def admin_fetch_user(ctx, id):
     id = int(id)
     embed = discord.Embed(title="Fetch", description=f"fetch user by id : {id}")
     try:
-        user = await app.fetch_user(id)
+        user = app.get_user(id)
     except discord.NotFound:
         embed.add_field(name="NotFound", value="No user was found.")
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the user.")
     else:
+        embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(
             name="name : " + str(user),
             value=f"created at {user.created_at}\n",
             inline=False
         )
     await ctx.send(embed=embed)
+
+
+@admin_command.group(name="search", aliases=["s"], pass_context=True)
+async def admin_search(ctx, *, args):
+    embed = discord.Embed(title="Search", description=f"search for : {args}")
+    try:
+        for guild in app.guilds:
+            if args == guild.name:
+                await admin_fetch_guild(ctx, guild.id)
+                break
+    except discord.NotFound:
+        embed.add_field(name="NotFound", value="No guild was found.")
+        await ctx.send(embed=embed)
+    except discord.Forbidden:
+        embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
+        await ctx.send(embed=embed)
+    try:
+        for user in app.users:
+            if args == user.name:
+                await admin_fetch_user(ctx, user.id)
+                break
+    except discord.NotFound:
+        embed.add_field(name="NotFound", value="No user was found.")
+        await ctx.send(embed=embed)
+    except discord.Forbidden:
+        embed.add_field(name="Forbidden", value="Cannot fetch the user.")
+        await ctx.send(embed=embed)
 
 
 @admin_command.group(name="help", aliases=["command", "cmd", "?"])
@@ -266,7 +294,7 @@ async def admin_help(ctx):
         description += f"{cmd.name}\n"
         if cmd.commands is not None:
             for sub_cmd in cmd.commands:
-                description += f"> {sub_cmd.name}\n"
+                description += f"- {sub_cmd.name}\n"
     embed = discord.Embed(
         title="Commands",
         description=description

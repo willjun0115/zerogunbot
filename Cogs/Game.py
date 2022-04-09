@@ -35,7 +35,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":japanese_ogre:": (1, self.prize_oni, "가장 높은 역할을 가진 멤버의 최고 역할을 없앱니다."),
             ":black_joker:": (0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             ":dove:": (0.1, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
-            ":fire:": (2.5, self.event_fire, "행운 효과를 보유중이라면 행운 효과를 절반 잃습니다."),
+            ":fire:": (2.5, self.event_fire, "행운 효과를 보유중이라면 행운 중첩을 잃습니다.\n행운 중첩이 10미만이라면 모두 잃습니다."),
             ":mouse:": (2, self.event_none, "아무 일도 일어나지 않습니다."),
             ":cheese:": (3, self.event_none, "아무 일도 일어나지 않습니다."),
         }
@@ -58,8 +58,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return None
         else:
             luck = int(luck_log.content[20:])
-            await luck_log.edit(content=luck_log.content[:20] + str(luck//2))
-            return f'행운 -{luck//2} :four_leaf_clover:'
+            if luck < 10:
+                await luck_log.delete()
+                return f"행운 효과를 잃었습니다."
+            else:
+                lose = random.randint(10, luck//2)
+                await luck_log.edit(content=luck_log.content[:20] + str(lose))
+                return f'행운 -{lose} :four_leaf_clover:'
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])

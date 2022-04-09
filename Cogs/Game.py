@@ -148,7 +148,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         member = await ctx.guild.fetch_member(int(member_db.content[1:19]))
         coin = db.content[20:]
         member_coin = member_db.content[20:]
-        await db.edit(content=db.content[:20]member_coin)
+        await db.edit(content=db.content[:20]+member_coin)
         await member_db.edit(content=member_db.content[:20]+coin)
         return member.mention + f" 님과 토큰이 뒤바뀌었습니다!\n{coin} <-> {member_coin} :coin:"
 

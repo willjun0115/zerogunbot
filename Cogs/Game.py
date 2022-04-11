@@ -523,6 +523,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await bot_log.edit(content=bot_log.content[:20] + str(10))
                     await log.edit(content=log.content[:20] + str(coin + prize))
                     await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")
+                    if luck_log is not None:
+                        await luck_log.delete()
+                        await ctx.send("행운이 초기화되었습니다.")
                 else:
                     await ctx.send("꽝 입니다. 다음에 도전하세요.")
             else:

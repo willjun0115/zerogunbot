@@ -807,8 +807,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         if coin < 1:
             await ctx.send("상금 배율은 1 이상이어야 합니다.")
             start = False
-        elif coin > 10:
-            await ctx.send("상금 배율은 10 이하여야 합니다.")
+        elif coin > 100:
+            await ctx.send("상금 배율은 100 이하여야 합니다.")
             start = False
         if start is True:
             if len(members) < 2:

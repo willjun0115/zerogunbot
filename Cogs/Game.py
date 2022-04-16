@@ -36,7 +36,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":black_joker:": (0.05, self.prize_joker, "미보유중인 역할을 모두 얻고 보유중인 역할은 모두 잃습니다."),
             ":dove:": (0.1, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
             ":fire:": (2.5, self.event_fire, "행운 효과를 보유중이라면 행운 중첩을 잃습니다.\n행운 중첩이 10미만이라면 모두 잃습니다."),
-            ":mouse:": (2, self.event_none, "아무 일도 일어나지 않습니다."),
+            ":mouse:": (2.5, self.event_none, "아무 일도 일어나지 않습니다."),
             ":cheese:": (3, self.event_none, "아무 일도 일어나지 않습니다."),
         }
         self.event_lst = [
@@ -97,7 +97,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return None
         else:
             luck = int(luck_log.content[20:])
-            gift = random.randint(10, luck) + luck * 5
+            gift = random.randint(10, 10 + luck) + luck * 5
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             return str(gift) + " :coin: 을 얻었습니다!"
 

@@ -20,11 +20,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":gift:": (5, self.prize_gift, "행운 중첩 수에 비례해 토큰을 얻습니다."),
             ":smiling_imp:": (6, self.prize_imp, "토큰을 잃습니다."),
             ":skull:": (0.1, self.prize_skull, "토큰을 모두 잃습니다."),
-            ":game_die:": (10, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
+            ":game_die:": (12, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             ":bomb:": (4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             ":cloud_lightning:": (1.5, self.prize_lightning, "최고 역할을 잃습니다."),
-            ":chart_with_upwards_trend:": (10, self.prize_rise, "복권 상금이 상승합니다."),
-            ":chart_with_downwards_trend:": (5, self.prize_reduce, "복권 상금이 감소합니다."),
+            ":chart_with_upwards_trend:": (15, self.prize_rise, "복권 상금이 상승합니다."),
+            ":chart_with_downwards_trend:": (0, self.prize_reduce, "복권 상금이 감소합니다."),
             ":cyclone:": (0.1, self.prize_cyclone, "토큰을 보유한 모든 멤버의 토큰 20%가 복권 상금으로 들어갑니다."),
             ":pick:": (1, self.prize_theft, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
             ":magnet:": (1, self.prize_magnet, "무작위 멤버 한 명의 토큰을 10% 빼앗습니다."),
@@ -40,13 +40,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":cheese:": (3, self.event_none, "아무 일도 일어나지 않습니다."),
         }
         self.event_lst = [
-            ((":mouse:", ":gem:"), ":smiling_imp:"),
-            ((":game_die:", ":four_leaf_clover:"), ":game_die:"),
-            ((":bomb:", ":fire:"), ":bomb:"),
-            ((":mouse:", ":cheese:"), ":gift:"),
-            ((":pick:", ":gem:"), ":gem:"),
-            ((":fire:", ":four_leaf_clover:"), ":fire:"),
-            ((":cloud_lightning:", ":four_leaf_clover:"), "-:cloud_lightning:"),
+            ((":mouse:", ":gem:"), (":smiling_imp:",)),
+            ((":game_die:", ":four_leaf_clover:"), (":game_die:",)),
+            ((":bomb:", ":fire:"), (":bomb:",)),
+            ((":mouse:", ":cheese:"), (":gift:",)),
+            ((":pick:", ":gem:"), (":gem:",)),
+            ((":fire:", ":four_leaf_clover:"), (":fire:",)),
+            ((":cloud_lightning:", ":four_leaf_clover:"), ("-:cloud_lightning:",)),
+            ((":smiling_imp:", ":chart_with_upwards_trend:"), ("-:chart_with_upwards_trend:", ":chart_with_downwards_trend:")),
+
         ]
 
     async def event_none(self, ctx, db):
@@ -227,7 +229,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_reduce(self, ctx, db):
         bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
         prize = int(bot_db.content[20:])
-        delta = random.randint(10, 20)
+        delta = random.randint(30, 50)
         await bot_db.edit(content=bot_db.content[:20] + str(prize - delta))
         return '복권 상금 -' + str(delta) + " :coin:"
 
@@ -311,10 +313,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if c in items:
                     meet += 1
             if meet > 1:
-                if event[1].startswith('-'):
-                    new_items.remove(event[1][1:])
-                else:
-                    new_items.append(event[1])
+                for i in event[1]:
+                    if i.startswith('-'):
+                        new_items.remove(i[1:])
+                    else:
+                        new_items.append(i)
         return new_items
 
     async def gather_members(self, ctx, game_name="게임"):

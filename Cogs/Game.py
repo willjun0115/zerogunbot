@@ -15,9 +15,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.events = OrderedDict()
         self.events = {
             ":gem:": (3.5, self.prize_gem, "상당한 토큰을 얻습니다."),
-            ":coin:": (15, self.prize_coin, "토큰을 조금 얻습니다."),
+            ":coin:": (20, self.prize_coin, "토큰을 조금 얻습니다."),
             ":four_leaf_clover:": (7, self.prize_luck, "행운 효과를 받습니다."),
-            ":gift:": (3, self.prize_gift, "행운 효과를 모두 소모해 토큰을 얻습니다.\n행운 중첩 수에 비례해 획득량이 증가합니다."),
+            ":gift:": (5, self.prize_gift, "행운 중첩 수에 비례해 토큰을 얻습니다."),
             ":smiling_imp:": (6, self.prize_imp, "토큰을 잃습니다."),
             ":skull:": (0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             ":game_die:": (10, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
@@ -43,7 +43,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ((":mouse:", ":gem:"), ":smiling_imp:"),
             ((":game_die:", ":four_leaf_clover:"), ":game_die:"),
             ((":bomb:", ":fire:"), ":bomb:"),
-            ((":mouse:", ":cheese:"), ":gem:"),
+            ((":mouse:", ":cheese:"), ":gift:"),
             ((":pick:", ":gem:"), ":gem:"),
             ((":fire:", ":four_leaf_clover:"), ":fire:"),
             ((":cloud_lightning:", ":four_leaf_clover:"), "-:cloud_lightning:"),
@@ -95,9 +95,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return None
         else:
             luck = int(luck_log.content[20:])
-            gift = 30 + luck * random.randint(6, 9)
+            gift = random.randint(10, luck) + luck * 5
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
-            await luck_log.delete()
             return str(gift) + " :coin: 을 얻었습니다!"
 
     async def prize_imp(self, ctx, db):

@@ -317,7 +317,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             for c in cond:
                 if c in items:
                     meet += 1
-            if meet > 1:
+            if meet >= len(cond):
                 for i in event[1]:
                     if i.startswith('-'):
                         new_items.remove(i[1:])

@@ -15,7 +15,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.events = OrderedDict()
         self.events = {
             ":gem:": (2.5, self.prize_gem, "상당한 토큰을 얻습니다."),
-            ":moneybag:": (5, self.event_none, "여러 토큰을 얻습니다."),
+            ":moneybag:": (5, self.prize_moneybag, "적당한 토큰을 얻습니다."),
             ":coin:": (15, self.prize_coin, "토큰을 조금 얻습니다."),
             ":four_leaf_clover:": (7, self.prize_luck, "행운 효과를 받습니다."),
             ":gift:": (5, self.prize_gift, "행운 중첩 수에 비례해 토큰을 얻습니다."),
@@ -40,9 +40,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":mouse:": (1.5, self.event_none, "몇몇 이벤트를 먹습니다."),
             ":cheese:": (4, self.event_none, "아무 일도 일어나지 않습니다."),
             ":performing_arts:": (1, self.event_none, "무작위 멤버와 상호작용을 합니다."),
+            ":slot_machine:": (0, self.event_jackpot, "대량의 토큰을 얻습니다."),
         }
         self.event_lst = [
-            ((":moneybag:",), ("-:moneybag:", ":coin:", ":coin:", ":coin:")),
             ((":mouse:", ":coin:"), ("-:coin:",)),
             ((":mouse:", ":gem:"), ("-:gem:",)),
             ((":game_die:", ":four_leaf_clover:"), (":game_die:",)),
@@ -73,9 +73,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await luck_log.edit(content=luck_log.content[:20] + str(lose))
                 return f'행운 -{lose} :four_leaf_clover:'
 
+    async def event_jackpot(self, ctx, db):
+        coin = int(db.content[20:])
+        prize = 777
+        await db.edit(content=db.content[:20]+str(coin + prize))
+        return '+' + str(prize) + " :coin:"
+
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
         prize = random.randint(150, 200)
+        await db.edit(content=db.content[:20]+str(coin + prize))
+        return '+' + str(prize) + " :coin:"
+
+    async def prize_moneybag(self, ctx, db):
+        coin = int(db.content[20:])
+        prize = random.randint(50, 100)
         await db.edit(content=db.content[:20]+str(coin + prize))
         return '+' + str(prize) + " :coin:"
 
@@ -310,7 +322,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def gacha_events(self, items: list):
         new_items = items
         if items == [items[0], items[0], items[0]]:
-            new_items.append(items[0])
+            new_items.append(":slot_machine:")
         for event in self.event_lst:
             cond = event[0]
             meet = 0

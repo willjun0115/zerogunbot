@@ -45,7 +45,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 command_list = cog_data.get_commands()
                 embed.add_field(
                     name=f"> {x}({cog_list[x]})",
-                    value="\n".join([c.name for c in command_list if c.hidden is False]),
+                    value="\n".join([c.name for c in command_list if c.hidden is False and c.enabled is True]),
                     inline=True
                 )
             await ctx.send(embed=embed)

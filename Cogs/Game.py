@@ -472,7 +472,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         await ctx.send(":negative_squared_cross_mark: 가챠를 취소했습니다.")
 
-    @commands.group(
+    @commands.command(
         name="가챠정보", aliases=["gachainfo"],
         help="'가챠'의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
     )
@@ -501,9 +501,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await ctx.send(embed=embed)
                     break
 
-    @gacha_info.command(
+    @commands.command(
         name="역할", aliases=["role", "roles"],
-        help="명령어 '가챠'의 역할 획득 확률 정보를 공개합니다.", usage="*"
+        help="명령어 '가챠'의 역할 획득 확률 정보를 공개합니다.", usage="*", enabled=False
     )
     async def gacha_info_roles(self, ctx):
         embed = discord.Embed(title="<역할 정보>", description="확률(%) (중복 시 얻는 코인)")
@@ -516,9 +516,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             )
         await ctx.send(embed=embed)
 
-    @gacha_info.command(
+    @commands.command(
         name="이벤트", aliases=["event", "events"],
-        help="명령어 '가챠'의 이벤트 정보를 공개합니다.", usage="*"
+        help="명령어 '가챠'의 이벤트 정보를 공개합니다.", usage="*", enabled=False
     )
     async def gacha_info_events(self, ctx):
         embed = discord.Embed(title="<이벤트 정보>", description="이벤트 발생 우선순위대로 나열합니다.")

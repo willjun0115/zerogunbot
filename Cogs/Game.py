@@ -486,7 +486,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             for item in self.events.keys():
                 event = self.events.get(item)
                 rest -= event[0]
-            embed.add_field(name="items", value='\n'.join(self.events.keys()), inline=True)
+            embed.add_field(name="items", value=' '.join(self.events.keys()), inline=True)
             embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
             await ctx.send(embed=embed)
         else:

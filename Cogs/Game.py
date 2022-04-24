@@ -490,8 +490,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
             await ctx.send(embed=embed)
         else:
+            not_found = True
             for item in self.events.keys():
-                if item[1:-1] == args.name:
+                if args in [item, item[1:-1]]:
                     embed = discord.Embed(
                         title="<가챠 정보>",
                         description="명령어 '가챠'의 이벤트 정보입니다."
@@ -499,7 +500,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     event = self.events.get(item)
                     embed.add_field(name="> " + item, value=str(event[0]) + '%\n' + event[2], inline=True)
                     await ctx.send(embed=embed)
+                    not_found = False
                     break
+            if not_found:
+                await ctx.send("항목을 찾을 수 없습니다.")
 
     @commands.command(
         name="역할", aliases=["role", "roles"],

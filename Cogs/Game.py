@@ -491,7 +491,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(embed=embed)
         else:
             for item in self.events.keys():
-                if item == str(args):
+                if item[1:-1] == args.name:
                     embed = discord.Embed(
                         title="<가챠 정보>",
                         description="명령어 '가챠'의 이벤트 정보입니다."

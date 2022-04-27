@@ -492,7 +492,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             not_found = True
             for item in self.events.keys():
-                if args in [item, item[1:-1]]:
+                if str(args) in [item, item[1:-1]]:
                     embed = discord.Embed(
                         title="<가챠 정보>",
                         description="명령어 '가챠'의 이벤트 정보입니다."

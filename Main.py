@@ -95,16 +95,30 @@ async def setup_database(ctx):
         app.user: bot_perms
     }
     if db is None:
-        await ctx.guild.create_text_channel("db", topic="0군봇 데이터베이스 채널입니다. 절대 수정하거나 삭제하지 말아주세요."
-                                                        "\n또한, 해당 채널에 봇이 보내는 채팅 이외의 불필요한 메시지 전송은 지양해주세요.",
-                                            overwrites=overwrites)
+        await ctx.guild.create_text_channel(
+            "db", topic="0군봇 데이터베이스 채널입니다. 절대 수정하거나 삭제하지 말아주세요."
+                        "\n또한, 해당 채널에 봇이 보내는 채팅 이외의 불필요한 메시지 전송은 지양해주세요.",
+            overwrites=overwrites
+        )
         return "local database channel has been created."
     else:
         if db.overwrites_for(app.user) != bot_perms:
             await db.set_permissions(app.user, overwrite=bot_perms)
             return "database overwrites update."
         else:
-            return None
+            unique_data = []
+            delete_count = 0
+            messages = await db.history(limit=500).flatten()
+            for msg in messages:
+                if msg.content[:19] in unique_data:
+                    await msg.delete()
+                    delete_count += 1
+                else:
+                    unique_data.append(msg.content[:19])
+            if delete_count > 0:
+                return f"{delete_count} overlapped data has been deleted."
+            else:
+                return None
 
 app.find_id = find_id
 app.find_global_id = find_global_id
@@ -208,7 +222,7 @@ async def admin_fetch_guild(ctx, id=None):
         embed = discord.Embed(title="Members", description=f"list of members in {guild.name}")
         for member in guild.members:
             embed.add_field(
-                name=str(member),
+                name="> " + str(member),
                 value=f"id: {member.id}\n"
                       f"joined at {member.joined_at}\n"
                       f"status: {member.raw_status}\n"
@@ -219,7 +233,7 @@ async def admin_fetch_guild(ctx, id=None):
         embed = discord.Embed(title="Channels", description=f"list of channels in {guild.name}")
         for category in guild.categories:
             embed.add_field(
-                name=category.name,
+                name="> " + category.name,
                 value=f"{len(category.channels)} channels\n" +
                       "\n".join([c.mention for c in category.channels]),
                 inline=True
@@ -296,7 +310,7 @@ async def admin_help(ctx):
         description += f"{cmd.name}\n"
         if cmd.commands is not None:
             for sub_cmd in cmd.commands:
-                description += f"- {sub_cmd.name}\n"
+                description += f"+{sub_cmd.name}\n"
     embed = discord.Embed(
         title="Commands",
         description=description

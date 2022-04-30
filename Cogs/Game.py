@@ -498,7 +498,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         description="명령어 '가챠'의 이벤트 정보입니다."
                     )
                     event = self.events.get(item)
-                    embed.add_field(name="> " + item, value=str(event[0]) + '%\n' + event[2], inline=True)
+                    embed.add_field(name="> " + item, value=str(event[0]) + '%\n' + event[2], inline=False)
                     special_events = ""
                     for special_event in self.event_lst:
                         if item in special_event[0] or item in special_event[1]:
@@ -506,7 +506,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     embed.add_field(
                         name="특수 이벤트",
                         value=special_events,
-                        inline=True
+                        inline=False
                     )
                     await ctx.send(embed=embed)
                     not_found = False

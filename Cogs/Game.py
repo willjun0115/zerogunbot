@@ -499,6 +499,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     )
                     event = self.events.get(item)
                     embed.add_field(name="> " + item, value=str(event[0]) + '%\n' + event[2], inline=True)
+                    special_events = ""
+                    for special_event in self.event_lst:
+                        special_events += ' + '.join(special_event[0]) + '=' + ', '.join(special_event[1]) + '\n'
+                    embed.add_field(
+                        name="특수 이벤트",
+                        value=special_events,
+                        inline=True
+                    )
                     await ctx.send(embed=embed)
                     not_found = False
                     break

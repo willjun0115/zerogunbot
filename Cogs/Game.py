@@ -24,7 +24,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":game_die:": (15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
             ":bomb:": (4, self.prize_bomb, "역할을 무작위로 하나 잃습니다."),
             ":cloud_lightning:": (1.5, self.prize_lightning, "최고 역할을 잃습니다."),
-            ":chart_with_upwards_trend:": (15, self.prize_rise, "복권 상금이 상승합니다."),
+            ":chart_with_upwards_trend:": (12, self.prize_rise, "복권 상금이 상승합니다."),
             ":chart_with_downwards_trend:": (0, self.prize_reduce, "복권 상금이 감소합니다."),
             ":cyclone:": (0.1, self.prize_cyclone, "토큰을 보유한 모든 멤버의 토큰 20%가 복권 상금으로 들어갑니다."),
             ":pick:": (1, self.prize_theft, "무작위 멤버 한 명의 역할을 무작위로 하나 빼앗습니다."),
@@ -41,15 +41,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":cheese:": (4, self.event_none, "아무 일도 일어나지 않습니다."),
             ":performing_arts:": (1, self.event_none, "무작위 멤버와 상호작용을 합니다."),
             ":slot_machine:": (0, self.event_jackpot, "대량의 토큰을 얻습니다."),
+            ":boom:": (0, self.event_boom, "역할을 무작위로 하나 잃습니다."),
         }
         self.event_lst = [
             ((":mouse:", ":coin:"), ("-:coin:",)),
             ((":mouse:", ":gem:"), ("-:gem:",)),
             ((":game_die:", ":four_leaf_clover:"), (":game_die:",)),
-            ((":bomb:", ":fire:"), (":bomb:",)),
+            ((":bomb:", ":fire:"), (":boom:",)),
             ((":mouse:", ":cheese:"), (":gift:", "-:cheese:")),
             ((":pick:", ":gem:"), ("-:gem:",)),
-            ((":fire:", ":four_leaf_clover:"), ("-:four_leaf_clover:", ":fire:")),
+            ((":fire:", ":four_leaf_clover:"), ("-:four_leaf_clover:",)),
             ((":cloud_lightning:", ":four_leaf_clover:"), ("-:cloud_lightning:",)),
             ((":smiling_imp:", ":chart_with_upwards_trend:"), ("-:chart_with_upwards_trend:", ":chart_with_downwards_trend:")),
             ((":performing_arts:", ":game_die:"), (":busts_in_silhouette:", "-:game_die:")),
@@ -72,6 +73,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 lose = random.randint(10, luck//2)
                 await luck_log.edit(content=luck_log.content[:20] + str(lose))
                 return f'행운 -{lose} :four_leaf_clover:'
+
+    async def event_boom(self, ctx, db):
+        if len(ctx.author.roles[2:]) == 0:
+            return None
+        else:
+            role = random.choice(ctx.author.roles[2:])
+            await ctx.author.remove_roles(role)
+            return role.name + "을(를) 잃었습니다."
 
     async def event_jackpot(self, ctx, db):
         coin = int(db.content[20:])

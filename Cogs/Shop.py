@@ -102,11 +102,16 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         n = 1
         for md in members[1:]:
             n += 1
-            names += f"{n}. {md[0].display_name}\n"
+            if n == 2:
+                names += f":second_place:. {md[0].display_name}\n"
+            elif n == 3:
+                names += f":third_place:. {md[0].display_name}\n"
+            else:
+                names += f"{n}. {md[0].display_name}\n"
             coins += str(md[1]) + "\n"
             if n >= num:
                 break
-        embed.add_field(name=f"1. " + winner[0].display_name + " :crown:", value=names, inline=True)
+        embed.add_field(name=f":first_place:. " + winner[0].display_name + " :crown:", value=names, inline=True)
         embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
         await msg.edit(content=None, embed=embed)
 

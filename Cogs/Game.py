@@ -18,7 +18,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":moneybag:": (5, self.prize_moneybag, "적당한 토큰을 얻습니다."),
             ":coin:": (15, self.prize_coin, "토큰을 조금 얻습니다."),
             ":four_leaf_clover:": (7, self.prize_luck, "행운 효과를 받습니다."),
-            ":gift:": (5, self.prize_gift, "행운 중첩 수에 비례해 토큰을 얻습니다."),
+            ":gift:": (5, self.prize_gift, "행운 중첩 수에 비례해 토큰을 받습니다."),
             ":smiling_imp:": (6, self.prize_imp, "토큰을 잃습니다."),
             ":skull:": (0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             ":game_die:": (15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
@@ -38,10 +38,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":dove:": (0.1, self.prize_dove, "모든 멤버의 최고 역할을 제거합니다."),
             ":fire:": (2, self.event_fire, "행운 효과를 보유중이라면 행운 중첩을 잃습니다.\n행운 중첩이 10미만이라면 모두 잃습니다."),
             ":mouse:": (1.5, self.event_none, "몇몇 이벤트를 먹습니다."),
-            ":cheese:": (4, self.event_none, "아무 일도 일어나지 않습니다."),
+            ":cheese:": (4, self.event_none, "쥐가 좋아합니다."),
             ":performing_arts:": (1, self.event_none, "무작위 멤버와 상호작용을 합니다."),
-            ":slot_machine:": (0, self.event_jackpot, "대량의 토큰을 얻습니다."),
+            ":slot_machine:": (0, self.event_jackpot, "JACKPOT!"),
             ":boom:": (0, self.event_boom, "역할을 무작위로 하나 잃습니다."),
+            ":mouse_trap:": (0, self.event_none, "쥐를 잡으면 불행이 찾아옵니다."),
         }
         self.event_lst = [
             ((":mouse:", ":coin:"), ("-:coin:",)),
@@ -55,6 +56,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ((":smiling_imp:", ":chart_with_upwards_trend:"), ("-:chart_with_upwards_trend:", ":chart_with_downwards_trend:")),
             ((":performing_arts:", ":game_die:"), (":busts_in_silhouette:", "-:game_die:")),
             ((":performing_arts:", ":coin:"), (":arrows_counterclockwise:", "-:coin:")),
+            ((":smiling_imp:", ":cheese:"), (":mouse_trap:",)),
+            ((":smiling_imp:", ":mouse:", ":cheese:"), (":mouse_trap:", ":skull:", "-:mouse:")),
         ]
 
     async def event_none(self, ctx, db):
@@ -86,7 +89,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         coin = int(db.content[20:])
         prize = 777
         await db.edit(content=db.content[:20]+str(coin + prize))
-        return '+' + str(prize) + " :coin:"
+        return 'JACKPOT! +' + str(prize) + " :coin:"
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])

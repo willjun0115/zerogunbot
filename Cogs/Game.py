@@ -73,8 +73,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await luck_log.delete()
                 return f"행운 효과를 잃었습니다."
             else:
-                lose = random.randint(10, luck//2)
-                await luck_log.edit(content=luck_log.content[:20] + str(lose))
+                lose = random.randint(luck//4, luck//2)
+                await luck_log.edit(content=luck_log.content[:20] + str(luck - lose))
                 return f'행운 -{lose} :four_leaf_clover:'
 
     async def event_boom(self, ctx, db):
@@ -126,7 +126,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return None
         else:
             luck = int(luck_log.content[20:])
-            gift = random.randint(10, 10 + luck) + luck * 5
+            gift = random.randint(10, 10 + luck//2) + luck * 5
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             return str(gift) + " :coin: 을 얻었습니다!"
 

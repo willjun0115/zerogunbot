@@ -18,7 +18,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ":moneybag:": (5, self.prize_moneybag, "적당한 토큰을 얻습니다."),
             ":coin:": (15, self.prize_coin, "토큰을 조금 얻습니다."),
             ":four_leaf_clover:": (7, self.prize_luck, "행운 효과를 받습니다."),
-            ":gift:": (5, self.prize_gift, "행운 중첩 수에 비례해 토큰을 받습니다."),
+            ":gift:": (3, self.prize_gift, "행운 중첩 수에 비례해 토큰을 받습니다."),
             ":smiling_imp:": (6, self.prize_imp, "토큰을 잃습니다."),
             ":skull:": (0.1, self.prize_skull, "토큰을 모두 잃습니다."),
             ":game_die:": (15, self.prize_dice, "역할을 하나 얻습니다. 높은 역할일수록 확률이 낮아집니다."),
@@ -126,7 +126,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return None
         else:
             luck = int(luck_log.content[20:])
-            gift = random.randint(10, 10 + luck//2) + luck * 5
+            gift = random.randint(10, 10 + luck) + luck * 3
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             return str(gift) + " :coin: 을 얻었습니다!"
 

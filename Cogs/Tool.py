@@ -49,7 +49,10 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         name="ctr", hidden=True
     )
     async def check_task_is_running(self, ctx):
-        await ctx.send(str(self.check_season.is_running()))
+        check = self.check_season.is_running()
+        await ctx.send(str(check))
+        if check is False:
+            self.check_season.start()
 
     @commands.command(
         name="도움말", aliases=["help", "?"],

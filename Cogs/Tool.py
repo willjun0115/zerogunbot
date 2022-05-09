@@ -7,6 +7,8 @@ from selenium.webdriver.chrome.options import Options
 import os
 import youtube_dl
 from discord import FFmpegPCMAudio
+import datetime
+import ast
 
 
 class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
@@ -154,12 +156,42 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             else:
                 await ctx.send(":negative_squared_cross_mark: 셋업을 취소했습니다.")
 
+    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
+    @commands.command(
+        name="서버설정", aliases=["로컬설정", "settings"],
+        help="현재 서버의 로컬 설정을 열람합니다.",
+        usage="* str(*overwrites*)"
+    )
+    async def local_settings(self, ctx, overwrites=None):
+        db_channel = get(ctx.guild.text_channels, name="db")
+        data = await self.app.find_id(ctx, '!', ctx.guild.id)
+        default = {
+            "gacha": ["local", "static"],
+            "prop_revision": 0,
+            "seasoned": False,
+            "present_season": None,
+        }
+        if data is not None:
+            if overwrites is None:
+                settings = data.content[20:]
+                await ctx.send(settings)
+            else:
+                new_settings = ast.literal_eval(overwrites)
+                for key in default.keys():
+                    if key not in new_settings.keys():
+                        new_settings[key] = default.get(key)
+                await db_channel.send('!' + str(self.app.user.id) + ';' + str(new_settings))
+                await ctx.send("로컬 세팅을 덮어씁니다.")
+        else:
+            await db_channel.send('!' + str(self.app.user.id) + ';' + str(default))
+            await ctx.send("현재 로컬 세팅에 default 값을 저장했습니다.")
+
     @commands.cooldown(1, 300., commands.BucketType.guild)
     @commands.bot_has_permissions(administrator=True)
     @commands.check_any(commands.has_role("0군 인증서"), commands.is_owner())
     @commands.command(
         name="0군인증", aliases=["0_certify"],
-        help="0군 인증서 발급 투표를 진행합니다.", usage="* @*member*"
+        help="0군 인증서 발급 투표를 진행합니다.", usage="* @*member*", hidden=True
     )
     async def zerogun_certification(self, ctx, member: discord.Member):
         if get(ctx.guild.roles, name="0군 인증서") in member.roles:

@@ -56,8 +56,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ((":smiling_imp:", ":chart_with_upwards_trend:"), ("-:chart_with_upwards_trend:", ":chart_with_downwards_trend:")),
             ((":performing_arts:", ":game_die:"), (":busts_in_silhouette:", "-:game_die:")),
             ((":performing_arts:", ":coin:"), (":arrows_counterclockwise:", "-:coin:")),
-            ((":smiling_imp:", ":cheese:"), (":mouse_trap:",)),
-            ((":smiling_imp:", ":mouse:", ":cheese:"), (":mouse_trap:", ":skull:", "-:mouse:")),
+            ((":smiling_imp:", ":cheese:"), (":mouse_trap:", "-:cheese:")),
+            ((":smiling_imp:", ":mouse:", ":cheese:"), (":skull:", "-:mouse:")),
         ]
 
     async def event_none(self, ctx, db):
@@ -514,7 +514,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     special_events = ""
                     for special_event in self.event_lst:
                         if item in special_event[0] or item in special_event[1]:
-                            special_events += ' + '.join(special_event[0]) + '=' + ', '.join(special_event[1]) + '\n'
+                            special_events += ' + '.join(special_event[0]) + ' = ' + ', '.join(special_event[1]) + '\n'
                     embed.add_field(
                         name="특수 이벤트",
                         value=special_events,

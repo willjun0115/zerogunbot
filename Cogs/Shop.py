@@ -42,7 +42,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     @commands.command(
         name="계좌", aliases=["account"],
         help="자신의 글로벌 어카운트의 토큰 수를 확인합니다.\n글로벌 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
-        usage="*"
+        usage="*", hidden=True
     )
     async def check_global_account(self, ctx):
         global_guild = self.app.get_guild(self.app.global_guild_id)
@@ -58,7 +58,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     @commands.command(
         name="이체", aliases=["계좌이체", "transfer"],
         help="자신의 글로벌 어카운트에서 로컬 DB로 토큰을 이체합니다.",
-        usage="* int()"
+        usage="* int()", hidden=True
     )
     async def global_account_transfer(self, ctx, num):
         num = int(num)

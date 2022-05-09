@@ -6,6 +6,7 @@ import os
 import ctypes
 import ctypes.util
 import datetime
+import ast
 
 prefix = '%'
 intents = discord.Intents.all()
@@ -74,7 +75,7 @@ async def find_id(ctx, selector, id):
     return find
 
 
-async def find_global_id(ctx, selector, id):
+async def find_global_id(selector, id):
     global_guild = app.get_guild(app.global_guild_id)
     db_channel = get(global_guild.text_channels, name="gdb")
     find = None
@@ -120,9 +121,33 @@ async def setup_database(ctx):
             else:
                 return None
 
+
+async def db_setting(overwrites=None):
+    data = await app.find_global_id('!', app.user.id)
+    default = {
+        "gacha": ["local", "static"],
+        "prop_revision": 0,
+        "seasoned": False,
+        "present_season": None,
+    }
+    if data is not None:
+        if overwrites is None:
+            settings = data.content[20:]
+            return data, settings
+        else:
+            new_settings = ast.literal_eval(overwrites)
+            for key in default.keys():
+                if key not in new_settings.keys():
+                    new_settings[key] = default.get(key)
+            await data.edit(content='!' + str(app.user.id) + ';' + str(new_settings))
+            return data, str(new_settings)
+    else:
+        return None, str(default)
+
 app.find_id = find_id
 app.find_global_id = find_global_id
 app.setup_database = setup_database
+app.db_setting = db_setting
 
 
 @commands.is_owner()

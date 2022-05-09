@@ -36,23 +36,33 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         return str(args)
 
     @tasks.loop(minutes=1)
-    async def check_season(self):
+    async def check_season_change(self):
         now_kor = datetime.datetime.now() + datetime.timedelta(hours=9)
-        due = datetime.datetime(2022, 6, 1, 9)
-        ch = self.app.get_channel(850257189587124224)
+        data, settings = self.app.db_setting()
+        settings_dict = ast.literal_eval(settings)
+        due = settings_dict.get('present_season')
         if now_kor > due:
-            await ch.send(f"season.{due.month} start")
-        else:
-            await ch.send(f"{due - now_kor} left for new season")
+            ch = self.app.get_channel(850257189587124224)
+            await ch.send(f"season:{due.year}-{due.month} start")
+            self.app.db_setting(
+                str({
+                    'present_season': datetime.datetime(due.year, due.month + 1, due.day, due.hour)
+                })
+            )
 
     @commands.command(
-        name="ctr", hidden=True
+        name="시즌", hidden=True
     )
-    async def check_task_is_running(self, ctx):
-        check = self.check_season.is_running()
-        await ctx.send(str(check))
+    async def check_season(self, ctx):
+        check = self.check_season_change.is_running()
+        await ctx.send("season checking task is running: " + str(check))
         if check is False:
-            self.check_season.start()
+            self.check_season_change.start()
+        now_kor = datetime.datetime.now() + datetime.timedelta(hours=9)
+        data, settings = self.app.db_setting()
+        settings_dict = ast.literal_eval(settings)
+        due = settings_dict.get('present_season')
+        await ctx.send(f"now: {now_kor}\nnew_season_due: {due}\nnew_season_after: {due-now_kor}")
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
@@ -178,32 +188,19 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
-        name="서버설정", aliases=["로컬설정", "settings"],
-        help="현재 서버의 로컬 설정을 열람합니다.",
-        usage="* str(*overwrites*)"
+        name="DB설정", aliases=["settings"],
+        help="현재 서버의 글로벌 DB설정을 열람 및 수정합니다.",
+        usage="* str(*overwrites*)",
     )
     async def local_settings(self, ctx, *, overwrites=None):
-        db_channel = get(ctx.guild.text_channels, name="db")
-        data = await self.app.find_id(ctx, '!', ctx.guild.id)
-        default = {
-            "gacha": ["local", "static"],
-            "prop_revision": 0,
-            "seasoned": False,
-            "present_season": None,
-        }
+        gdb = self.app.get_channel(self.app.global_guild_id)
+        data, settings = self.app.db_setting(overwrites)
         if data is not None:
-            if overwrites is None:
-                settings = data.content[20:]
-                await ctx.send(settings)
-            else:
-                new_settings = ast.literal_eval(overwrites)
-                for key in default.keys():
-                    if key not in new_settings.keys():
-                        new_settings[key] = default.get(key)
-                await data.edit(content='!' + str(ctx.guild.id) + ';' + str(new_settings))
-                await ctx.send("로컬 세팅을 덮어씁니다.")
+            await ctx.send(settings)
+            if overwrites is not None:
+                await ctx.send("설정을 덮어씁니다.")
         else:
-            await db_channel.send('!' + str(ctx.guild.id) + ';' + str(default))
+            await gdb.send('!' + str(self.app.user.id) + ';' + str(settings))
             await ctx.send("현재 로컬 세팅에 default 값을 저장했습니다.")
 
     @commands.cooldown(1, 300., commands.BucketType.guild)

@@ -162,7 +162,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         help="현재 서버의 로컬 설정을 열람합니다.",
         usage="* str(*overwrites*)"
     )
-    async def local_settings(self, ctx, overwrites=None):
+    async def local_settings(self, ctx, *, overwrites=None):
         db_channel = get(ctx.guild.text_channels, name="db")
         data = await self.app.find_id(ctx, '!', ctx.guild.id)
         default = {

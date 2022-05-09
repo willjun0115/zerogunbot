@@ -180,10 +180,10 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 for key in default.keys():
                     if key not in new_settings.keys():
                         new_settings[key] = default.get(key)
-                await db_channel.send('!' + str(self.app.user.id) + ';' + str(new_settings))
+                await db_channel.send('!' + str(ctx.guild.id) + ';' + str(new_settings))
                 await ctx.send("로컬 세팅을 덮어씁니다.")
         else:
-            await db_channel.send('!' + str(self.app.user.id) + ';' + str(default))
+            await db_channel.send('!' + str(ctx.guild.id) + ';' + str(default))
             await ctx.send("현재 로컬 세팅에 default 값을 저장했습니다.")
 
     @commands.cooldown(1, 300., commands.BucketType.guild)

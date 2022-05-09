@@ -47,7 +47,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     async def check_global_account(self, ctx):
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="gdb")
-        data = await self.app.find_global_id(ctx, '$', ctx.author.id)
+        data = await self.app.find_global_id('$', ctx.author.id)
         if data is not None:
             coin = int(data.content[20:])
             await ctx.send(str(coin) + ' :coin:')
@@ -62,7 +62,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     )
     async def global_account_transfer(self, ctx, num):
         num = int(num)
-        global_data = await self.app.find_global_id(ctx, '$', ctx.author.id)
+        global_data = await self.app.find_global_id('$', ctx.author.id)
         if global_data is not None:
             global_coin = int(global_data.content[20:])
             local_data = await self.app.find_id(ctx, '$', ctx.author.id)

@@ -15,7 +15,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     def __init__(self, app):
         self.app = app
-        self.check_season.start()
+        self.check_season_change.start()
 
     async def encrypt(self, num, args):
         code = ""
@@ -41,6 +41,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         data, settings = self.app.db_setting()
         settings_dict = ast.literal_eval(settings)
         due = settings_dict.get('present_season')
+        due.month += 1
         if now_kor > due:
             ch = self.app.get_channel(850257189587124224)
             await ch.send(f"season:{due.year}-{due.month} start")

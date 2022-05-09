@@ -190,11 +190,12 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
         name="DB설정", aliases=["settings"],
-        help="현재 서버의 글로벌 DB설정을 열람 및 수정합니다.",
+        help="글로벌 DB설정을 열람 및 수정합니다.",
         usage="* str(*overwrites*)",
     )
-    async def local_settings(self, ctx, *, overwrites=None):
-        gdb = self.app.get_channel(self.app.global_guild_id)
+    async def gdb_settings(self, ctx, *, overwrites=None):
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        gdb = get(global_guild.text_channels, name="gdb")
         data, settings = self.app.db_setting(overwrites)
         if data is not None:
             await ctx.send(settings)

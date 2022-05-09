@@ -15,6 +15,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     def __init__(self, app):
         self.app = app
+        self.check_season.start()
 
     async def encrypt(self, num, args):
         code = ""
@@ -33,6 +34,16 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             cc = chr(x)
             args = args + cc
         return str(args)
+
+    @tasks.loop(minutes=1)
+    async def check_season(self):
+        now_kor = datetime.datetime.now() + datetime.timedelta(hours=9)
+        due = datetime.datetime(2022, 6, 1, 9)
+        ch = self.app.get_channel(850257189587124224)
+        if now_kor > due:
+            await ch.send(f"season.{due.month} start")
+        else:
+            await ch.send(f"{due - now_kor} left for new season")
 
     @commands.command(
         name="도움말", aliases=["help", "?"],

@@ -46,6 +46,12 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             await ch.send(f"{due - now_kor} left for new season")
 
     @commands.command(
+        name="ctr", hidden=True
+    )
+    async def check_task_is_running(self, ctx):
+        await ctx.send(str(self.check_season.is_running()))
+
+    @commands.command(
         name="도움말", aliases=["help", "?"],
         help="도움말을 불러옵니다.\n'%사용법'에서 명령어 사용법 참조.", usage="* (str(*command*))"
     )

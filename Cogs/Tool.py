@@ -41,7 +41,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         data, settings = self.app.db_setting()
         settings_dict = ast.literal_eval(settings)
         due = settings_dict.get('present_season')
-        due.month += 1
         if now_kor > due:
             ch = self.app.get_channel(850257189587124224)
             await ch.send(f"season:{due.year}-{due.month} start")
@@ -196,6 +195,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     async def gdb_settings(self, ctx, *, overwrites=None):
         global_guild = self.app.get_guild(self.app.global_guild_id)
         gdb = get(global_guild.text_channels, name="gdb")
+        overwrites = str(overwrites)
         data, settings = self.app.db_setting(overwrites)
         if data is not None:
             await ctx.send(settings)
@@ -203,7 +203,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 await ctx.send("설정을 덮어씁니다.")
         else:
             await gdb.send('!' + str(self.app.user.id) + ';' + str(settings))
-            await ctx.send("현재 로컬 세팅에 default 값을 저장했습니다.")
+            await ctx.send("현재 세팅에 default 값을 저장했습니다.")
 
     @commands.cooldown(1, 300., commands.BucketType.guild)
     @commands.bot_has_permissions(administrator=True)

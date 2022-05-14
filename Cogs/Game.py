@@ -126,7 +126,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return None
         else:
             luck = int(luck_log.content[20:])
-            gift = random.randint(10, 10 + luck) + luck * 3
+            gift = random.randint(50, 50 + luck)
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             return str(gift) + " :coin: 을 얻었습니다!"
 

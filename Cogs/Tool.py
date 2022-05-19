@@ -38,7 +38,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @tasks.loop(minutes=1)
     async def check_season_change(self):
         now_kor = datetime.datetime.now() + datetime.timedelta(hours=9)
-        data, settings = self.app.db_setting()
+        data, settings = await self.app.db_setting()
         settings_dict = ast.literal_eval(settings)
         due = settings_dict.get('present_season') + datetime.timedelta(days=7)
         if now_kor > due:
@@ -56,8 +56,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     async def check_season(self, ctx):
         check = self.check_season_change.is_running()
         await ctx.send("season checking task is running: " + str(check))
-        if check is False:
-            self.check_season_change.start()
         now_kor = datetime.datetime.now() + datetime.timedelta(hours=9)
         data, settings = await self.app.db_setting()
         settings_dict = ast.literal_eval(settings)
@@ -70,6 +68,8 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 })
             )
         await ctx.send(f"now: {now_kor}\nnew_season_due: {due}\nnew_season_after: {due-now_kor}")
+        if check is False:
+            self.check_season_change.start()
 
     @commands.command(
         name="도움말", aliases=["help", "?"],

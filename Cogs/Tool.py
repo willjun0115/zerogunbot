@@ -45,9 +45,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             ch = self.app.get_channel(850257189587124224)
             await ch.send(f"season:{due.year}-{due.month}-{due.day} start")
             await self.app.db_setting(
-                str({
-                    'present_season': due
-                })
+                str({'present_season': due})
             )
 
     @commands.command(
@@ -62,11 +60,8 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         due = settings_dict.get('present_season')
         if due is None:
             due = now_kor
-            await self.app.db_setting(
-                str({
-                    'present_season': due
-                })
-            )
+            overwrites = str({'present_season': due})
+            await self.app.db_setting(overwrites)
         await ctx.send(f"now: {now_kor}\nnew_season_due: {due}\nnew_season_after: {due-now_kor}")
         if check is False:
             self.check_season_change.start()

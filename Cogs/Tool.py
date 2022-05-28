@@ -76,7 +76,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
         now = datetime.now()
         await ctx.send(f"present_season: {present_season.year}.{present_season.month}"
-                       f"\nnow: {now}"
+                       f"\nnow: {now.strftime('%Y.%m.%d %H:%M:%S')}"
                        f"\nnext_season_after: {present_season + relativedelta(months=1) - now}")
         if check is False:
             self.check_season_change.start()

@@ -12,7 +12,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         self.app = app
 
     async def has_enough_token(self, ctx, price: int):
-        db = await self.app.find_id(ctx, '$', ctx.author.id)
+        db = await self.app.find_id('$', ctx.author.id)
         if db is None:
             await ctx.send("DB에서 ID를 찾지 못했습니다.\n'%토큰' 명령어를 통해 ID를 등록할 수 있습니다.")
             return False, None
@@ -30,54 +30,15 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         usage="*"
     )
     async def check_token(self, ctx):
-        db_channel = get(ctx.guild.text_channels, name="db")
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
-        if log is not None:
-            coin = int(log.content[20:])
-            await ctx.send(str(coin) + ' :coin:')
-        else:
-            await db_channel.send('$' + str(ctx.author.id) + ';0')
-            await ctx.send('DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
-
-    @commands.command(
-        name="계좌", aliases=["account"],
-        help="자신의 글로벌 어카운트의 토큰 수를 확인합니다.\n글로벌 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
-        usage="*", hidden=True
-    )
-    async def check_global_account(self, ctx):
         global_guild = self.app.get_guild(self.app.global_guild_id)
-        db_channel = get(global_guild.text_channels, name="gdb")
-        data = await self.app.find_global_id('$', ctx.author.id)
+        db_channel = get(global_guild.text_channels, name="db")
+        data = await self.app.find_id('$', ctx.author.id)
         if data is not None:
             coin = int(data.content[20:])
             await ctx.send(str(coin) + ' :coin:')
         else:
             await db_channel.send('$' + str(ctx.author.id) + ';0')
-            await ctx.send('글로벌 DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
-
-    @commands.command(
-        name="이체", aliases=["계좌이체", "transfer"],
-        help="자신의 글로벌 어카운트에서 로컬 DB로 토큰을 이체합니다.",
-        usage="* int()", hidden=True
-    )
-    async def global_account_transfer(self, ctx, num):
-        num = int(num)
-        global_data = await self.app.find_global_id('$', ctx.author.id)
-        if global_data is not None:
-            global_coin = int(global_data.content[20:])
-            local_data = await self.app.find_id(ctx, '$', ctx.author.id)
-            if local_data is not None:
-                if global_coin >= num:
-                    local_coin = int(local_data.content[20:])
-                    await global_data.edit(content=local_data.content[:20] + str(global_coin - num))
-                    await local_data.edit(content=local_data.content[:20] + str(local_coin + num))
-                    await ctx.send(f"글로벌 어카운트로부터 {num} :coin: 을 이체했습니다.")
-                else:
-                    await ctx.send('잔고가 부족합니다.')
-            else:
-                await ctx.send('로컬 DB에서 ID를 찾을 수 없습니다.')
-        else:
-            await ctx.send('글로벌 DB에서 ID를 찾을 수 없습니다.')
+            await ctx.send('DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
 
     @commands.cooldown(1, 300., commands.BucketType.channel)
     @commands.command(
@@ -86,7 +47,8 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     )
     async def token_rank(self, ctx, num=10):
         num = int(num)
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         msg = await ctx.send("DB를 조회 중입니다... :mag:")
         members = {}
         messages = await db_channel.history(limit=100).flatten()
@@ -161,8 +123,9 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         if num < 0:
             await ctx.send("0개 이상부터 구매할 수 있습니다.")
         else:
-            db_channel = get(ctx.guild.text_channels, name="db")
-            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+            global_guild = self.app.get_guild(self.app.global_guild_id)
+            db_channel = get(global_guild.text_channels, name="db")
+            luck_log = await self.app.find_id('%', ctx.author.id)
             price = self.app.shop.get("행운") * num
             is_enough, db = await self.has_enough_token(ctx, price)
             if is_enough:
@@ -184,7 +147,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         usage="*"
     )
     async def luck(self, ctx):
-        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is not None:
             luck = int(luck_log.content[20:])
             await ctx.send(f'{luck} :four_leaf_clover: (복권 확률 +{(luck ** 0.5) * 0.1:0.2f}%)')

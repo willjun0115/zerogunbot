@@ -65,17 +65,7 @@ async def on_member_join(member):
         await channel.send("새 멤버가 등장했습니다!\n0군 인증서를 발급받으려면 '%0군인증'을 진행해주세요.")
 
 
-async def find_id(ctx, selector, id):
-    db_channel = get(ctx.guild.text_channels, name="db")
-    find = None
-    async for message in db_channel.history(limit=100):
-        if message.content.startswith(selector + str(id)) is True:
-            find = message
-            break
-    return find
-
-
-async def find_global_id(selector, id):
+async def find_id(selector, id):
     global_guild = app.get_guild(app.global_guild_id)
     db_channel = get(global_guild.text_channels, name="gdb")
     find = None
@@ -123,7 +113,6 @@ async def setup_database(ctx):
 
 
 app.find_id = find_id
-app.find_global_id = find_global_id
 app.setup_database = setup_database
 
 

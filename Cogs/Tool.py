@@ -10,6 +10,7 @@ from discord import FFmpegPCMAudio
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import ast
+import operator
 
 
 class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
@@ -45,6 +46,20 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         if datetime.now().month > present_season.month:
             new_season = present_season + relativedelta(months=1)
             await season_db.send(new_season.strftime('%Y.%m.%d %H:%M:%S'))
+            season_log = get(global_guild.text_channels, name="season_log")
+            db = get(global_guild.text_channels, name="db")
+            members = {}
+            messages = await db.history(limit=100).flatten()
+            for message in messages:
+                if message.content.startswith('$') is True:
+                    member = await self.app.fetch_user(int(message.content[1:19]))
+                    members[member] = int(message.content[20:])
+            members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+            season_result = str()
+            for md in members:
+                season_result += f"{md[0].display_name}:{md[1]}\n"
+            await season_log.send(season_result)
+            await db.purge(limit=100)
 
     @commands.command(
         name="시즌", hidden=True
@@ -60,7 +75,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             last_msg = await season_db.fetch_message(season_db.last_message_id)
         present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
         now = datetime.now()
-        await ctx.send(f"present_season: {present_season.year}-{present_season.month}"
+        await ctx.send(f"present_season: {present_season.year}.{present_season.month}"
                        f"\nnow: {now}"
                        f"\nnext_season_after: {present_season + relativedelta(months=1) - now}")
         if check is False:
@@ -150,44 +165,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         )
         await ctx.send(embed=embed)
 
-    @commands.bot_has_permissions(administrator=True)
-    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
-    @commands.command(
-        name="셋업", aliases=["setup"],
-        help="0군봇의 더 많은 기능을 이용하기 위한 작업을 진행합니다."
-             "\n이 작업은 봇에게 관리자 권한이 요구되며, 채널 생성 등의 동작을 수반합니다.", usage="*"
-    )
-    async def zerogun_setup(self, ctx):
-        msg = await ctx.send(
-            ":warning: 주의: 이 작업은 채널 생성 등의 동작을 수반합니다."
-            "\n해당 작업을 실행한 이후에 서버나 채널에 변경사항이 생기면 다시 '셋업' 명령어를 통해 필요한 작업을 수행할 수 있습니다."
-            "\n셋업을 진행하려면 :white_check_mark: 을 누르세요."
-        )
-        reaction_list = ['✅', '❎']
-        for r in reaction_list:
-            await msg.add_reaction(r)
-
-        def check(reaction, user):
-            return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
-
-        try:
-            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=30.0)
-        except asyncio.TimeoutError:
-            await msg.edit(content="시간 초과!", delete_after=2)
-        else:
-            await msg.delete()
-            if str(reaction) == '✅':
-                results = list()
-                result = await self.app.setup_database(ctx)
-                if result is not None:
-                    results.append(result)
-                if len(results) == 0:
-                    await ctx.send("No update.")
-                else:
-                    await ctx.send('\n'.join(results))
-            else:
-                await ctx.send(":negative_squared_cross_mark: 셋업을 취소했습니다.")
-
     @commands.cooldown(1, 300., commands.BucketType.guild)
     @commands.bot_has_permissions(administrator=True)
     @commands.check_any(commands.has_role("0군 인증서"), commands.is_owner())
@@ -248,9 +225,10 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         help="로컬 DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
     async def edit_local_db(self, ctx, selector, member: discord.Member, val):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         if len(selector) == 1:
-            data = await self.app.find_id(ctx, selector, member.id)
+            data = await self.app.find_id(selector, member.id)
             if data is not None:
                 if val[0] == '+':
                     val = val[1:]

@@ -64,7 +64,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return None
 
     async def event_fire(self, ctx, db):
-        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is None:
             return None
         else:
@@ -111,7 +111,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_luck(self, ctx, db):
         db_channel = get(ctx.guild.text_channels, name="db")
-        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is None:
             await db_channel.send('%' + str(ctx.author.id) + ';1')
             return "행운 효과를 얻었습니다!"
@@ -121,7 +121,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return f'행운 +1 :four_leaf_clover:'
 
     async def prize_gift(self, ctx, db):
-        luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+        luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is None:
             return None
         else:
@@ -167,7 +167,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return ', '.join([r.name for r in role_set]) + "(으)로 역할이 바뀌었습니다!"
 
     async def prize_token_change(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -183,7 +184,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + f" 님과 토큰이 뒤바뀌었습니다!\n{coin} <-> {member_coin} :coin:"
 
     async def prize_role_change(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -199,7 +201,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + " 님과 역할이 뒤바뀌었습니다!"
 
     async def prize_scales(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -216,7 +219,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
 
     async def prize_theft(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -234,7 +238,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return member.mention + " 님에게서 빼앗을 역할이 없습니다."
 
     async def prize_magnet(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         member_db = random.choice(
             [
@@ -249,14 +254,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return member.mention + " 님의 토큰을 " + str(coin) + " :coin: 빼앗았습니다!"
 
     async def prize_rise(self, ctx, db):
-        bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
+        bot_db = await self.app.find_id('$', self.app.user.id)
         prize = int(bot_db.content[20:])
         delta = random.randint(10, 30)
         await bot_db.edit(content=bot_db.content[:20] + str(prize + delta))
         return '복권 상금 +' + str(delta) + " :coin:"
 
     async def prize_reduce(self, ctx, db):
-        bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
+        bot_db = await self.app.find_id('$', self.app.user.id)
         prize = int(bot_db.content[20:])
         delta = random.randint(30, 50)
         await bot_db.edit(content=bot_db.content[:20] + str(prize - delta))
@@ -269,7 +274,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return str(coin) + ' x ' + str(prize) + " :coin:"
 
     async def prize_cyclone(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         members_db = [
             m for m in messages
@@ -282,7 +288,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 lose = 0
             increment += lose
             await member_db.edit(content=member_db.content[:20]+str(int(member_db.content[20:])-lose))
-        bot_db = await self.app.find_id(ctx, '$', self.app.user.id)
+        bot_db = await self.app.find_id('$', self.app.user.id)
         await bot_db.edit(content=bot_db.content[:20] + str(int(bot_db.content[20:]) + increment))
         return f"0군봇이 모든 유저의 토큰의 20%를 빨아들였습니다!\n복권 상금 +{increment} :coin:"
 
@@ -319,7 +325,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return f"{king.mention} 님이 {role.name}을(를) 잃었습니다!"
 
     async def prize_dove(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
         members_db = [
             m for m in messages
@@ -351,7 +358,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
-        author_coin = await self.app.find_id(ctx, '$', ctx.author.id)
+        author_coin = await self.app.find_id('$', ctx.author.id)
         start = False
         if author_coin is None:
             await ctx.send(self.cannot_find_id)
@@ -379,7 +386,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             start = True
                             break
                         elif user not in members:
-                            member_coin = await self.app.find_id(ctx, '$', user.id)
+                            member_coin = await self.app.find_id('$', user.id)
                             if member_coin is None:
                                 await ctx.send(self.cannot_find_id)
                             else:
@@ -403,7 +410,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token/2*])", pass_context=True
     )
     async def gamble(self, ctx, bet):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
+        log = await self.app.find_id('$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
@@ -434,7 +441,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
     )
     async def gacha(self, ctx):
-        db = await self.app.find_id(ctx, '$', ctx.author.id)
+        db = await self.app.find_id('$', ctx.author.id)
         if db is None:
             await ctx.send(self.cannot_find_id)
         else:
@@ -562,12 +569,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n(기본 당첨 확률은 1%)", usage="*"
     )
     async def lottery(self, ctx):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
+        log = await self.app.find_id('$', ctx.author.id)
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
-            bot_log = await self.app.find_id(ctx, '$', self.app.user.id)
-            luck_log = await self.app.find_id(ctx, '%', ctx.author.id)
+            bot_log = await self.app.find_id('$', self.app.user.id)
+            luck_log = await self.app.find_id('%', ctx.author.id)
             luck = 0
             if luck_log is not None:
                 luck = int(luck_log.content[20:])
@@ -594,7 +601,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def rock_scissors_paper(self, ctx):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
+        log = await self.app.find_id('$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
             msg = await ctx.send("아래 반응 중 하나를 골라보세요.")
@@ -645,7 +652,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def odd_or_even(self, ctx):
-        log = await self.app.find_id(ctx, '$', ctx.author.id)
+        log = await self.app.find_id('$', ctx.author.id)
         if log is not None:
             coin = int(log.content[20:])
             num = random.randint(0, 9)
@@ -699,8 +706,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def indian_poker(self, ctx, member: discord.Member):
         party = (member, ctx.author)
         limit = 0
-        author_log = await self.app.find_id(ctx, '$', ctx.author.id)
-        member_log = await self.app.find_id(ctx, '$', member.id)
+        author_log = await self.app.find_id('$', ctx.author.id)
+        member_log = await self.app.find_id('$', member.id)
         if author_log is None:
             await ctx.send(f'로그에서 {ctx.author.name} 님의 ID를 찾지 못했습니다.')
         else:
@@ -1006,7 +1013,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         prize = int((len(finish_members) - 1) // len(winners)) * int(coin)
                     else:
                         prize = -1 * int(coin)
-                    member_log = await self.app.find_id(ctx, '$', member.id)
+                    member_log = await self.app.find_id('$', member.id)
                     member_coin = int(member_log.content[20:])
                     await member_log.edit(content=member_log.content[:20] + str(member_coin + prize))
                 embed = discord.Embed(
@@ -1221,7 +1228,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 regame = True
                     if regame:
                         for member in die_members:
-                            member_log = await self.app.find_id(ctx, '$', member.id)
+                            member_log = await self.app.find_id('$', member.id)
                             member_coin = int(member_log.content[20:])
                             await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
                         embed = discord.Embed(title="<섯다 결과>", description='재경기')
@@ -1235,7 +1242,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         for member in members:
                             if member == winner:
                                 pay[member] -= coin
-                            member_log = await self.app.find_id(ctx, '$', member.id)
+                            member_log = await self.app.find_id('$', member.id)
                             member_coin = int(member_log.content[20:])
                             await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
                         embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')

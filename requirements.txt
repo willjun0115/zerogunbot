@@ -11,3 +11,4 @@ opuslib
 selenium
 gtts
 asyncpg
+python-dateutil

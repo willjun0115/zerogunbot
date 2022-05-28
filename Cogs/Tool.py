@@ -43,7 +43,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         season_db = get(global_guild.text_channels, name="season_db")
         last_msg = await season_db.fetch_message(season_db.last_message_id)
         present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
-        if datetime.now().month > present_season.month:
+        if datetime.now() > present_season:
             new_season = present_season + relativedelta(months=1)
             await season_db.send(new_season.strftime('%Y.%m.%d %H:%M:%S'))
             season_log = get(global_guild.text_channels, name="season_log")

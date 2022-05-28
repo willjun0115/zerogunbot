@@ -11,4 +11,4 @@ opuslib
 selenium
 gtts
 asyncpg
-python-dateutil
+python-dateutil==2.8.2

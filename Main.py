@@ -67,7 +67,7 @@ async def on_member_join(member):
 
 async def find_id(selector, id):
     global_guild = app.get_guild(app.global_guild_id)
-    db_channel = get(global_guild.text_channels, name="gdb")
+    db_channel = get(global_guild.text_channels, name="db")
     find = None
     async for message in db_channel.history(limit=500):
         if message.content.startswith(selector + str(id)) is True:

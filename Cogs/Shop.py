@@ -4,6 +4,7 @@ import asyncio
 from discord.utils import get
 from discord.ext import commands
 import operator
+from datetime import datetime
 
 
 class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰의 이용에 관련된 카테고리입니다."):
@@ -45,10 +46,11 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
         name="토큰순위", aliases=["순위표", "랭크표", "rank"],
         help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 5분)", usage="* (@*member*)"
     )
-    async def token_rank(self, ctx, num=10):
-        num = int(num)
+    async def token_rank(self, ctx, season=None):
+        if season is None:
+            season = "db"
         global_guild = self.app.get_guild(self.app.global_guild_id)
-        db_channel = get(global_guild.text_channels, name="db")
+        db_channel = get(global_guild.text_channels, name=season)
         msg = await ctx.send("DB를 조회 중입니다... :mag:")
         members = {}
         messages = await db_channel.history(limit=100).flatten()
@@ -71,8 +73,6 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             else:
                 names += f"{n}. {md[0].display_name}\n"
             coins += str(md[1]) + "\n"
-            if n >= num:
-                break
         embed.add_field(name=f":first_place:. " + winner[0].display_name + " :crown:", value=names, inline=True)
         embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
         await msg.edit(content=None, embed=embed)

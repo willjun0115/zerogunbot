@@ -43,8 +43,8 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         season_db = get(global_guild.text_channels, name="season_db")
         last_msg = await season_db.fetch_message(season_db.last_message_id)
         present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
-        if datetime.now() > present_season:
-            new_season = present_season + relativedelta(months=1)
+        new_season = present_season + relativedelta(months=1)
+        if datetime.now() > new_season:
             await season_db.send(new_season.strftime('%Y.%m.%d %H:%M:%S'))
             season_log = get(global_guild.text_channels, name="season_log")
             db = get(global_guild.text_channels, name="db")
@@ -57,7 +57,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
             season_result = str()
             for md in members:
-                season_result += f"{md[0].display_name}:{md[1]}\n"
+                season_result += f"{md[0].id}:{md[1]}\n"
             await season_log.send(season_result)
             await db.purge(limit=100)
 

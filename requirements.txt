@@ -1,7 +1,6 @@
 pip==22.1.1
 asyncio==3.4.3
 discord.py==1.7.3
-Cogs==0.4.4
 discord==1.7.3
 discord.py[voice]==1.7.3
 ffmpeg==1.4

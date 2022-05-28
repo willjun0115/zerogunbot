@@ -40,7 +40,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     async def check_season_change(self):
         global_guild = self.app.get_guild(self.app.global_guild_id)
         season_db = get(global_guild.text_channels, name="season_db")
-        last_msg = season_db.fetch_message(season_db.last_message_id)
+        last_msg = await season_db.fetch_message(season_db.last_message_id)
         present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
         if datetime.now().month > present_season.month:
             new_season = present_season + relativedelta(months=1)
@@ -54,7 +54,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         await ctx.send("season checking task is running: " + str(check))
         global_guild = self.app.get_guild(self.app.global_guild_id)
         season_db = get(global_guild.text_channels, name="season_db")
-        last_msg = season_db.fetch_message(season_db.last_message_id)
+        last_msg = await season_db.fetch_message(season_db.last_message_id)
         if last_msg is None:
             last_msg = await season_db.send(datetime.now().strftime('%Y.%m.01 00:00:00'))
         present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')

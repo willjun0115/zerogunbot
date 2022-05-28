@@ -110,7 +110,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return '+' + str(prize) + " :coin:"
 
     async def prize_luck(self, ctx, db):
-        db_channel = get(ctx.guild.text_channels, name="db")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
         luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is None:
             await db_channel.send('%' + str(ctx.author.id) + ';1')

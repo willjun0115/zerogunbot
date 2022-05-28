@@ -7,7 +7,8 @@ from selenium.webdriver.chrome.options import Options
 import os
 import youtube_dl
 from discord import FFmpegPCMAudio
-import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import ast
 
 
@@ -37,16 +38,13 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @tasks.loop(minutes=1)
     async def check_season_change(self):
-        now_kor = datetime.datetime.now() + datetime.timedelta(hours=9)
-        data, settings = await self.app.db_setting()
-        settings_dict = ast.literal_eval(settings)
-        due = settings_dict.get('present_season') + datetime.timedelta(days=7)
-        if now_kor > due:
-            ch = self.app.get_channel(850257189587124224)
-            await ch.send(f"season:{due.year}-{due.month}-{due.day} start")
-            await self.app.db_setting(
-                str({'present_season': due})
-            )
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        season_db = get(global_guild.text_channels, name="season_db")
+        last_msg = season_db.fetch_message(season_db.last_message_id)
+        present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
+        if datetime.now().month > present_season.month:
+            new_season = present_season + relativedelta(months=1)
+            await season_db.send(new_season.strftime('%Y.%m.%d %H:%M:%S'))
 
     @commands.command(
         name="시즌", hidden=True
@@ -54,15 +52,15 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     async def check_season(self, ctx):
         check = self.check_season_change.is_running()
         await ctx.send("season checking task is running: " + str(check))
-        now_kor = datetime.datetime.now() + datetime.timedelta(hours=9)
-        data, settings = await self.app.db_setting()
-        settings_dict = ast.literal_eval(settings)
-        due = settings_dict.get('present_season')
-        if due is None:
-            due = now_kor
-            overwrites = str({'present_season': due})
-            await self.app.db_setting(overwrites)
-        await ctx.send(f"now: {now_kor}\nnew_season_due: {due}\nnew_season_after: {due-now_kor}")
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        season_db = get(global_guild.text_channels, name="season_db")
+        last_msg = season_db.fetch_message(season_db.last_message_id)
+        if last_msg is None:
+            last_msg = await season_db.send(datetime.now().strftime('%Y.%m.01 00:00:00'))
+        present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
+        await ctx.send(f"present_season: {present_season.year}-{present_season.month}"
+                       f"\nnow: {datetime.now()}"
+                       f"\nnext_season_after: {present_season + relativedelta(months=1) - datetime.now()}")
         if check is False:
             self.check_season_change.start()
 
@@ -187,25 +185,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                     await ctx.send('\n'.join(results))
             else:
                 await ctx.send(":negative_squared_cross_mark: 셋업을 취소했습니다.")
-
-    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
-    @commands.command(
-        name="DB설정", aliases=["settings"],
-        help="글로벌 DB설정을 열람 및 수정합니다.",
-        usage="* str(*overwrites*)", pass_context=True
-    )
-    async def gdb_settings(self, ctx, *, overwrites=None):
-        global_guild = self.app.get_guild(self.app.global_guild_id)
-        gdb = get(global_guild.text_channels, name="gdb")
-        overwrites = str(overwrites)
-        data, settings = await self.app.db_setting(overwrites)
-        if data is not None:
-            await ctx.send(settings)
-            if overwrites is not None:
-                await ctx.send("설정을 덮어씁니다.")
-        else:
-            await gdb.send('!' + str(self.app.user.id) + ';' + str(settings))
-            await ctx.send("현재 세팅에 default 값을 저장했습니다.")
 
     @commands.cooldown(1, 300., commands.BucketType.guild)
     @commands.bot_has_permissions(administrator=True)

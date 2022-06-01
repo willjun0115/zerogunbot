@@ -41,10 +41,10 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await db_channel.send('$' + str(ctx.author.id) + ';0')
             await ctx.send('DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
 
-    @commands.cooldown(1, 300., commands.BucketType.channel)
+    @commands.cooldown(1, 60., commands.BucketType.channel)
     @commands.command(
         name="토큰순위", aliases=["순위표", "랭크표", "rank"],
-        help="전체 토큰 보유 순위를 조회합니다. (쿨타임 5분)\n"
+        help="전체 토큰 보유 순위를 조회합니다. (쿨타임 1분)\n"
              "YYYY_MM 포맷으로 시즌별 토큰 순위를 조회할 수 있습니다.", usage="* (*season*)"
     )
     async def token_rank(self, ctx, season=None):

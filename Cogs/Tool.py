@@ -50,7 +50,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         if datetime.now() > new_season:
             await season_db.send(new_season.strftime('%Y.%m.%d %H:%M:%S'))
             db = get(global_guild.text_channels, name="db")
-            await db.edit(name=f"{new_season.strftime('%Y_%m')}")
+            await db.edit(name=f"{present_season.strftime('%Y_%m')}")
             await db.clone(name="db")
 
     @commands.command(
@@ -67,9 +67,9 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             last_msg = await season_db.fetch_message(season_db.last_message_id)
         present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
         now = datetime.now()
-        await ctx.send(f"present_season: {present_season.year}.{present_season.month}"
-                       f"\nnow: {now.strftime('%Y.%m.%d %H:%M:%S')}"
-                       f"\nnext_season_after: {present_season + relativedelta(months=1) - now}")
+        await ctx.send(f"present_season: {present_season.strftime('%Y_%m')}"
+                       f"\nnow(UTC): {now.strftime('%Y.%m.%d %H:%M:%S')}"
+                       f"\nnext season starts after {present_season + relativedelta(months=1) - now}")
         if check is False:
             self.check_season_change.start()
 

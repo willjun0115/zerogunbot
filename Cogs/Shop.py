@@ -44,7 +44,8 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
     @commands.cooldown(1, 300., commands.BucketType.channel)
     @commands.command(
         name="토큰순위", aliases=["순위표", "랭크표", "rank"],
-        help="서버 내 토큰 보유 순위를 조회합니다. (쿨타임 5분)", usage="* (@*member*)"
+        help="전체 토큰 보유 순위를 조회합니다. (쿨타임 5분)\n"
+             "YYYY_MM 포맷으로 시즌별 토큰 순위를 조회할 수 있습니다.", usage="* (*season*)"
     )
     async def token_rank(self, ctx, season=None):
         if season is None:

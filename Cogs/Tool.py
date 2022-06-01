@@ -22,6 +22,10 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     def cog_unload(self):
         self.check_season_change.cancel()
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.check_season_change.start()
+
     async def encrypt(self, num, args):
         code = ""
         for c in args:
@@ -52,6 +56,11 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             db = get(global_guild.text_channels, name="db")
             await db.edit(name=f"{present_season.strftime('%Y_%m')}")
             await db.clone(name="db")
+
+    @check_season_change.after_loop
+    async def on_check_season_change_cancel(self):
+        if self.check_season_change.is_being_cancelled():
+            self.check_season_change.restart()
 
     @commands.command(
         name="시즌", hidden=True

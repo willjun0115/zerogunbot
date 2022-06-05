@@ -43,40 +43,63 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
 
     @commands.cooldown(1, 60., commands.BucketType.channel)
     @commands.command(
-        name="토큰순위", aliases=["순위표", "랭크표", "rank"],
-        help="전체 토큰 보유 순위를 조회합니다. (쿨타임 1분)\n"
-             "YYYY_MM 포맷으로 시즌별 토큰 순위를 조회할 수 있습니다.", usage="* (*season*)"
+        name="토큰순위", aliases=["순위", "rank"],
+        help="현재 토큰 보유 순위를 조회합니다. (쿨타임 1분)\n"
+             "YYYY_MM 포맷으로 시즌별 토큰 순위를 조회할 수 있습니다.\n"
+             "all로 검색 시 역대 토큰 1위 목록을 조회할 수 있습니다.", usage="* (*season*)"
     )
     async def token_rank(self, ctx, season=None):
-        if season is None:
-            season = "db"
         global_guild = self.app.get_guild(self.app.global_guild_id)
-        db_channel = get(global_guild.text_channels, name=season)
-        msg = await ctx.send("DB를 조회 중입니다... :mag:")
-        members = {}
-        messages = await db_channel.history(limit=100).flatten()
-        for message in messages:
-            if message.content.startswith('$') is True:
-                member = await ctx.guild.fetch_member(int(message.content[1:19]))
-                members[member] = int(message.content[20:])
-        members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
-        embed = discord.Embed(title="<토큰 랭킹>", description=ctx.guild.name + " 서버의 토큰 순위")
-        winner = members[0]
-        names = ""
-        coins = ""
-        n = 1
-        for md in members[1:]:
-            n += 1
-            if n == 2:
-                names += f":second_place:. {md[0].display_name}\n"
-            elif n == 3:
-                names += f":third_place:. {md[0].display_name}\n"
+        if season == "all":
+            msg = await ctx.send("DB를 조회 중입니다... :mag:")
+            winner_list = []
+            for db in global_guild.text_channels:
+                if db.name.startswith("20"):
+                    members = {}
+                    messages = await db.history(limit=100).flatten()
+                    for message in messages:
+                        if message.content.startswith('$') is True:
+                            member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                            members[member] = int(message.content[20:])
+                    members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+                    winner = members[0]
+                    winner_list.append((db.name, winner[0], winner[1]))
+            embed = discord.Embed(title="<역대 1위 목록>", description="역대 토큰 1위 목록")
+            for w in winner_list:
+                embed.add_field(name=f"시즌 {w[0]}", value=f"{w[1].display_name} :crown: : {w[2]} :coin:", inline=True)
+            await msg.edit(content=None, embed=embed)
+        else:
+            if season is None:
+                season = "db"
+                text = "현재 토큰 순위"
             else:
-                names += f"{n}. {md[0].display_name}\n"
-            coins += str(md[1]) + "\n"
-        embed.add_field(name=f":first_place:. " + winner[0].display_name + " :crown:", value=names, inline=True)
-        embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
-        await msg.edit(content=None, embed=embed)
+                text = season + " 시즌 토큰 순위"
+            db_channel = get(global_guild.text_channels, name=season)
+            msg = await ctx.send("DB를 조회 중입니다... :mag:")
+            members = {}
+            messages = await db_channel.history(limit=100).flatten()
+            for message in messages:
+                if message.content.startswith('$') is True:
+                    member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                    members[member] = int(message.content[20:])
+            members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+            embed = discord.Embed(title="<토큰 랭킹>", description=text)
+            winner = members[0]
+            names = ""
+            coins = ""
+            n = 1
+            for md in members[1:]:
+                n += 1
+                if n == 2:
+                    names += f":second_place:. {md[0].display_name}\n"
+                elif n == 3:
+                    names += f":third_place:. {md[0].display_name}\n"
+                else:
+                    names += f"{n}. {md[0].display_name}\n"
+                coins += str(md[1]) + "\n"
+            embed.add_field(name=f":first_place:. " + winner[0].display_name + " :crown:", value=names, inline=True)
+            embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
+            await msg.edit(content=None, embed=embed)
 
     @commands.command(
         name="상점", aliases=["shop", "tokenshop", "coinshop"],

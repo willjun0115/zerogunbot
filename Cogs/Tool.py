@@ -55,7 +55,8 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             await season_db.send(new_season.strftime('%Y.%m.%d %H:%M:%S'))
             db = get(global_guild.text_channels, name="db")
             await db.edit(name=f"{present_season.strftime('%Y_%m')}")
-            await db.clone(name="db")
+            new_db = await db.clone(name="db")
+            await new_db.send(f"${self.app.user.id};10")
 
     @check_season_change.after_loop
     async def on_check_season_change_cancel(self):
@@ -126,7 +127,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @commands.command(
         name="사용법", aliases=["문법", "usage"],
-        help="명령 선언에 대한 기본적인 법칙을 설명합니다.", usage="*"
+        help="명령 선언에 대한 기본적인 법칙을 설명합니다.", usage="*", hidden=True
     )
     async def usage_help(self, ctx):
         embed = discord.Embed(

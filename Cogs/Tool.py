@@ -47,12 +47,11 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @tasks.loop(minutes=1)
     async def check_season_change(self):
         global_guild = self.app.get_guild(self.app.global_guild_id)
-        season_db = get(global_guild.text_channels, name="season_db")
-        last_msg = await season_db.fetch_message(season_db.last_message_id)
-        present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
+        now = datetime.now()
+        present_season_str = now.strftime('%Y.%m.01 00:00:00')
+        present_season = datetime.strptime(present_season_str, '%Y.%m.%d %H:%M:%S')
         new_season = present_season + relativedelta(months=1)
         if datetime.now() > new_season:
-            await season_db.send(new_season.strftime('%Y.%m.%d %H:%M:%S'))
             db = get(global_guild.text_channels, name="db")
             await db.edit(name=f"{present_season.strftime('%Y_%m')}")
             new_db = await db.clone(name="db")
@@ -69,14 +68,9 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     async def check_season(self, ctx):
         check = self.check_season_change.is_running()
         await ctx.send("season checking task is running: " + str(check))
-        global_guild = self.app.get_guild(self.app.global_guild_id)
-        season_db = get(global_guild.text_channels, name="season_db")
-        if season_db.last_message_id is None:
-            last_msg = await season_db.send(datetime.now().strftime('%Y.%m.01 00:00:00'))
-        else:
-            last_msg = await season_db.fetch_message(season_db.last_message_id)
-        present_season = datetime.strptime(last_msg.content, '%Y.%m.%d %H:%M:%S')
         now = datetime.now()
+        present_season_str = now.strftime('%Y.%m.01 00:00:00')
+        present_season = datetime.strptime(present_season_str, '%Y.%m.%d %H:%M:%S')
         await ctx.send(f"present_season: {present_season.strftime('%Y_%m')}"
                        f"\nnow(UTC): {now.strftime('%Y.%m.%d %H:%M:%S')}"
                        f"\nnext season starts after {present_season + relativedelta(months=1) - now}")

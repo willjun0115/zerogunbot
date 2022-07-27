@@ -103,7 +103,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
 
     @commands.command(
         name="상점", aliases=["shop", "tokenshop", "coinshop"],
-        help="상품 목록을 나열합니다.", usage="*"
+        help="상품 목록을 나열합니다.", usage="*", enabled=False
     )
     async def token_shop(self, ctx):
         embed = discord.Embed(title="<가챠 확률 정보>", description="'%구매 ~'를 통해 상품 구매")
@@ -115,7 +115,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
 
     @commands.command(
         name="구매", aliases=["buy"],
-        help="상점의 상품 목록에서 역할이나 아이템을 구매합니다.", usage="* str(*role or item*)"
+        help="상점의 상품 목록에서 역할이나 아이템을 구매합니다.", usage="* str(*role or item*)", enabled=False
     )
     async def buy_item(self, ctx, *, args):
         item_found = False
@@ -129,18 +129,7 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
                 item_found = True
                 break
         if item_found is False:
-            if args.startswith("행운"):
-                if len(args[3:]) > 0:
-                    num = int(args[3:])
-                else:
-                    num = 1
-                await self.enhance_luck(ctx, num=num)
-            elif args == "닉변":
-                await ctx.send("%닉변 (변경하고자 하는 별명) 으로 이용해주세요.")
-            elif args == "수은":
-                await self.mercury(ctx)
-            else:
-                await ctx.send("상품을 찾지 못했습니다.")
+            await ctx.send("상품을 찾지 못했습니다.")
 
     async def enhance_luck(self, ctx, num=1):
         num = int(num)
@@ -177,56 +166,6 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             await ctx.send(f'{luck} :four_leaf_clover: (복권 확률 +{(luck ** 0.5) * 0.1:0.2f}%)')
         else:
             await ctx.send("행운 효과가 없습니다.")
-
-    @commands.command(
-        name="닉변", aliases=["nick"],
-        help="닉네임을 변경합니다."
-             "\n아무것도 입력하지 않으면 기본 닉네임으로 변경됩니다.", usage="* (str())"
-    )
-    async def nick_change(self, ctx, *, nickname=None):
-        price = self.app.shop.get("닉변")
-        is_enough, db = await self.has_enough_token(ctx, price)
-        if is_enough:
-            if get(ctx.guild.roles, name="창씨개명") in ctx.message.author.roles:
-                await ctx.send("창씨개명을 보유 중입니다.")
-            else:
-                coin = int(db.content[20:])
-                msg = await ctx.send(
-                    ":warning: 주의: 코인을 소모합니다."
-                    f"\n정말 닉네임을 {nickname}으로 변경하시겠습니까?"
-                )
-                reaction_list = ['✅', '❎']
-                for r in reaction_list:
-                    await msg.add_reaction(r)
-
-                def check(reaction, user):
-                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
-
-                try:
-                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
-                except asyncio.TimeoutError:
-                    await msg.edit(content="시간 초과!", delete_after=2)
-                else:
-                    if str(reaction) == '✅':
-                        await ctx.author.edit(nick=nickname)
-                        await db.edit(content=db.content[:20] + str(coin - price))
-                        await ctx.send(ctx.author.name + " 님의 닉네임을 " + nickname + "(으)로 변경했습니다.")
-                    else:
-                        await ctx.send("닉네임 변경을 취소했습니다.")
-
-    @commands.command(
-        name="수은", aliases=["Hg"],
-        help="자신의 마이크, 헤드셋 음소거를 해제합니다.", usage="*"
-    )
-    async def mercury(self, ctx):
-        price = self.app.shop.get("수은")
-        is_enough, db = await self.has_enough_token(ctx, price)
-        if is_enough:
-            if ctx.author.voice.deaf or ctx.author.voice.mute:
-                await ctx.author.edit(deafen=False, mute=False)
-                await db.edit(content=db.content[:20] + str(int(db.content[20:]) - price))
-            else:
-                await ctx.send("마이크 및 헤드셋이 음소거 상태가 아닙니다.")
 
 
 def setup(app):

@@ -18,20 +18,6 @@ app = commands.Bot(
 )
 app.global_guild_id = 943244634602213396
 app.prefix = prefix
-app.role_lst = [
-    ("임시차단", 4000),
-    ("창씨개명", 2000),
-    ("강제 이동", 1000),
-    ("침묵", 750),
-    ("언론 통제", 500),
-    ("DJ", 250),
-    ("이모티콘 관리", 100),
-]
-app.shop = {
-    "닉변": 200,
-    "행운": 10,
-    "수은": 30,
-}
 
 token = os.environ.get("TOKEN")
 
@@ -62,7 +48,7 @@ async def on_message(message):
 async def on_member_join(member):
     if member.guild.id == 760194959336275988:
         channel = member.guild.get_channel(813664336811786270)
-        await channel.send("새 멤버가 등장했습니다!\n0군 인증서를 발급받으려면 '%0군인증'을 진행해주세요.")
+        await channel.send("새 친구가 등장했습니다!")
 
 
 async def find_id(selector, id):

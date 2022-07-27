@@ -19,9 +19,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         self.app = app
         self.check_season_change.start()
 
-    def cog_unload(self):
-        self.check_season_change.cancel()
-
     @commands.Cog.listener()
     async def on_ready(self):
         self.check_season_change.start()

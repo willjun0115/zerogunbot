@@ -154,7 +154,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             get_href = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
             get_info = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('aria-label')
             get_info = get_info[len(get_title):]
-            search_list[n] = get_href
+            search_list[n+1] = get_href
             embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_info, inline=False)
         await msg.edit(content=None, embed=embed)
 
@@ -172,7 +172,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await msg.edit(content=":x: 취소했습니다.", delete_after=2)
             else:
                 await msg.delete()
-                select = search_list.get(int(message.content)-1)
+                select = search_list.get(int(message.content))
                 await self.ensure_voice(ctx)
                 await self.play_song(ctx, select)
 
@@ -192,7 +192,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
              "\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="* str()"
     )
     async def music_game(self, ctx):
-        await self.join_ch(ctx)
+        await self.ensure_voice(ctx)
         channel = ctx.author.voice.channel
         if len(channel.members)-1 < 2:
             await ctx.send("채널에 최소 2명 이상 있어야 시작 가능합니다.")
@@ -217,7 +217,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
 
             def check(m):
-                return m.content in music_title and m.author in channel.members and m.channel == ctx.channel
+                return m.content == music_title and m.author in channel.members and m.channel == ctx.channel
 
             try:
                 message = await self.app.wait_for("message", check=check, timeout=60.0)

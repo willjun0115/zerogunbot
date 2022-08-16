@@ -93,15 +93,6 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         await ctx.send("연결을 끊습니다.")
         self.clear_mp3()
 
-    @commands.command(
-        name="잠수", aliases=["afk"],
-        help="잠수방으로 이동합니다.", usage="*", hidden=True
-    )
-    async def submerge(self, ctx):
-        afkchannel = ctx.guild.afk_channel
-        await ctx.message.author.move_to(afkchannel)
-        await ctx.send(ctx.message.author.name + " 님을 잠수방으로 옮겼습니다.")
-
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
         name="tts", aliases=["TTS"],
@@ -163,7 +154,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             get_href = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
             get_info = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('aria-label')
             get_info = get_info[len(get_title):]
-            search_list[n+1] = get_href
+            search_list[n] = get_href
             embed.add_field(name=f"> {str(n+1)}. " + get_title, value=get_info, inline=False)
         await msg.edit(content=None, embed=embed)
 
@@ -181,7 +172,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await msg.edit(content=":x: 취소했습니다.", delete_after=2)
             else:
                 await msg.delete()
-                select = search_list.get(int(message.content))
+                select = search_list.get(int(message.content)-1)
                 await self.ensure_voice(ctx)
                 await self.play_song(ctx, select)
 
@@ -194,6 +185,47 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             voice.stop()
+
+    @commands.command(
+        name="노래맞추기", aliases=["search"],
+        help="유튜브 검색을 통해 목록을 가져옵니다."
+             "\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="* str()"
+    )
+    async def music_game(self, ctx):
+        await self.join_ch(ctx)
+        channel = ctx.author.voice.channel
+        if len(channel.members)-1 < 2:
+            await ctx.send("채널에 최소 2명 이상 있어야 시작 가능합니다.")
+        else:
+            url = "https://www.youtube.com/playlist?list=PLINKc5JL2InSNdUPIxLdvUWMTn0lnzpom"
+
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--no-sandbox")
+            browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
+                                       chrome_options=chrome_options)
+            browser.get(url)
+
+            n = random.randint(0, 9)
+            music_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')
+            music_url = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
+
+            async with ctx.typing():
+                player = await YTDLSource.from_url(music_url, loop=self.app.loop, stream=True)
+            ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+
+            def check(m):
+                return m.content in music_title and m.author in channel.members and m.channel == ctx.channel
+
+            try:
+                message = await self.app.wait_for("message", check=check, timeout=60.0)
+            except asyncio.TimeoutError:
+                await ctx.send(content=f"시간 초과! (정답: {music_title})")
+            else:
+                await ctx.send(message.author.display_name + " 님 정답!")
+            await self.stop_song(ctx)
 
     @play_song.before_invoke
     async def ensure_voice(self, ctx):

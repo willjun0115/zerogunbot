@@ -187,7 +187,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             voice.stop()
 
     @commands.command(
-        name="노래맞추기", aliases=["search"],
+        name="노래맞추기", aliases=["songcatch"],
         help="유튜브 검색을 통해 목록을 가져옵니다."
              "\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="* str()"
     )

@@ -207,7 +207,6 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             browser = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),
                                        chrome_options=chrome_options)
             browser.get(url)
-            await ctx.send("브라우저 준비")
 
             max_video = browser.find_elements(
                 By.XPATH, '//ytd-playlist-sidebar-renderer/div[@id="stats"]/yt-formatted-string/span')[1].text

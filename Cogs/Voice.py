@@ -209,7 +209,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             browser.get(url)
             await ctx.send("브라우저 준비")
 
-            max_video = browser.find_elements(By.XPATH, '//a[@id="stats"]/yt-formatted-string/span')[1].text
+            max_video = browser.find_elements(
+                By.XPATH, '//ytd-playlist-sidebar-renderer/div[@id="stats"]/yt-formatted-string/span')[1].text
             await ctx.send(max_video + " 개의 동영상 중 하나를 재생합니다.")
             n = random.randint(0, int(max_video))
             music_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')

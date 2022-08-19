@@ -192,9 +192,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
              "\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="* str()"
     )
     async def music_game(self, ctx):
-        await self.ensure_voice(ctx)
         channel = ctx.author.voice.channel
-        if len(channel.members)-1 < 2:
+        members = [m for m in channel.members if m.bot is False]
+        if len(members) < 2:
             await ctx.send("채널에 최소 2명 이상 있어야 시작 가능합니다.")
         else:
             url = "https://www.youtube.com/playlist?list=PLINKc5JL2InSNdUPIxLdvUWMTn0lnzpom"
@@ -230,6 +230,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await self.stop_song(ctx)
 
     @play_song.before_invoke
+    @music_game.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             await self.join_ch(ctx)

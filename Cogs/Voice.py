@@ -99,6 +99,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="입력받은 문자열을 tts 음성으로 출력합니다.", usage="* str()"
     )
     async def tts_voice(self, ctx, *, msg):
+        await self.ensure_voice(ctx)
         for file in os.listdir("./"):
             if file.startswith("tts_ko"):
                 os.remove(file)
@@ -114,6 +115,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
              "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(*url*) (-s)", pass_context=True
     )
     async def play_song(self, ctx, url: str, stream=None):
+        await self.ensure_voice(ctx)
         if stream == '-s':
             stream = True
         else:
@@ -192,6 +194,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
              "\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="* str()"
     )
     async def music_game(self, ctx):
+        await self.ensure_voice(ctx)
         channel = ctx.author.voice.channel
         members = [m for m in channel.members if m.bot is False]
         if len(members) < 2:
@@ -209,9 +212,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             browser.get(url)
 
             max_video = browser.find_elements(
-                By.XPATH, '//ytd-playlist-sidebar-renderer/div[@id="stats"]/yt-formatted-string/span')[1].text
+                By.XPATH, '//ytd-playlist-sidebar-primary-info-renderer/div[@id="stats"]/yt-formatted-string/span')[1].text
             await ctx.send(max_video + " 개의 동영상 중 하나를 재생합니다.")
-            n = random.randint(0, int(max_video))
+            n = random.randint(0, int(max_video)-1)
             music_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')
             music_url = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
 
@@ -231,8 +234,6 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await ctx.send(message.author.display_name + " 님 정답!")
             await self.stop_song(ctx)
 
-    @play_song.before_invoke
-    @music_game.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             await self.join_ch(ctx)

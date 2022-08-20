@@ -216,6 +216,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await ctx.send(max_video + " 개의 동영상 중 하나를 재생합니다.")
             n = random.randint(0, int(max_video)-1)
             music_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')
+            if "(" in music_title:
+                music_title = music_title[:music_title.index("(")]
+            music_title = music_title.strip()
+            music_title = music_title.lower()
             music_url = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
 
             async with ctx.typing():

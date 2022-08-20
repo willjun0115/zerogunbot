@@ -213,13 +213,12 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
             max_video = browser.find_elements(
                 By.XPATH, '//ytd-playlist-sidebar-primary-info-renderer/div[@id="stats"]/yt-formatted-string/span')[0].text
-            await ctx.send(max_video + " 개의 동영상 중 하나를 재생합니다.")
+            msg = await ctx.send(max_video + " 개의 곡 중 하나를 재생합니다.")
             n = random.randint(0, int(max_video)-1)
             music_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')
             if "(" in music_title:
                 music_title = music_title[:music_title.index("(")]
             music_title = music_title.strip()
-            music_title = music_title.lower()
             music_url = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
 
             async with ctx.typing():
@@ -228,14 +227,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
 
             def check(m):
-                return m.content == music_title and m.author in channel.members and m.channel == ctx.channel
+                return m.content.lower() == music_title.lower() and m.author in channel.members and m.channel == ctx.channel
 
             try:
-                message = await self.app.wait_for("message", check=check, timeout=60.0)
+                message = await self.app.wait_for("message", check=check, timeout=120.0)
             except asyncio.TimeoutError:
-                await ctx.send(content=f"시간 초과! (정답: {music_title})")
+                await msg.edit(content=f"시간 초과! (정답: {music_title})")
             else:
-                await ctx.send(message.author.display_name + " 님 정답!")
+                await msg.edit(content=message.author.display_name + " 님 정답!")
             await self.stop_song(ctx)
 
     async def ensure_voice(self, ctx):

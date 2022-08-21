@@ -226,6 +226,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
             ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
 
+            browser.quit()
+
             def check(m):
                 return m.content.lower() == music_title.lower() and m.author in channel.members and m.channel == ctx.channel
 

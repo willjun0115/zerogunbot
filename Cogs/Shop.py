@@ -38,7 +38,10 @@ class Shop(commands.Cog, name="상점", description="게임에서 얻은 토큰�
             coin = int(data.content[20:])
             await ctx.send(str(coin) + ' :coin:')
         else:
-            await db_channel.send('$' + str(ctx.author.id) + ';0')
+            if ctx.author in ctx.guild.premium_subscribers:
+                await db_channel.send('$' + str(ctx.author.id) + ';100')
+            else:
+                await db_channel.send('$' + str(ctx.author.id) + ';0')
             await ctx.send('DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
 
     @commands.cooldown(1, 60., commands.BucketType.channel)

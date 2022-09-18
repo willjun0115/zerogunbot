@@ -419,13 +419,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             bot_log = await self.app.find_id('$', self.app.user.id)
             luck_log = await self.app.find_id('%', ctx.author.id)
             luck = 0
+            prob = 1
             if luck_log is not None:
                 luck = int(luck_log.content[20:])
+            if ctx.author in ctx.guild.premium_subscribers:
+                prob = 1.5
             coin = int(log.content[20:])
             prize = int(bot_log.content[20:])
             if ctx.channel == get(ctx.guild.text_channels, name="가챠"):
                 rand = random.random() * 100
-                if rand <= 1 + (luck ** 0.5) * 0.1:
+                if rand <= prob + (luck ** 0.5) * 0.1:
                     await bot_log.edit(content=bot_log.content[:20] + str(10))
                     await log.edit(content=log.content[:20] + str(coin + prize))
                     await ctx.send(f"{ctx.author.display_name} 님이 복권에 당첨되셨습니다! 축하드립니다!\n상금: {prize} :coin:")

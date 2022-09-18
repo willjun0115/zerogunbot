@@ -213,7 +213,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
             max_video = browser.find_elements(
                 By.XPATH, '//ytd-playlist-sidebar-primary-info-renderer/div[@id="stats"]/yt-formatted-string/span')[0].text
-            msg = await ctx.send(max_video + " 개의 곡 중 하나를 재생합니다.")
+            await ctx.send(max_video + " 개의 곡 중 하나를 재생합니다.")
             n = random.randint(0, int(max_video)-1)
             music_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')
             if "(" in music_title:
@@ -232,12 +232,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 return m.content.lower() == music_title.lower() and m.author in channel.members and m.channel == ctx.channel
 
             try:
-                message = await self.app.wait_for("message", check=check, timeout=120.0)
+                message = await self.app.wait_for("message", check=check, timeout=100.0)
             except asyncio.TimeoutError:
-                await msg.edit(content=f"시간 초과! (정답: {music_title})")
+                await ctx.send(f"시간 초과! (정답: {music_title})")
             else:
-                await msg.edit(content=message.author.display_name + " 님 정답!")
-            await self.stop_song(ctx)
+                await ctx.send(message.author.display_name + " 님 정답!")
 
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:

@@ -76,13 +76,13 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
             await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
 
     @commands.command(
-        name='패드립', aliases=["mb"],
+        name='패드립', aliases=["mf", "느금마", "느금", "너검", "너거매", "니애미", "ㄴㄱㅁ", "ㄴㅇㅁ"],
         help="저희 봇에 그런 기능은 없습니다?", usage="*", hidden=True
     )
     async def fdr(self, ctx):
         msg = await ctx.send("느금마")
         await asyncio.sleep(1)
-        await msg.edit(content='저는 그런 말 못해요 ㅠㅠ')
+        await msg.edit(content='그런 말 못써요 ㅠㅠ')
 
 
 def setup(app):

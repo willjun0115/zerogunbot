@@ -23,24 +23,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     async def on_ready(self):
         self.check_season_change.start()
 
-    async def encrypt(self, num, args):
-        code = ""
-        for c in args:
-            x = ord(c)
-            x = x * 2 + num
-            cc = chr(x)
-            code = code + cc
-        return str(code)
-
-    async def decrypt(self, num, code):
-        args = ""
-        for c in code:
-            x = ord(c)
-            x = (x - num) // 2
-            cc = chr(x)
-            args = args + cc
-        return str(args)
-
     @tasks.loop(minutes=1)
     async def check_season_change(self):
         global_guild = self.app.get_guild(self.app.global_guild_id)
@@ -194,7 +176,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         await ctx.message.delete()
         num = int(num)
         if 0 <= num < 1000:
-            code = await self.encrypt(num, args)
+            code = await self.app.encrypt(num, args)
             await ctx.send(code)
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")
@@ -207,7 +189,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         await ctx.message.delete()
         num = int(num)
         if 0 <= num < 1000:
-            args = await self.decrypt(num, code)
+            args = await self.app.decrypt(num, code)
             await ctx.send(args)
         else:
             await ctx.send(":warning: 코드번호는 0~999의 정수만 가능합니다.")

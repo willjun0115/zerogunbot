@@ -1,4 +1,6 @@
 import asyncio
+import random
+
 import discord
 from discord.ext import commands
 from discord.utils import get
@@ -19,11 +21,31 @@ app = commands.Bot(
 app.global_guild_id = 943244634602213396
 app.prefix = prefix
 
-token = os.environ.get("TOKEN")
-
 for filename in os.listdir("Cogs"):
     if filename.endswith(".py"):
         app.load_extension(f"Cogs.{filename[:-3]}")
+
+rn = random.randint(0, 999)
+
+
+def encrypt(num, args):
+    code = ""
+    for c in args:
+        x = ord(c)
+        x = x * 2 + num
+        cc = chr(x)
+        code = code + cc
+    return str(code)
+
+
+def decrypt(num, code):
+    args = ""
+    for c in code:
+        x = ord(c)
+        x = (x - num) // 2
+        cc = chr(x)
+        args = args + cc
+    return str(args)
 
 
 @app.event
@@ -98,6 +120,8 @@ async def setup_database(ctx):
                 return None
 
 
+app.encrypt = encrypt
+app.decrypt = decrypt
 app.find_id = find_id
 app.setup_database = setup_database
 
@@ -337,4 +361,6 @@ async def on_command_error(ctx, error):
         await ctx.send(" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {:0.1f}초)".format(error.retry_after))
 
 
-app.run(token)
+token = encrypt(rn, os.environ.get("TOKEN"))
+app.run(decrypt(rn, token))
+rn = -1

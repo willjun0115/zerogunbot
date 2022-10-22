@@ -68,7 +68,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         now = datetime.now()
         present_season_str = now.strftime('%Y.%m.01 00:00:00')
         present_season = datetime.strptime(present_season_str, '%Y.%m.%d %H:%M:%S')
-        new_season = present_season + relativedelta(months=1) - timedelta(minutes=1, seconds=20)
+        new_season = present_season + relativedelta(months=1) - timedelta(seconds=30)
         await ctx.send(
             f"present_season: {present_season.strftime('%Y_%m')}"
             f"\nnow(UTC): {now.strftime('%Y.%m.%d %H:%M:%S')}"
@@ -163,7 +163,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
         name="DB편집", aliases=["editdb"],
-        help="로컬 DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
+        help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
     async def edit_local_db(self, ctx, selector, member: discord.Member, val):
         global_guild = self.app.get_guild(self.app.global_guild_id)

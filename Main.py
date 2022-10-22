@@ -109,19 +109,19 @@ async def admin_command(ctx):
 
 
 @admin_command.group(name="load", aliases=["l"])
-async def load_command(ctx, extension):
+async def load_cogs(ctx, extension):
     app.load_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 로드했습니다.")
 
 
 @admin_command.group(name="unload", aliases=["ul"])
-async def unload_command(ctx, extension):
+async def unload_cogs(ctx, extension):
     app.unload_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 언로드했습니다.")
 
 
 @admin_command.group(name="reload", aliases=["rl"])
-async def reload_command(ctx, extension=None):
+async def reload_cogs(ctx, extension=None):
     if extension is None:
         for file_name in os.listdir("Cogs"):
             if file_name.endswith(".py"):
@@ -137,7 +137,15 @@ async def reload_command(ctx, extension=None):
 @admin_command.group(name="execute", aliases=["exe"])
 async def execute_command(ctx, cmd, *args):
     cmd = app.get_command(cmd)
-    await cmd.__call__(ctx, *args)
+    if cmd is None:
+        await ctx.send("CommandNotFound.")
+    else:
+        await cmd.__call__(ctx, *args)
+
+
+@admin_command.group(name="value", aliases=["val"])
+async def get_value(ctx, *, args):
+    exec("await ctx.send(str({args}))")
 
 
 @admin_command.group(name="status", aliases=["stat"])

@@ -23,7 +23,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         else:
             await ctx.channel.send(ctx.author.name + ' 님, 안녕하세요!')
 
-    @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())
+    @commands.has_permissions(manage_messages=True)
     @commands.command(
         name="말하기", aliases=["say", "chat"],
         help="입력값을 채팅에 전송합니다.", usage="* str()", pass_context=True
@@ -32,7 +32,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         await ctx.message.delete()
         await ctx.send(args)
 
-    @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())
+    @commands.has_permissions(manage_messages=True)
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tchat"],
         help="시간이 지나면 사라지는 채팅을 전송합니다.", usage="* int() str()", pass_context=True
@@ -43,7 +43,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         await asyncio.sleep(int(sec))
         await msg.delete()
 
-    @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())
+    @commands.has_permissions(manage_messages=True)
     @commands.command(
         name="도배", aliases=["bulkchat", "bchat"],
         help="입력값을 반복 입력해 전송합니다.", usage="* int() str()", pass_context=True
@@ -53,7 +53,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         msg = await ctx.send(args * int(num))
 
     @commands.cooldown(1, 60., commands.BucketType.member)
-    @commands.check_any(commands.has_permissions(manage_messages=True), commands.is_owner())
+    @commands.has_permissions(manage_messages=True)
     @commands.command(
         name="청소", aliases=["일괄삭제", "clear", "purge"],
         help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."

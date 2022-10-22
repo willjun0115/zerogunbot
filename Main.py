@@ -135,10 +135,9 @@ async def reload_command(ctx, extension=None):
 
 
 @admin_command.group(name="execute", aliases=["exe"])
-async def execute_command(ctx, *, args):
-    s = str()
-    exec("s = " + args)
-    await ctx.send(s)
+async def execute_command(ctx, cmd, *args):
+    cmd = app.get_command(cmd)
+    await cmd.__call__(ctx, *args)
 
 
 @admin_command.group(name="status", aliases=["stat"])

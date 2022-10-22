@@ -145,7 +145,9 @@ async def execute_command(ctx, cmd, *args):
 
 @admin_command.group(name="value", aliases=["val"])
 async def get_value(ctx, *, args):
-    exec("await ctx.send(str({args}))")
+    args = list(args)
+    for arg in args:
+        await ctx.send(str(arg))
 
 
 @admin_command.group(name="status", aliases=["stat"])

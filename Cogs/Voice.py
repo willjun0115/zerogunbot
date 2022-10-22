@@ -197,8 +197,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         await self.ensure_voice(ctx)
         channel = ctx.author.voice.channel
         members = [m for m in channel.members if m.bot is False]
-        if len(members) < 2:
-            await ctx.send("채널에 최소 2명 이상 있어야 시작 가능합니다.")
+        if len(members) < 1:
+            await ctx.send("채널에 최소 1명 이상 있어야 시작 가능합니다.")
         else:
             url = "https://www.youtube.com/playlist?list=PLINKc5JL2InSNdUPIxLdvUWMTn0lnzpom"
 

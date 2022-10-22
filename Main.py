@@ -134,6 +134,11 @@ async def reload_command(ctx, extension=None):
         await ctx.send(f":white_check_mark: {extension}을(를) 다시 불러왔습니다.")
 
 
+@admin_command.group(name="execute", aliases=["exe"])
+async def execute_command(ctx, *, args):
+    await ctx.send(str(exec(args)))
+
+
 @admin_command.group(name="status", aliases=["stat"])
 async def admin_status(ctx):
     embed = discord.Embed(

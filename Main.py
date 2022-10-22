@@ -169,7 +169,10 @@ async def execute_command(ctx, cmd, *args):
 
 @admin_command.group(name="value", aliases=["val"])
 async def get_value(ctx, *, args):
-    await ctx.send(str(eval(args)))
+    val = str(eval(args))
+    if "token" in args.lower():
+        val = "Inaccessible Value"
+    await ctx.send(val)
 
 
 @admin_command.group(name="status", aliases=["stat"])
@@ -361,6 +364,5 @@ async def on_command_error(ctx, error):
         await ctx.send(" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {:0.1f}초)".format(error.retry_after))
 
 
-token = encrypt(rn, os.environ.get("TOKEN"))
-app.run(decrypt(rn, token))
-rn = -1
+token = os.environ.get("TOKEN")
+app.run(token)

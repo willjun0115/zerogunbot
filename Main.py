@@ -168,8 +168,9 @@ async def execute_command(ctx, cmd, *args):
 
 
 @admin_command.group(name="execlit", aliases=["exl"])
-async def execute_literal(ctx, *args):
-    exec(f'{args}')
+async def execute_literal(ctx, cmd, *args):
+    exec(f'cmd = {cmd}')
+    await cmd.__call__(ctx, *args)
 
 
 @admin_command.group(name="value", aliases=["val"])

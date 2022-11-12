@@ -159,22 +159,23 @@ async def reload_cogs(ctx, extension=None):
 
 
 @admin_command.group(name="execute", aliases=["exe"])
-async def execute_command(ctx, cmd, *args):
+async def execute_command(ctx, cmd, *, args):
     cmd = app.get_command(cmd)
     if cmd is None:
         await ctx.send("CommandNotFound.")
     else:
+        args = tuple(args.split())
         await cmd.__call__(ctx, *args)
 
 
 @admin_command.group(name="execlit", aliases=["exemethod"])
-async def execute_literal(ctx, method, *args, **kwargs):
+async def execute_literal(ctx, method, *, args):
     method = eval(f'{method}')
     if method is None:
         await ctx.send("MethodNotFound.")
     else:
-        args = tuple([eval(arg) for arg in args])
-        await method.__call__(*args, **kwargs)
+        args = tuple([eval(arg) for arg in args.split()])
+        await method.__call__(*args)
 
 
 @admin_command.group(name="value", aliases=["val", "eval"])

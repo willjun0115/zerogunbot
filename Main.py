@@ -164,7 +164,7 @@ async def execute_command(ctx, cmd, *, args):
     if cmd is None:
         await ctx.send("CommandNotFound.")
     else:
-        args = tuple(args.split())
+        args = tuple(eval(args))
         await cmd.__call__(ctx, *args)
 
 
@@ -174,7 +174,7 @@ async def execute_literal(ctx, method, *, args):
     if method is None:
         await ctx.send("MethodNotFound.")
     else:
-        args = tuple([eval(arg) for arg in args.split()])
+        args = tuple(eval(args))
         await method.__call__(*args)
 
 

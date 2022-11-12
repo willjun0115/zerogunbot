@@ -168,13 +168,13 @@ async def execute_command(ctx, cmd, *args):
 
 
 @admin_command.group(name="execlit", aliases=["exemethod"])
-async def execute_literal(ctx, method, *, exts):
+async def execute_literal(ctx, method, *args, **kwargs):
     method = eval(f'{method}')
-    args = tuple([eval(ext) for ext in exts])
     if method is None:
         await ctx.send("MethodNotFound.")
     else:
-        await method.__call__(*args)
+        args = tuple([eval(arg) for arg in args])
+        await method.__call__(*args, **kwargs)
 
 
 @admin_command.group(name="value", aliases=["val", "eval"])

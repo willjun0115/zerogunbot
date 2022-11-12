@@ -169,7 +169,7 @@ async def execute_command(ctx, cmd, *args):
 
 @admin_command.group(name="execlit", aliases=["exl"])
 async def execute_literal(ctx, cmd, *args):
-    exec(f'cmd = {cmd}')
+    cmd = eval(f'{cmd}')
     if cmd is None:
         await ctx.send("CommandNotFound.")
     else:

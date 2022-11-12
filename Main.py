@@ -167,12 +167,17 @@ async def execute_command(ctx, cmd, *args):
         await cmd.__call__(ctx, *args)
 
 
+@admin_command.group(name="execlit", aliases=["exl"])
+async def execute_literal(ctx, *args):
+    exec(f'{args}')
+
+
 @admin_command.group(name="value", aliases=["val"])
 async def get_value(ctx, *, args):
-    val = str(eval(args))
+    val = eval(args)
     if "token" in args.lower():
         val = "Inaccessible Value"
-    await ctx.send(val)
+    await ctx.send(str(type(val)) + " " + str(val))
 
 
 @admin_command.group(name="status", aliases=["stat"])

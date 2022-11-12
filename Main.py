@@ -170,10 +170,13 @@ async def execute_command(ctx, cmd, *args):
 @admin_command.group(name="execlit", aliases=["exl"])
 async def execute_literal(ctx, cmd, *args):
     exec(f'cmd = {cmd}')
-    await cmd.__call__(ctx, *args)
+    if cmd is None:
+        await ctx.send("CommandNotFound.")
+    else:
+        await cmd.__call__(*args)
 
 
-@admin_command.group(name="value", aliases=["val"])
+@admin_command.group(name="value", aliases=["val", "eval"])
 async def get_value(ctx, *, args):
     val = eval(args)
     if "token" in args.lower():

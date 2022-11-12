@@ -164,7 +164,7 @@ async def execute_command(ctx, cmd, *, args):
     if cmd is None:
         await ctx.send("CommandNotFound.")
     else:
-        args = tuple(eval(args))
+        args = eval(args)
         await cmd.__call__(ctx, *args)
 
 
@@ -174,8 +174,11 @@ async def execute_literal(ctx, method, *, args):
     if method is None:
         await ctx.send("MethodNotFound.")
     else:
-        args = tuple(eval(args))
-        await method.__call__(*args)
+        args = eval(args)
+        if type(args) is tuple or type(args) is list:
+            await method.__call__(*args)
+        elif type(args) is dict:
+            await method.__call__(**args)
 
 
 @admin_command.group(name="value", aliases=["val", "eval"])

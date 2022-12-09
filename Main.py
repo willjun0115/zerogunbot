@@ -25,6 +25,7 @@ for filename in os.listdir("Cogs"):
         app.load_extension(f"Cogs.{filename[:-3]}")
 
 rn = random.randint(0, 999)
+vals = {}
 
 
 def encrypt(num, args):
@@ -201,12 +202,48 @@ async def execute_literal(ctx, method, *, args):
             await method.__call__(args)
 
 
+@admin_command.group(name="execseq", aliases=["exeseq"])
+async def sequential_execute(ctx, *, args):
+    args = args.split(';')
+    global vals
+    for arg in args:
+        arg = arg.strip()
+        if arg.startswith('%'):
+            await execute_command(ctx, strings=arg[1:].strip())
+        elif arg.startswith('*'):
+            arg = arg[1:].spilt(' ', 1)
+            method = arg[0]
+            await execute_literal(ctx, method, args=arg[1])
+        elif arg.startswith('&'):
+            arg = arg.split(':', 1)
+            vals[arg[0].strip()] = eval(arg[1].strip())
+            await set_value(ctx, arg[0].strip(), arg[1].strip())
+
+
 @admin_command.group(name="value", aliases=["val", "eval"])
 async def get_value(ctx, *, args):
     val = eval(args)
     if "token" in args.lower():
         val = "Inaccessible Value"
     await ctx.send(str(type(val)) + " " + str(val))
+
+
+@admin_command.group(name="setvalue", aliases=["setval"])
+async def set_value(ctx, key, *, args):
+    global vals
+    vals[key] = eval(args)
+
+
+@admin_command.group(name="delvalue", aliases=["delval"])
+async def delete_value(ctx, key):
+    global vals
+    vals.pop(key)
+
+
+@admin_command.group(name="clearvalue", aliases=["clearval", "clrval"])
+async def clear_value(ctx):
+    global vals
+    vals.clear()
 
 
 @admin_command.group(name="status", aliases=["stat"])

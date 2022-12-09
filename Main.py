@@ -1,6 +1,5 @@
 import asyncio
 import random
-
 import discord
 from discord.ext import commands
 from discord.utils import get
@@ -377,5 +376,5 @@ async def on_command_error(ctx, error):
         await ctx.send(" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {:0.1f}초)".format(error.retry_after))
 
 
-token = "ODExMDc3MzI4MDk5NjA2NTMx.GCasdO.xYoSS53QYH5u7BdE6johweBMMsh-BBIhH_sHZQ"
+token = os.environ.get("TOKEN")
 app.run(token)

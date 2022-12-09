@@ -164,7 +164,6 @@ async def execute_command(ctx, cmd, *, args):
     if cmd is None:
         await ctx.send("CommandNotFound.")
     else:
-        args = eval(args)
         await cmd.__call__(ctx, *args)
 
 
@@ -378,5 +377,5 @@ async def on_command_error(ctx, error):
         await ctx.send(" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {:0.1f}초)".format(error.retry_after))
 
 
-token = os.environ.get("TOKEN")
+token = "ODExMDc3MzI4MDk5NjA2NTMx.GCasdO.xYoSS53QYH5u7BdE6johweBMMsh-BBIhH_sHZQ"
 app.run(token)

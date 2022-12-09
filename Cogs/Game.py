@@ -319,7 +319,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             if ctx.channel == get(ctx.guild.text_channels, name="가챠"):
                 msg = await ctx.send(
-                    ":warning: 주의: 권한이나 토큰을 잃을 수 있습니다."
+                    ":warning: 주의: 토큰을 잃을 수 있습니다."
                     "\n가챠를 돌리려면 :white_check_mark: 을 누르세요."
                 )
                 reaction_list = ['✅', '❎']

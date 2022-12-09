@@ -158,15 +158,35 @@ async def reload_cogs(ctx, extension=None):
 
 
 @admin_command.group(name="execute", aliases=["exe"])
-async def execute_command(ctx, cmd, *, args):
-    cmd = app.get_command(cmd)
-    if cmd is None:
-        await ctx.send("CommandNotFound.")
+async def execute_command(ctx, *, strings=None):
+    if strings:
+        strings = strings.split('--')
+    cmd = None
+    args = []
+    kwargs = {}
+    for string in strings:
+        if string.startswith("cmd:"):
+            cmd = app.get_command(string[4:].strip())
+        elif string.startswith("args:"):
+            a = eval(string[5:].strip())
+            if type(a) is tuple or type(a) is list:
+                args = a
+            else:
+                args = (a, )
+        elif string.startswith("kwargs:"):
+            k = eval(string[7:].strip())
+            if type(k) is dict:
+                kwargs = k
+    if cmd:
+        try:
+            await cmd.__call__(ctx, *args, **kwargs)
+        except:
+            await ctx.send("Failed to call command.")
     else:
-        await cmd.__call__(ctx, *args)
+        await ctx.send("Command Not Found.")
 
 
-@admin_command.group(name="execlit", aliases=["exemethod"])
+@admin_command.group(name="execlit", aliases=["execoro"])
 async def execute_literal(ctx, method, *, args):
     method = eval(f'{method}')
     if method is None:
@@ -177,6 +197,8 @@ async def execute_literal(ctx, method, *, args):
             await method.__call__(*args)
         elif type(args) is dict:
             await method.__call__(**args)
+        else:
+            await method.__call__(args)
 
 
 @admin_command.group(name="value", aliases=["val", "eval"])

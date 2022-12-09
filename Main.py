@@ -216,7 +216,6 @@ async def sequential_execute(ctx, *, args):
             await execute_literal(ctx, method, args=arg[1])
         elif arg.startswith('&'):
             arg = arg.split(':', 1)
-            vals[arg[0].strip()] = eval(arg[1].strip())
             await set_value(ctx, arg[0].strip(), arg[1].strip())
 
 

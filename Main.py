@@ -25,7 +25,7 @@ for filename in os.listdir("Cogs"):
         app.load_extension(f"Cogs.{filename[:-3]}")
 
 rn = random.randint(0, 999)
-vals = {}
+temp = None
 
 
 def encrypt(num, args):
@@ -180,14 +180,14 @@ async def execute_command(ctx, *, strings=None):
                 kwargs = k
     if cmd:
         try:
-            await cmd.__call__(ctx, *args, **kwargs)
+            await cmd.__call__(ctx=ctx, *args, **kwargs)
         except:
             await ctx.send("Failed to call command.")
     else:
         await ctx.send("Command Not Found.")
 
 
-@admin_command.group(name="execlit", aliases=["execoro"])
+@admin_command.group(name="execlit", aliases=["coro", "await"])
 async def execute_literal(ctx, method, *, args):
     method = eval(f'{method}')
     if method is None:
@@ -205,18 +205,19 @@ async def execute_literal(ctx, method, *, args):
 @admin_command.group(name="execseq", aliases=["exeseq"])
 async def sequential_execute(ctx, *, args):
     args = args.split(';')
-    global vals
+    global temp
     for arg in args:
         arg = arg.strip()
-        if arg.startswith('%'):
-            await execute_command(ctx, strings=arg[1:].strip())
-        elif arg.startswith('*'):
-            arg = arg[1:].spilt(' ', 1)
+        i = arg[0]
+        arg = arg[1:]
+        if i == '%':
+            await execute_command(ctx, strings=arg.strip())
+        elif i == '*':
+            arg = arg.spilt(maxsplit=1)
             method = arg[0]
             await execute_literal(ctx, method, args=arg[1])
-        elif arg.startswith('&'):
-            arg = arg.split(':', 1)
-            await set_value(ctx, arg[0].strip(), arg[1].strip())
+        elif i == '&':
+            temp = eval(args)
 
 
 @admin_command.group(name="value", aliases=["val", "eval"])
@@ -229,20 +230,14 @@ async def get_value(ctx, *, args):
 
 @admin_command.group(name="setvalue", aliases=["setval"])
 async def set_value(ctx, key, *, args):
-    global vals
-    vals[key] = eval(args)
+    global temp
+    temp = eval(args)
 
 
 @admin_command.group(name="delvalue", aliases=["delval"])
 async def delete_value(ctx, key):
-    global vals
-    vals.pop(key)
-
-
-@admin_command.group(name="clearvalue", aliases=["clearval", "clrval"])
-async def clear_value(ctx):
-    global vals
-    vals.clear()
+    global temp
+    temp = None
 
 
 @admin_command.group(name="status", aliases=["stat"])

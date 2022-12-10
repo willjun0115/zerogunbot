@@ -5,6 +5,7 @@ from discord.utils import get
 from discord.ext import commands
 import operator
 from collections import OrderedDict
+from datetime import datetime
 
 
 class Game(commands.Cog, name="게임", description="오락 및 도박과 관련된 카테고리입니다.\n토큰을 수급할 수 있습니다."):
@@ -278,6 +279,101 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return start, members
 
     @commands.command(
+        name="토큰", aliases=["코인", "token", "coin", "$"],
+        help="자신의 토큰 수를 확인합니다.\n토큰 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
+        usage="*"
+    )
+    async def check_token(self, ctx):
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
+        data = await self.app.find_id('$', ctx.author.id)
+        if data is not None:
+            coin = int(data.content[20:])
+            await ctx.send(str(coin) + ' :coin:')
+        else:
+            if ctx.author in ctx.guild.premium_subscribers:
+                await db_channel.send('$' + str(ctx.author.id) + ';100')
+            else:
+                await db_channel.send('$' + str(ctx.author.id) + ';0')
+            await ctx.send('DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
+
+    @commands.cooldown(1, 60., commands.BucketType.channel)
+    @commands.command(
+        name="토큰순위", aliases=["순위", "rank"],
+        help="현재 토큰 보유 순위를 조회합니다. (쿨타임 1분)\n"
+             "YYYY_MM 포맷으로 시즌별 토큰 순위를 조회할 수 있습니다.\n"
+             "all로 검색 시 역대 토큰 1위 목록을 조회할 수 있습니다.", usage="* (*season*)"
+    )
+    async def token_rank(self, ctx, season=None):
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        if season == "all":
+            msg = await ctx.send("DB를 조회 중입니다... :mag:")
+            winner_list = []
+            for db in global_guild.text_channels:
+                if db.name.startswith("20"):
+                    members = {}
+                    messages = await db.history(limit=100).flatten()
+                    for message in messages:
+                        if message.content.startswith('$') is True:
+                            member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                            members[member] = int(message.content[20:])
+                    members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+                    winner = members[0]
+                    winner_list.append((db.name, winner[0], winner[1]))
+            embed = discord.Embed(title="<역대 1위 목록>", description="역대 토큰 1위 목록")
+            for w in winner_list:
+                embed.add_field(name=f"시즌 {w[0]}", value=f"{w[1].display_name} :crown: : {w[2]} :coin:", inline=True)
+            await msg.edit(content=None, embed=embed)
+        else:
+            if season is None:
+                season = "db"
+                text = "현재 토큰 순위"
+            else:
+                text = season + " 시즌 토큰 순위"
+            db_channel = get(global_guild.text_channels, name=season)
+            msg = await ctx.send("DB를 조회 중입니다... :mag:")
+            members = {}
+            messages = await db_channel.history(limit=100).flatten()
+            for message in messages:
+                if message.content.startswith('$') is True:
+                    member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                    members[member] = int(message.content[20:])
+            members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+            embed = discord.Embed(title="<토큰 랭킹>", description=text)
+            winner = members[0]
+            names = ""
+            coins = ""
+            n = 1
+            for md in members[1:]:
+                n += 1
+                if n == 2:
+                    names += f":second_place:. {md[0].display_name}\n"
+                elif n == 3:
+                    names += f":third_place:. {md[0].display_name}\n"
+                else:
+                    names += f"{n}. {md[0].display_name}\n"
+                coins += str(md[1]) + "\n"
+            embed.add_field(name=f":first_place:. " + winner[0].display_name + " :crown:", value=names, inline=True)
+            embed.add_field(name=f"{str(winner[1])} :coin:", value=coins, inline=True)
+            await msg.edit(content=None, embed=embed)
+
+    @commands.command(
+        name="행운", aliases=["luck"],
+        help="자신의 행운 중첩량을 확인합니다."
+             "\n행운은 가챠에서 일부 효과를 방어 또는 강화합니다."
+             "\n행운은 중첩 가능하며, 중첩에 비례해 복권 당첨 확률이 증가합니다."
+             "\n(+ 행운^0.5 * 0.1%)",
+        usage="*"
+    )
+    async def luck(self, ctx):
+        luck_log = await self.app.find_id('%', ctx.author.id)
+        if luck_log is not None:
+            luck = int(luck_log.content[20:])
+            await ctx.send(f'{luck} :four_leaf_clover: (복권 확률 +{(luck ** 0.5) * 0.1:0.2f}%)')
+        else:
+            await ctx.send("행운 효과가 없습니다.")
+
+    @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token/2*])", pass_context=True
     )
@@ -307,6 +403,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 await ctx.send(":no_entry: 이 채널에서는 실행할 수 없는 명령어입니다.")
 
+    @commands.cooldown(1, 60., commands.BucketType.user)
     @commands.bot_has_permissions(administrator=True)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],

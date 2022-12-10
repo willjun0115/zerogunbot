@@ -229,7 +229,7 @@ async def get_value(ctx, *, args):
 
 
 @admin_command.group(name="setvalue", aliases=["setval"])
-async def set_value(ctx, key, *, args):
+async def set_value(ctx, *, args):
     global temp
     temp = eval(args)
 

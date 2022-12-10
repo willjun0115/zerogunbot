@@ -11,3 +11,5 @@ selenium==4.0.0
 gtts==2.2.3
 asyncpg==0.25.0
 python-dateutil==2.8.2
+pyupbit
+numpy

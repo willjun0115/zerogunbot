@@ -81,12 +81,13 @@ class BTC(commands.Cog, name="비트코인", description="비트코인 조회에
 
     @commands.command(
         name="비트코인", aliases=["BTC"],
-        help="비트코인 정보를 조회합니다.",
+        help="업비트 코인 정보를 조회합니다.",
         usage="*"
     )
-    async def bitcoin(self, ctx):
-        embed = discord.Embed(title="<비트코인>", description="비트코인 정보 조회")
-        embed.add_field(name="현재가", value=f"{get_current_price('KRW-BTC')}", inline=True)
+    async def bitcoin(self, ctx, ticker='KRW-BTC'):
+        embed = discord.Embed(title="<업비트>", description=ticker + " 정보 조회")
+        embed.add_field(name="현재가", value=f"{get_current_price(ticker)}", inline=False)
+        embed.add_field(name="ma15", value=f"{get_ma15(ticker)}", inline=False)
         await ctx.send(embed=embed)
 
 

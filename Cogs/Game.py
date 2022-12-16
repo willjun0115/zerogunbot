@@ -489,6 +489,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(embed=embed)
         else:
             not_found = True
+            for item in self.items + self.special_items:
+                if item.icon == args:
+                    embed = discord.Embed(
+                        title="<가챠 정보>",
+                        description=f"{item.icon}의 이벤트 목록입니다."
+                    )
+                    for event in item.events:
+                        embed.add_field(
+                            name=' '.join(event.cond) + f' in {event.range}',
+                            value='{}', inline=False
+                        )
+                    await ctx.send(embed=embed)
+                    not_found = False
+                    break
             if not_found:
                 await ctx.send("항목을 찾을 수 없습니다.")
 

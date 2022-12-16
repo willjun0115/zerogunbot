@@ -147,7 +147,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         name="DB편집", aliases=["editdb"],
         help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
-    async def edit_local_db(self, ctx, selector, member: discord.Member, val):
+    async def edit_db(self, ctx, selector, member: discord.Member, val):
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
         if len(selector) == 1:

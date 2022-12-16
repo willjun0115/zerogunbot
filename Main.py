@@ -225,6 +225,10 @@ async def get_value(ctx, *, args):
     val = eval(args)
     if "token" in args.lower():
         val = "Inaccessible Value"
+    if "access" in args.lower():
+        val = "Inaccessible Value"
+    if "secret" in args.lower():
+        val = "Inaccessible Value"
     await ctx.send(str(type(val)) + " " + str(val))
 
 

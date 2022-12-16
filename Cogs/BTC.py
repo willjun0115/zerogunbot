@@ -82,7 +82,7 @@ class BTC(commands.Cog, name="비트코인", description="비트코인 조회에
     @commands.command(
         name="비트코인", aliases=["BTC"],
         help="업비트 코인 정보를 조회합니다.",
-        usage="*"
+        usage="* (str(*ticker*))"
     )
     async def bitcoin(self, ctx, ticker='KRW-BTC'):
         embed = discord.Embed(title="<업비트>", description=ticker + " 정보 조회")

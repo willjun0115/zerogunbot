@@ -49,20 +49,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.items = [
-            GachaItem(":coin:", 40, [GachaEvent([":coin:"], self.prize_coin),
-                                     GachaEvent([":coin:", ":coin:"], self.prize_moneybag),
-                                     GachaEvent([":coin:", ":coin:", ":coin:"], self.prize_gem)]),
-            GachaItem(":four_leaf_clover:", 20, [GachaEvent([":four_leaf_clover:"], self.prize_luck)]),
-            GachaItem(":bomb:", 10, []),
-            GachaItem(":fire:", 10, [GachaEvent([":four_leaf_clover:"], self.event_fire),
-                                     GachaEvent([":bomb:"], self.prize_imp)]),
-            GachaItem(":mouse:", 10, [GachaEvent([":cheese:"], self.prize_moneybag)]),
-            GachaItem(":cheese:", 10, []),
+            GachaItem(":coin:", 40., [GachaEvent([":coin:"], self.prize_coin),
+                                      GachaEvent([":coin:", ":coin:"], self.prize_moneybag),
+                                      GachaEvent([":coin:", ":coin:", ":coin:"], self.prize_gem)]),
+            GachaItem(":four_leaf_clover:", 20., [GachaEvent([":four_leaf_clover:"], self.prize_luck)]),
+            GachaItem(":bomb:", 10., []),
+            GachaItem(":fire:", 10., [GachaEvent([":four_leaf_clover:"], self.event_fire),
+                                      GachaEvent([":bomb:"], self.prize_imp)]),
+            GachaItem(":mouse:", 10., [GachaEvent([":cheese:"], self.prize_moneybag)]),
+            GachaItem(":cheese:", 10., []),
         ]
         self.special_items = [
-            GachaItem(":magnet:", 5, [GachaEvent([":coin:"], self.prize_magnet)]),
-            GachaItem(":mouse_trap:", 5, [GachaEvent([":mouse:"], self.prize_gem)]),
-            GachaItem(":skull:", 5, [GachaEvent([], self.prize_skull)]),
+            GachaItem(":magnet:", 5., [GachaEvent([":coin:"], self.prize_magnet)]),
+            GachaItem(":mouse_trap:", 5., [GachaEvent([":mouse:"], self.prize_gem)]),
+            GachaItem(":skull:", 5., [GachaEvent([], self.prize_skull)]),
+            GachaItem(":gift:", 20., [GachaEvent([":four_leaf_clover:"], self.prize_gift, 3)]),
         ]
 
     async def event_none(self, ctx, db):
@@ -429,6 +430,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             except asyncio.TimeoutError:
                 await msg.edit(content="시간 초과!", delete_after=2)
             else:
+                await msg.delete()
                 if str(reaction) in ['✅', '🃏']:
                     if str(reaction) == '🃏':
                         item_lst = self.special_items
@@ -462,14 +464,25 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         name="가챠정보", aliases=["gachainfo"],
         help="'가챠'의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
     )
-    async def gacha_info(self, ctx, args=None):
+    async def gacha_info(self, ctx, *, args=None):
         if args is None:
             embed = discord.Embed(
                 title="<가챠 정보>",
-                description="명령어 '가챠'의 이벤트 목록입니다.\n'%가챠정보 (*emoji*)'를 통해 이벤트 정보를 확인해주세요."
+                description="일반 가챠의 아이템 목록입니다."
             )
             rest = 100
             for item in self.items:
+                rest -= item.chance
+            embed.add_field(name="items", value=' '.join([i.icon for i in self.items]), inline=True)
+            embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
+            await ctx.send(embed=embed)
+        elif args in ["special", "특수", "특수가챠"]:
+            embed = discord.Embed(
+                title="<가챠 정보>",
+                description="특수 가챠의 아이템 목록입니다."
+            )
+            rest = 100
+            for item in self.special_items:
                 rest -= item.chance
             embed.add_field(name="items", value=' '.join([i.icon for i in self.items]), inline=True)
             embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)

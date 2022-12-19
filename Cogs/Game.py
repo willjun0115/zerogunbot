@@ -27,7 +27,7 @@ class GachaItem:
 
 
 class GachaEvent:
-    def __init__(self, cond: list, event, cond_range: int = 0):
+    def __init__(self, cond: list, event, cond_range: int = 0, description: str = "*No description*"):
         if len(cond) < 1:
             self.cond = ["Any"]
         else:
@@ -37,6 +37,7 @@ class GachaEvent:
         else:
             self.cond_range = cond_range
         self.event = event
+        self.description = description
 
     def check_cond(self, prev: list):
         if "Identical" in self.cond:
@@ -57,95 +58,135 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.items = [
-            GachaItem(":coin:", 50., [GachaEvent([":coin:"], lambda ctx, db: self.event_get_coin(ctx, db, random.randint(20, 100))),
-                                      GachaEvent([":coin:", ":coin:"], self.prize_moneybag),
-                                      GachaEvent([":coin:", ":coin:", ":coin:"], self.prize_gem)]),
-            GachaItem(":four_leaf_clover:", 10., [GachaEvent([":four_leaf_clover:"], self.prize_luck, 3)]),
+            GachaItem(":coin:", 50., [
+                GachaEvent(
+                    [":coin:"], lambda ctx: self.event_get_coin(ctx, random.randint(20, 100)),
+                    description="20~100개의 토큰을 얻습니다."
+                ),
+                GachaEvent(
+                    [":coin:", ":coin:"], lambda ctx: self.event_get_coin(ctx, random.randint(80, 120)),
+                    description="80~120개의 토큰을 얻습니다."
+                ),
+                GachaEvent(
+                    [":coin:", ":coin:", ":coin:"], lambda ctx: self.event_get_coin(ctx, random.randint(160, 240)),
+                    description="160~240개의 토큰을 얻습니다."
+                )
+            ]),
+            GachaItem(":four_leaf_clover:", 10., [
+                GachaEvent(
+                    [":four_leaf_clover:"], lambda ctx: self.event_luck(ctx, 1), cond_range=3,
+                    description="행운을 1중첩 얻습니다."
+                )
+            ]),
             GachaItem(":bomb:", 10., []),
-            GachaItem(":fire:", 20., [GachaEvent([":four_leaf_clover:"], self.event_fire),
-                                      GachaEvent([":bomb:"], self.prize_imp)]),
+            GachaItem(":fire:", 20., [
+                GachaEvent(
+                    [":four_leaf_clover:"], lambda ctx: self.event_luck(ctx, -random.randint(1, 5)),
+                    description="행운을 1~5중첩 잃습니다. 중첩이 5 이하면 행운 효과를 모두 잃습니다."
+                ),
+                GachaEvent(
+                    [":bomb:"], lambda ctx: self.event_get_coin(ctx, -random.randint(120, 160)),
+                    description="120~160개의 토큰을 잃습니다."
+                )
+            ]),
             GachaItem(":cheese:", 10., []),
         ]
         self.special_items = [
-            GachaItem(":magnet:", 5., [GachaEvent([":coin:"], self.prize_magnet)]),
-            GachaItem(":mouse_trap:", 10., [GachaEvent([":cheese:"], self.event_mousetrap, 5)]),
-            GachaItem(":skull:", 5., [GachaEvent([], self.prize_skull)]),
-            GachaItem(":mouse:", 20., [GachaEvent([":cheese:"], self.prize_coin, 5),
-                                       GachaEvent([":cheese:"], self.prize_moneybag),
-                                       GachaEvent(["mouse_trap"], self.prize_imp, 5)]),
-            GachaItem(":gift:", 20., [GachaEvent([":four_leaf_clover:"], self.prize_gift, 3)]),
-            GachaItem(":slot_machine:", 15., [GachaEvent(["Identical"], self.prize_gem, 3)]),
+            GachaItem(":magnet:", 5., [
+                GachaEvent(
+                    [":coin:"], self.prize_magnet,
+                    description="무작위 멤버의 토큰을 10% 빼앗습니다."
+                )
+            ]),
+            GachaItem(":mouse_trap:", 15., [
+                GachaEvent(
+                    [":cheese:"], lambda ctx: self.event_mousetrap(ctx, 3), cond_range=3,
+                    description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
+                )
+            ]),
+            GachaItem(":skull:", 5., [
+                GachaEvent(
+                    [], self.prize_skull,
+                    description="토큰을 모두 잃습니다."
+                )
+            ]),
+            GachaItem(":mouse:", 25., [
+                GachaEvent(
+                    [":cheese:"], lambda ctx: self.event_get_coin(ctx, random.randint(50, 100)), cond_range=3,
+                    description="50~100개의 토큰을 얻습니다."
+                ),
+                GachaEvent(
+                    ["mouse_trap"], lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150)), cond_range=3,
+                    description="100~150개의 토큰을 잃습니다."
+                )
+            ]),
+            GachaItem(":gift:", 25., [
+                GachaEvent(
+                    [":four_leaf_clover:"], lambda ctx: self.event_gift(ctx), cond_range=3,
+                    description="50~50+(행운 중첩 수)개의 토큰을 얻습니다."
+                )
+            ]),
+            GachaItem(":slot_machine:", 15., [
+                GachaEvent(
+                    ["Identical"], lambda ctx: self.event_get_coin(ctx, 777), cond_range=3,
+                    description="토큰을 777개 얻습니다."
+                )
+            ]),
+            GachaItem(":fire_extinguisher:", 10., [
+                GachaEvent(
+                    [":fire:"], lambda ctx: self.event_remove_items(ctx, ":fire:", 5), cond_range=5,
+                    description="범위 안의 불을 모두 제거합니다."
+                )
+            ]),
         ]
 
-    async def event_none(self, ctx, db):
+    async def event_none(self, ctx):
         return None
 
-    async def event_fire(self, ctx, db):
-        luck_log = await self.app.find_id('%', ctx.author.id)
-        if luck_log is None:
-            return None
-        else:
-            luck = int(luck_log.content[20:])
-            if luck < 10:
-                await luck_log.delete()
-                return f"행운 효과를 잃었습니다."
-            else:
-                lose = random.randint(10, luck//2)
-                await luck_log.edit(content=luck_log.content[:20] + str(luck - lose))
-                return f'행운 -{lose} :four_leaf_clover:'
-
-    async def event_mousetrap(self, ctx, db):
+    async def event_mousetrap(self, ctx, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        msgs = [message async for message in gacha_channel.history(limit=5)]
+        msgs = [message async for message in gacha_channel.history(limit=max_range)]
         cnt = 0
         for msg in msgs:
             if msg.content == ":cheese:":
                 await msg.edit(content=":mouse_trap:")
                 cnt += 1
-        return f"{cnt}개의 치즈에 덫을 설치했습니다"
+        return f"{cnt}개의 치즈에 덫을 설치했습니다."
 
-    async def event_jackpot(self, ctx, db):
-        coin = int(db.content[20:])
-        prize = 777
-        await db.edit(content=db.content[:20]+str(coin + prize))
-        return 'JACKPOT! +' + str(prize) + " :coin:"
-
-    async def event_get_coin(self, ctx, db, n: int = 0):
+    async def event_get_coin(self, ctx, n: int = 0):
+        db = await self.app.find_id('$', ctx.author.id)
         coin = int(db.content[20:])
         await db.edit(content=db.content[:20] + str(coin + n))
-        return '+' + str(n) + " :coin:"
+        if n >= 0:
+            return '+' + str(n) + " :coin:"
+        else:
+            return str(n) + " :coin:"
 
-    async def prize_gem(self, ctx, db):
-        coin = int(db.content[20:])
-        prize = random.randint(250, 300)
-        await db.edit(content=db.content[:20]+str(coin + prize))
-        return '+' + str(prize) + " :coin:"
-
-    async def prize_moneybag(self, ctx, db):
-        coin = int(db.content[20:])
-        prize = random.randint(70, 120)
-        await db.edit(content=db.content[:20]+str(coin + prize))
-        return '+' + str(prize) + " :coin:"
-
-    async def prize_coin(self, ctx, db):
-        coin = int(db.content[20:])
-        prize = random.randint(20, 100)
-        await db.edit(content=db.content[:20]+str(coin + prize))
-        return '+' + str(prize) + " :coin:"
-
-    async def prize_luck(self, ctx, db):
+    async def event_luck(self, ctx, n: int = 0):
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
+        db = await self.app.find_id('$', ctx.author.id)
         luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is None:
-            await db_channel.send('%' + str(ctx.author.id) + ';1')
-            return "행운 효과를 얻었습니다!"
+            if n > 0:
+                await db_channel.send('%' + str(ctx.author.id) + ';' + str(n))
+                return "행운 효과를 얻었습니다!"
+            else:
+                return None
         else:
             luck = int(luck_log.content[20:])
-            await luck_log.edit(content=luck_log.content[:20] + str(luck + 1))
-            return f'행운 +1 :four_leaf_clover:'
+            if n >= 0:
+                await luck_log.edit(content=luck_log.content[:20] + str(luck + n))
+                return f'+{n} :four_leaf_clover:'
+            elif luck <= 5:
+                await luck_log.delete()
+                return f"행운 효과를 잃었습니다."
+            else:
+                await luck_log.edit(content=luck_log.content[:20] + str(luck + n))
+                return f'{n} :four_leaf_clover:'
 
-    async def prize_gift(self, ctx, db):
+    async def event_gift(self, ctx):
+        db = await self.app.find_id('$', ctx.author.id)
         luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is None:
             return None
@@ -155,18 +196,24 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             return str(gift) + " :coin: 을 얻었습니다!"
 
-    async def prize_imp(self, ctx, db):
-        coin = int(db.content[20:])
-        prize = - random.randint(50, 100)
-        await db.edit(content=db.content[:20] + str(coin + prize))
-        return str(prize) + " :coin:"
+    async def event_remove_items(self, ctx, icon: str, max_range: int = 1):
+        gacha_channel = get(ctx.guild.text_channels, name="가챠")
+        msgs = [message async for message in gacha_channel.history(limit=max_range)]
+        cnt = 0
+        for msg in msgs:
+            if msg.content == icon:
+                await msg.delete()
+                cnt += 1
+        return f"{cnt}개의 {icon}을 제거했습니다."
 
-    async def prize_skull(self, ctx, db):
+    async def prize_skull(self, ctx):
+        db = await self.app.find_id('$', ctx.author.id)
         if int(db.content[20:]) > 0:
             await db.edit(content=db.content[:20]+'0')
         return "모든 토큰을 잃었습니다."
 
-    async def prize_token_change(self, ctx, db):
+    async def prize_token_change(self, ctx):
+        db = await self.app.find_id('$', ctx.author.id)
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
@@ -183,7 +230,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         await member_db.edit(content=member_db.content[:20]+coin)
         return member.mention + f" 님과 토큰이 뒤바뀌었습니다!\n{coin} <-> {member_coin} :coin:"
 
-    async def prize_scales(self, ctx, db):
+    async def prize_scales(self, ctx):
+        db = await self.app.find_id('$', ctx.author.id)
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
@@ -201,7 +249,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         await member_db.edit(content=member_db.content[:20] + str(allocated_coin))
         return member.mention + " 님과 " + str(allocated_coin) + " :coin: 만큼 토큰을 분배받았습니다."
 
-    async def prize_magnet(self, ctx, db):
+    async def prize_magnet(self, ctx):
+        db = await self.app.find_id('$', ctx.author.id)
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
@@ -217,27 +266,28 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         await member_db.edit(content=member_db.content[:20] + str(int(member_db.content[20:])-coin))
         return member.mention + " 님의 토큰을 " + str(coin) + " :coin: 빼앗았습니다!"
 
-    async def prize_rise(self, ctx, db):
+    async def prize_rise(self, ctx):
         bot_db = await self.app.find_id('$', self.app.user.id)
         prize = int(bot_db.content[20:])
         delta = random.randint(10, 30)
         await bot_db.edit(content=bot_db.content[:20] + str(prize + delta))
         return '복권 상금 +' + str(delta) + " :coin:"
 
-    async def prize_reduce(self, ctx, db):
+    async def prize_reduce(self, ctx):
         bot_db = await self.app.find_id('$', self.app.user.id)
         prize = int(bot_db.content[20:])
         delta = random.randint(30, 50)
         await bot_db.edit(content=bot_db.content[:20] + str(prize - delta))
         return '복권 상금 -' + str(delta) + " :coin:"
 
-    async def prize_pill(self, ctx, db):
+    async def prize_pill(self, ctx):
+        db = await self.app.find_id('$', ctx.author.id)
         coin = int(db.content[20:])
         prize = random.choice([2, 0.5])
         await db.edit(content=db.content[:20]+str(int(coin * prize)))
         return str(coin) + ' x ' + str(prize) + " :coin:"
 
-    async def prize_cyclone(self, ctx, db):
+    async def prize_cyclone(self, ctx):
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
         messages = await db_channel.history(limit=100).flatten()
@@ -480,7 +530,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     events = item.check_event(prev)
                     if len(events) > 0:
                         for ev in events:
-                            effect = await ev.event(ctx, db)
+                            effect = await ev.event(ctx)
                             embed.add_field(name="이벤트", value=effect)
                         await ctx.send(embed=embed)
                 else:

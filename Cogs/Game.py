@@ -113,15 +113,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":mouse:", 25., [
                 GachaEvent(
                     [":cheese:"], lambda ctx: (self.event_get_coin(ctx, random.randint(50, 100)),
-                                               self.event_remove_item(ctx, ":cheese:", 3)),
+                                               self.event_remove_item(ctx, ":cheese:", 3, 1)),
                     cond_range=3,
-                    description="50~100개의 토큰을 얻습니다."
+                    description="치즈를 하나 먹고 50~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
                     [":mouse_trap:"], lambda ctx: (self.event_get_coin(ctx, -random.randint(100, 150)),
-                                                   self.event_remove_item(ctx, ":mouse_trap:", 3)),
+                                                   self.event_remove_item(ctx, ":mouse_trap:", 3, 1)),
                     cond_range=3,
-                    description="100~150개의 토큰을 잃습니다."
+                    description="쥐덫에 걸려 100~150개의 토큰을 잃습니다."
                 )
             ]),
             GachaItem(":gift:", 25., [
@@ -138,7 +138,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]),
             GachaItem(":fire_extinguisher:", 10., [
                 GachaEvent(
-                    [":fire:"], lambda ctx: self.event_remove_items(ctx, ":fire:", 5), cond_range=5,
+                    [":fire:"], lambda ctx: self.event_remove_all_items(ctx, ":fire:", 5), cond_range=5,
                     description="범위 안의 불을 모두 제거합니다."
                 )
             ]),
@@ -200,16 +200,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             return str(gift) + " :coin: 을 얻었습니다!"
 
-    async def event_remove_item(self, ctx, icon: str, max_range: int = 1):
+    async def event_remove_item(self, ctx, icon: str, max_range: int = 1, cnt: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
         msgs = [message async for message in gacha_channel.history(limit=max_range)]
         for msg in msgs:
             if msg.content == icon:
                 await msg.delete()
                 break
-        return f"{icon}을 제거했습니다."
+        return f"{cnt}개의 {icon}을 제거했습니다."
 
-    async def event_remove_items(self, ctx, icon: str, max_range: int = 1):
+    async def event_remove_all_items(self, ctx, icon: str, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
         msgs = [message async for message in gacha_channel.history(limit=max_range)]
         cnt = 0

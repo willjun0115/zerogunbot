@@ -63,8 +63,9 @@ class GachaEvent:
         self.exceptions = exceptions
 
     def check_cond(self, prev: list, ability: GachaAbility = None):
-        if ability.name in self.exceptions.get('ability'):
-            return False
+        if self.exceptions:
+            if ability.name in self.exceptions.get('ability'):
+                return False
         if "Identical" in self.cond:
             check = [prev[0]] * self.cond_range
         else:
@@ -179,13 +180,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ]
         self.abilities = [
             GachaAbility("heart_afire", ":heart_on_fire:", 1.,
-                         chance_revision={":fire:": 10},
+                         chance_revision={":fire:": 10.},
                          description="불의 등장 확률이 증가합니다. 불이 나오면 토큰을 얻습니다."),
             GachaAbility("fastclock", ":hourglass:", 1.,
                          post_effects=[lambda ctx: self.event_reset_cooldown(ctx)],
                          description="일정 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
-                         chance_revision={":fire_extinguisher:": 10},
+                         chance_revision={":fire_extinguisher:": 10.},
                          description="불로 인한 부정적인 효과를 받지 않으며, 소화기의 등장 확률이 증가합니다."),
         ]
 
@@ -295,7 +296,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def event_reset_cooldown(self, ctx):
         rand = random.random() * 100
         if rand <= 20:
-            await ctx.command.reset_cooldown(ctx)
+            ctx.command.reset_cooldown(ctx)
             return "쿨타임 초기화 되었습니다."
 
     async def prize_token_change(self, ctx):

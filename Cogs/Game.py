@@ -57,7 +57,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.items = [
-            GachaItem(":coin:", 50., [GachaEvent([":coin:"], self.prize_coin),
+            GachaItem(":coin:", 50., [GachaEvent([":coin:"], lambda ctx, db: self.event_get_coin(ctx, db, random.randint(20, 100))),
                                       GachaEvent([":coin:", ":coin:"], self.prize_moneybag),
                                       GachaEvent([":coin:", ":coin:", ":coin:"], self.prize_gem)]),
             GachaItem(":four_leaf_clover:", 10., [GachaEvent([":four_leaf_clover:"], self.prize_luck, 3)]),
@@ -76,14 +76,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":gift:", 20., [GachaEvent([":four_leaf_clover:"], self.prize_gift, 3)]),
             GachaItem(":slot_machine:", 15., [GachaEvent(["Identical"], self.prize_gem, 3)]),
         ]
-
-    def find_item(self, icon):
-        found = False
-        for item in self.items + self.special_items:
-            if item.icon == icon:
-                return item
-        if not found:
-            return None
 
     async def event_none(self, ctx, db):
         return None
@@ -117,6 +109,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         prize = 777
         await db.edit(content=db.content[:20]+str(coin + prize))
         return 'JACKPOT! +' + str(prize) + " :coin:"
+
+    async def event_get_coin(self, ctx, db, n: int = 0):
+        coin = int(db.content[20:])
+        await db.edit(content=db.content[:20] + str(coin + n))
+        return '+' + str(n) + " :coin:"
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])

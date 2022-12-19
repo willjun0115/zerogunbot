@@ -106,17 +106,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]),
             GachaItem(":skull:", 5., [
                 GachaEvent(
-                    [], self.prize_skull,
+                    [], lambda ctx: self.event_bankrupt(ctx),
                     description="토큰을 모두 잃습니다."
                 )
             ]),
             GachaItem(":mouse:", 25., [
                 GachaEvent(
-                    [":cheese:"], lambda ctx: self.event_get_coin(ctx, random.randint(50, 100)), cond_range=3,
+                    [":cheese:"], lambda ctx: self.event_get_coin(ctx, random.randint(50, 100))
+                    and self.event_remove_item(ctx, ":cheese:", 3), cond_range=3,
                     description="50~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
-                    [":mouse_trap:"], lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150)), cond_range=3,
+                    [":mouse_trap:"], lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150))
+                    and self.event_remove_item(ctx, ":mouse_trap:", 3), cond_range=3,
                     description="100~150개의 토큰을 잃습니다."
                 )
             ]),
@@ -196,6 +198,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await db.edit(content=db.content[:20] + str(int(db.content[20:]) + gift))
             return str(gift) + " :coin: 을 얻었습니다!"
 
+    async def event_remove_item(self, ctx, icon: str, max_range: int = 1):
+        gacha_channel = get(ctx.guild.text_channels, name="가챠")
+        msgs = [message async for message in gacha_channel.history(limit=max_range)]
+        for msg in msgs:
+            if msg.content == icon:
+                await msg.delete()
+                break
+        return f"{icon}을 제거했습니다."
+
     async def event_remove_items(self, ctx, icon: str, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
         msgs = [message async for message in gacha_channel.history(limit=max_range)]
@@ -206,7 +217,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 cnt += 1
         return f"{cnt}개의 {icon}을 제거했습니다."
 
-    async def prize_skull(self, ctx):
+    async def event_bankrupt(self, ctx):
         db = await self.app.find_id('$', ctx.author.id)
         if int(db.content[20:]) > 0:
             await db.edit(content=db.content[:20]+'0')

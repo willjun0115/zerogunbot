@@ -574,7 +574,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for event in item.events:
                         embed.add_field(
                             name=f"> {' '.join(event.cond)} in {event.cond_range}",
-                            value="no description.", inline=False
+                            value=event.description, inline=False
                         )
                     await ctx.send(embed=embed)
                     not_found = False

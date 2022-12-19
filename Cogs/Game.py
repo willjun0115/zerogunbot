@@ -670,14 +670,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 description="일반 가챠의 아이템 목록입니다.\n"
                             "일반 가챠로 등장한 아이템은 가챠 채널에 추가됩니다."
             )
-            whole_rand = 100
+            whole_rand = 100.0
             if option == 'adjusted' and ability:
                 whole_rand += ability.rand_revision
             rest = whole_rand
             for item in self.items:
                 chance = item.chance
                 if option == 'adjusted' and ability:
-                    if ability and item.icon in ability.chance_revision.keys():
+                    if ability.chance_revision and item.icon in ability.chance_revision.keys():
                         chance += ability.chance_revision.get(item.icon)
                 embed.add_field(name=item.icon, value="{:0.2f}%".format((chance/whole_rand)*100), inline=True)
                 rest -= chance
@@ -689,14 +689,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 description="특수 가챠의 아이템 목록입니다.\n"
                             "특수 가챠는 기본적으로 가챠 채널에 아이템을 추가하지 않으며, 기대 이익이 큰 만큼 높은 리스크를 동반합니다."
             )
-            whole_rand = 100
+            whole_rand = 100.0
             if option == 'adjusted' and ability:
                 whole_rand += ability.rand_revision
             rest = whole_rand
             for item in self.special_items:
                 chance = item.chance
                 if option == 'adjusted' and ability:
-                    if ability and item.icon in ability.chance_revision.keys():
+                    if ability.chance_revision and item.icon in ability.chance_revision.keys():
                         chance += ability.chance_revision.get(item.icon)
                 embed.add_field(name=item.icon, value="{:0.2f}%".format((chance / whole_rand) * 100), inline=True)
                 rest -= chance

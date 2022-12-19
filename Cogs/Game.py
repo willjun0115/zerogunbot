@@ -528,9 +528,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def check_ability(self, ctx):
         ability = None
-        ability_name = await self.app.find_id('*', ctx.author.id)
+        ability_data = await self.app.find_id('*', ctx.author.id)
         for a in self.abilities:
-            if a.name == ability_name:
+            if a.name == ability_data.content[20:]:
                 ability = a
         if ability is not None:
             embed = discord.Embed(
@@ -542,7 +542,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if ability.chance_revision:
                 embed.add_field(
                     name="> 확률 보정",
-                    value='\n'.join([f"key : {ability.chance_revision.get(key)}" for key in ability.chance_revision.keys()]),
+                    value='\n'.join([f"key : {ability.chance_revision.get(key):0.2f}" for key in ability.chance_revision.keys()]),
                     inline=False
                 )
             await ctx.send(embed=embed)
@@ -622,9 +622,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             else:
                 return None
             ability = None
-            ability_name = await self.app.find_id('*', ctx.author.id)
+            ability_data = await self.app.find_id('*', ctx.author.id)
             for a in self.abilities:
-                if a.name == ability_name:
+                if a.name == ability_data.content[20:]:
                     ability = a
             item = None
             prev = [message.content async for message in gacha_channel.history(limit=10)]
@@ -662,9 +662,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def gacha_info(self, ctx, args: str = None, option: str = None):
         ability = None
-        ability_name = await self.app.find_id('*', ctx.author.id)
+        ability_data = await self.app.find_id('*', ctx.author.id)
         for a in self.abilities:
-            if a.name == ability_name:
+            if a.name == ability_data.content[20:]:
                 ability = a
         if args is None or args in ["normal", "일반", "일반가챠"]:
             embed = discord.Embed(

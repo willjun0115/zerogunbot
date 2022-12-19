@@ -42,7 +42,7 @@ class GachaEvent:
         if "Identical" in self.cond:
             check = [prev[0]] * self.cond_range
         else:
-            check = self.cond
+            check = list(self.cond)
         for i in range(0, self.cond_range):
             if prev[i] in check:
                 check.remove(prev[i])
@@ -519,7 +519,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             not_found = True
             for icon in [i.icon for i in self.items + self.special_items]:
-                if icon == args:
+                if str(args) in [icon, icon[1:-1]]:
                     item = self.find_item(icon)
                     embed = discord.Embed(
                         title="<가챠 정보>",
@@ -528,7 +528,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for event in item.events:
                         embed.add_field(
                             name=f"{' '.join(event.cond)} in {event.range}",
-                            value='{}', inline=False
+                            value='{description}', inline=False
                         )
                     await ctx.send(embed=embed)
                     not_found = False

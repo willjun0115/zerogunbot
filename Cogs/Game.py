@@ -116,7 +116,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     description="50~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
-                    ["mouse_trap"], lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150)), cond_range=3,
+                    [":mouse_trap:"], lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150)), cond_range=3,
                     description="100~150개의 토큰을 잃습니다."
                 )
             ]),

@@ -17,10 +17,6 @@ class GachaAbility:
         self.chance = chance
         self.description = description
         self.chance_revision = chance_revision
-        self.rand_revision = 0.0
-        if self.chance_revision:
-            for value in self.chance_revision.values():
-                self.rand_revision += value
         self.pre_effects = pre_effects
         self.post_effects = post_effects
 
@@ -190,6 +186,18 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          chance_revision={":fire_extinguisher:": 10.},
                          description="불로 인한 부정적인 효과를 받지 않으며, 소화기의 등장 확률이 증가합니다."),
         ]
+
+    def get_whole_revision(self, chance_revision: dict):
+        normal_revision = 0.0
+        special_revision = 0.0
+        normal_icons = [i.icon for i in self.items]
+        special_icons = [i.icon for i in self.special_items]
+        for key, value in chance_revision.items():
+            if key in normal_icons:
+                normal_revision += value
+            elif key in special_icons:
+                special_revision += value
+        return normal_revision, special_revision
 
     async def event_none(self, ctx):
         return None
@@ -631,7 +639,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             embed = discord.Embed(title="<:video_game: 가챠>",
                                   description=ctx.author.display_name + " 님의 결과")
             if ability and ability.chance_revision:
-                rand = random.random() * (100 + ability.rand_revision)
+                n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
+                if option == 'n':
+                    rand = random.random() * (100 + n_revision)
+                elif option == 's':
+                    rand = random.random() * (100 + s_revision)
+                else:
+                    rand = random.random() * 100
             else:
                 rand = random.random() * 100
             for i in item_lst:
@@ -661,6 +675,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n'%가챠정보 *item*을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))", pass_context=True
     )
     async def gacha_info(self, ctx, args: str = None, option: str = None):
+        if option in ["특성적용", "-a"]:
+            option = 'adjusted'
         ability = None
         ability_data = await self.app.find_id('*', ctx.author.id)
         for a in self.abilities:
@@ -673,8 +689,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             "일반 가챠로 등장한 아이템은 가챠 채널에 추가됩니다."
             )
             whole_rand = 100.0
-            if option == 'adjusted' and ability:
-                whole_rand += ability.rand_revision
+            if option == 'adjusted' and ability and ability.chance_revision:
+                n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
+                whole_rand += n_revision
             rest = whole_rand
             for item in self.items:
                 chance = item.chance
@@ -692,8 +709,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             "특수 가챠는 기본적으로 가챠 채널에 아이템을 추가하지 않으며, 기대 이익이 큰 만큼 높은 리스크를 동반합니다."
             )
             whole_rand = 100.0
-            if option == 'adjusted' and ability:
-                whole_rand += ability.rand_revision
+            if option == 'adjusted' and ability and ability.chance_revision:
+                n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
+                whole_rand += s_revision
             rest = whole_rand
             for item in self.special_items:
                 chance = item.chance

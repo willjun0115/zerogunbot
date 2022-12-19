@@ -524,15 +524,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.delete()
                     if str(reaction) in ['✅', '🃏']:
                         if str(reaction) == '🃏':
-                            option = 'special'
+                            option = 's'
                         else:
-                            option = 'normal'
+                            option = 'n'
                     else:
                         await ctx.send("취소했습니다.")
                         return None
             if option in ['special', 'SPECIAL', '-s']:
+                option = 's'
                 item_lst = self.special_items
             elif option in ['normal', 'NORMAL', '-n']:
+                option = 'n'
                 item_lst = self.items
             else:
                 return None
@@ -547,9 +549,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     break
                 else:
                     rand -= i.chance
-            if option == 'special':
+            if option == 's':
                 await ctx.send(item.icon)
-            elif option == 'normal':
+            elif option == 'n':
                 await gacha_channel.send(item.icon)
             ev_lst = item.check_event(prev)
             if len(ev_lst) > 0:

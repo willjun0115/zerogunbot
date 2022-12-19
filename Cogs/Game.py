@@ -21,29 +21,29 @@ class GachaItem:
     def check_event(self, prev: list):
         ev = []
         for event in self.events:
-            if event.check_cond(prev):
+            if event.check_cond(prev) is True:
                 ev.append(event)
         return ev
 
 
 class GachaEvent:
-    def __init__(self, cond: list, event, range: int = 0):
+    def __init__(self, cond: list, event, cond_range: int = 0):
         if len(cond) < 1:
             self.cond = ["Any"]
         else:
             self.cond = cond
-        self.event = event
-        if range < len(self.cond):
-            self.range = len(self.cond)
+        if cond_range < len(self.cond):
+            self.cond_range = len(self.cond)
         else:
-            self.range = range
+            self.cond_range = cond_range
+        self.event = event
 
     def check_cond(self, prev: list):
         if "Identical" in self.cond:
-            check = [prev[0]] * self.range
+            check = [prev[0]] * self.cond_range
         else:
             check = self.cond
-        for i in range(0, self.range):
+        for i in range(0, self.cond_range):
             if prev[i] in check:
                 check.remove(prev[i])
             elif "Any" in check:
@@ -120,7 +120,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_gem(self, ctx, db):
         coin = int(db.content[20:])
-        prize = random.randint(300, 450)
+        prize = random.randint(250, 300)
         await db.edit(content=db.content[:20]+str(coin + prize))
         return '+' + str(prize) + " :coin:"
 
@@ -132,7 +132,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def prize_coin(self, ctx, db):
         coin = int(db.content[20:])
-        prize = random.randint(10, 100)
+        prize = random.randint(20, 100)
         await db.edit(content=db.content[:20]+str(coin + prize))
         return '+' + str(prize) + " :coin:"
 

@@ -19,15 +19,16 @@ class GachaItem:
         return self.icon
 
     def check_event(self, prev: list):
-        ev = []
+        ev_lst = []
         for event in self.events:
             if event.check_cond(prev) is True:
-                ev.append(event)
-        return ev
+                for m in event.event_methods:
+                    ev_lst.append(m)
+        return ev_lst
 
 
 class GachaEvent:
-    def __init__(self, cond: list, event, cond_range: int = 0, description: str = "*No description*"):
+    def __init__(self, cond: list, event_methods: list, cond_range: int = 0, description: str = "*No description*"):
         if len(cond) < 1:
             self.cond = ["Any"]
         else:
@@ -36,7 +37,7 @@ class GachaEvent:
             self.cond_range = len(self.cond)
         else:
             self.cond_range = cond_range
-        self.event = event
+        self.event_methods = event_methods
         self.description = description
 
     def check_cond(self, prev: list):
@@ -60,32 +61,32 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.items = [
             GachaItem(":coin:", 50., [
                 GachaEvent(
-                    [":coin:"], lambda ctx: self.event_get_coin(ctx, random.randint(20, 100)),
+                    [":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(20, 100))],
                     description="20~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
-                    [":coin:", ":coin:"], lambda ctx: self.event_get_coin(ctx, random.randint(80, 120)),
+                    [":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(80, 120))],
                     description="80~120개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
-                    [":coin:", ":coin:", ":coin:"], lambda ctx: self.event_get_coin(ctx, random.randint(160, 240)),
+                    [":coin:", ":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(160, 240))],
                     description="160~240개의 토큰을 얻습니다."
                 )
             ]),
             GachaItem(":four_leaf_clover:", 10., [
                 GachaEvent(
-                    [":four_leaf_clover:"], lambda ctx: self.event_luck(ctx, 1), cond_range=3,
+                    [":four_leaf_clover:"], [lambda ctx: self.event_luck(ctx, 1)], cond_range=3,
                     description="행운을 1중첩 얻습니다."
                 )
             ]),
             GachaItem(":bomb:", 10., []),
             GachaItem(":fire:", 20., [
                 GachaEvent(
-                    [":four_leaf_clover:"], lambda ctx: self.event_luck(ctx, -random.randint(1, 5)),
+                    [":four_leaf_clover:"], [lambda ctx: self.event_luck(ctx, -random.randint(1, 5))],
                     description="행운을 1~5중첩 잃습니다. 중첩이 5 이하면 행운 효과를 모두 잃습니다."
                 ),
                 GachaEvent(
-                    [":bomb:"], lambda ctx: self.event_get_coin(ctx, -random.randint(120, 160)),
+                    [":bomb:"], [lambda ctx: self.event_get_coin(ctx, -random.randint(120, 160))],
                     description="120~160개의 토큰을 잃습니다."
                 )
             ]),
@@ -94,51 +95,51 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.special_items = [
             GachaItem(":magnet:", 5., [
                 GachaEvent(
-                    [":coin:"], self.prize_magnet,
+                    [":coin:"], [self.prize_magnet],
                     description="무작위 멤버의 토큰을 10% 빼앗습니다."
                 )
             ]),
             GachaItem(":mouse_trap:", 15., [
                 GachaEvent(
-                    [":cheese:"], lambda ctx: self.event_mousetrap(ctx, 3), cond_range=3,
+                    [":cheese:"], [lambda ctx: self.event_mousetrap(ctx, 3)], cond_range=3,
                     description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
                 )
             ]),
             GachaItem(":skull:", 5., [
                 GachaEvent(
-                    [], lambda ctx: self.event_bankrupt(ctx),
+                    [], [lambda ctx: self.event_bankrupt(ctx)],
                     description="토큰을 모두 잃습니다."
                 )
             ]),
             GachaItem(":mouse:", 25., [
                 GachaEvent(
-                    [":cheese:"], lambda ctx: (self.event_get_coin(ctx, random.randint(50, 100)),
-                                               self.event_remove_item(ctx, ":cheese:", 3, 1)),
+                    [":cheese:"], [lambda ctx: self.event_get_coin(ctx, random.randint(50, 100)),
+                                   lambda ctx: self.event_remove_item(ctx, ":cheese:", 3, 1)],
                     cond_range=3,
                     description="치즈를 하나 먹고 50~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
-                    [":mouse_trap:"], lambda ctx: (self.event_get_coin(ctx, -random.randint(100, 150)),
-                                                   self.event_remove_item(ctx, ":mouse_trap:", 3, 1)),
+                    [":mouse_trap:"], [lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150)),
+                                       lambda ctx: self.event_remove_item(ctx, ":mouse_trap:", 3, 1)],
                     cond_range=3,
                     description="쥐덫에 걸려 100~150개의 토큰을 잃습니다."
                 )
             ]),
             GachaItem(":gift:", 25., [
                 GachaEvent(
-                    [":four_leaf_clover:"], lambda ctx: self.event_gift(ctx), cond_range=3,
+                    [":four_leaf_clover:"], [lambda ctx: self.event_gift(ctx)], cond_range=3,
                     description="50~50+(행운 중첩 수)개의 토큰을 얻습니다."
                 )
             ]),
             GachaItem(":slot_machine:", 15., [
                 GachaEvent(
-                    ["Identical"], lambda ctx: self.event_get_coin(ctx, 777), cond_range=3,
+                    ["Identical"], [lambda ctx: self.event_get_coin(ctx, 777)], cond_range=3,
                     description="토큰을 777개 얻습니다."
                 )
             ]),
             GachaItem(":fire_extinguisher:", 10., [
                 GachaEvent(
-                    [":fire:"], lambda ctx: self.event_remove_all_items(ctx, ":fire:", 5), cond_range=5,
+                    [":fire:"], [lambda ctx: self.event_remove_all_items(ctx, ":fire:", 5)], cond_range=5,
                     description="범위 안의 불을 모두 제거합니다."
                 )
             ]),

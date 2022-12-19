@@ -550,7 +550,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if ability.chance_revision:
                 embed.add_field(
                     name="> 확률 보정",
-                    value='\n'.join([f"key : {ability.chance_revision.get(key):0.2f}" for key in ability.chance_revision.keys()]),
+                    value='\n'.join([f"{key} : {ability.chance_revision.get(key):0.2f}" for key in ability.chance_revision.keys()]),
                     inline=False
                 )
             await ctx.send(embed=embed)
@@ -675,13 +675,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n'%가챠정보 *item*을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))", pass_context=True
     )
     async def gacha_info(self, ctx, args: str = None, option: str = None):
+        ability_name = None
         if option in ["특성적용", "-a"]:
             option = 'adjusted'
+        if option.startswith("특성적용:") or option.startswith("-a:"):
+            option = 'adjusted'
+            ability_name = option[option.index(':')+1:]
         ability = None
-        ability_data = await self.app.find_id('*', ctx.author.id)
-        for a in self.abilities:
-            if a.name == ability_data.content[20:]:
-                ability = a
+        if option == 'adjusted':
+            if ability_name is None:
+                ability_data = await self.app.find_id('*', ctx.author.id)
+                ability_name = ability_data.content[20:]
+            for a in self.abilities:
+                if a.name == ability_name:
+                    ability = a
         if args is None or args in ["normal", "일반", "일반가챠"]:
             embed = discord.Embed(
                 title="<가챠 정보>",

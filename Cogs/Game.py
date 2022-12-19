@@ -93,22 +93,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":cheese:", 10., []),
         ]
         self.special_items = [
-            GachaItem(":magnet:", 5., [
+            GachaItem(":slot_machine:", 15., [
                 GachaEvent(
-                    [":coin:"], [self.prize_magnet],
-                    description="무작위 멤버의 토큰을 10% 빼앗습니다."
-                )
-            ]),
-            GachaItem(":mouse_trap:", 15., [
-                GachaEvent(
-                    [":cheese:"], [lambda ctx: self.event_mousetrap(ctx, 3)], cond_range=3,
-                    description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
-                )
-            ]),
-            GachaItem(":skull:", 5., [
-                GachaEvent(
-                    [], [lambda ctx: self.event_bankrupt(ctx)],
-                    description="토큰을 모두 잃습니다."
+                    ["Identical"], [lambda ctx: self.event_get_coin(ctx, 777)], cond_range=3,
+                    description="토큰을 777개 얻습니다."
                 )
             ]),
             GachaItem(":mouse:", 25., [
@@ -125,16 +113,28 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     description="쥐덫에 걸려 100~150개의 토큰을 잃습니다."
                 )
             ]),
+            GachaItem(":mouse_trap:", 15., [
+                GachaEvent(
+                    [":cheese:"], [lambda ctx: self.event_mousetrap(ctx, 3)], cond_range=3,
+                    description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
+                )
+            ]),
             GachaItem(":gift:", 25., [
                 GachaEvent(
                     [":four_leaf_clover:"], [lambda ctx: self.event_gift(ctx)], cond_range=3,
                     description="50~50+(행운 중첩 수)개의 토큰을 얻습니다."
                 )
             ]),
-            GachaItem(":slot_machine:", 15., [
+            GachaItem(":magnet:", 5., [
                 GachaEvent(
-                    ["Identical"], [lambda ctx: self.event_get_coin(ctx, 777)], cond_range=3,
-                    description="토큰을 777개 얻습니다."
+                    [":coin:"], [self.prize_magnet],
+                    description="무작위 멤버의 토큰을 10% 빼앗습니다."
+                )
+            ]),
+            GachaItem(":skull:", 5., [
+                GachaEvent(
+                    [], [lambda ctx: self.event_bankrupt(ctx)],
+                    description="토큰을 모두 잃습니다."
                 )
             ]),
             GachaItem(":fire_extinguisher:", 10., [

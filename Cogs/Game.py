@@ -493,7 +493,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         name="가챠정보", aliases=["gachainfo"],
         help="'가챠'의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
     )
-    async def gacha_info(self, ctx, *, args=None):
+    async def gacha_info(self, ctx, args=None):
         if args is None:
             embed = discord.Embed(
                 title="<가챠 정보>",

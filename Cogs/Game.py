@@ -27,19 +27,27 @@ class GachaItem:
 
 
 class GachaEvent:
-    def __init__(self, cond: list, event, range: int = None):
-        self.cond = cond
+    def __init__(self, cond: list, event, range: int = 0):
+        if len(cond) < 1:
+            self.cond = ["Any"]
+        else:
+            self.cond = cond
         self.event = event
-        if range is None:
+        if range < len(self.cond):
             self.range = len(self.cond)
         else:
             self.range = range
 
     def check_cond(self, prev: list):
-        check = self.cond
+        if "Identical" in self.cond:
+            check = [prev[0]] * self.range
+        else:
+            check = self.cond
         for i in range(0, self.range):
             if prev[i] in check:
                 check.remove(prev[i])
+            elif "Any" in check:
+                check.remove("Any")
         return len(check) == 0
 
 
@@ -49,22 +57,33 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.items = [
-            GachaItem(":coin:", 40., [GachaEvent([":coin:"], self.prize_coin),
+            GachaItem(":coin:", 50., [GachaEvent([":coin:"], self.prize_coin),
                                       GachaEvent([":coin:", ":coin:"], self.prize_moneybag),
                                       GachaEvent([":coin:", ":coin:", ":coin:"], self.prize_gem)]),
-            GachaItem(":four_leaf_clover:", 20., [GachaEvent([":four_leaf_clover:"], self.prize_luck)]),
+            GachaItem(":four_leaf_clover:", 10., [GachaEvent([":four_leaf_clover:"], self.prize_luck, 3)]),
             GachaItem(":bomb:", 10., []),
-            GachaItem(":fire:", 10., [GachaEvent([":four_leaf_clover:"], self.event_fire),
+            GachaItem(":fire:", 20., [GachaEvent([":four_leaf_clover:"], self.event_fire),
                                       GachaEvent([":bomb:"], self.prize_imp)]),
-            GachaItem(":mouse:", 10., [GachaEvent([":cheese:"], self.prize_moneybag)]),
             GachaItem(":cheese:", 10., []),
         ]
         self.special_items = [
             GachaItem(":magnet:", 5., [GachaEvent([":coin:"], self.prize_magnet)]),
-            GachaItem(":mouse_trap:", 5., [GachaEvent([":mouse:"], self.prize_gem)]),
+            GachaItem(":mouse_trap:", 10., [GachaEvent([":cheese:"], self.event_mousetrap, 5)]),
             GachaItem(":skull:", 5., [GachaEvent([], self.prize_skull)]),
+            GachaItem(":mouse:", 20., [GachaEvent([":cheese:"], self.prize_coin, 5),
+                                       GachaEvent([":cheese:"], self.prize_moneybag),
+                                       GachaEvent(["mouse_trap"], self.prize_imp, 5)]),
             GachaItem(":gift:", 20., [GachaEvent([":four_leaf_clover:"], self.prize_gift, 3)]),
+            GachaItem(":slot_machine:", 15., [GachaEvent(["Identical"], self.prize_gem, 3)]),
         ]
+
+    def find_item(self, icon):
+        found = False
+        for item in self.items + self.special_items:
+            if item.icon == icon:
+                return item
+        if not found:
+            return None
 
     async def event_none(self, ctx, db):
         return None
@@ -82,6 +101,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 lose = random.randint(10, luck//2)
                 await luck_log.edit(content=luck_log.content[:20] + str(luck - lose))
                 return f'행운 -{lose} :four_leaf_clover:'
+
+    async def event_mousetrap(self, ctx, db):
+        gacha_channel = get(ctx.guild.text_channels, name="가챠")
+        msgs = [message async for message in gacha_channel.history(limit=5)]
+        cnt = 0
+        for msg in msgs:
+            if msg.content == ":cheese:":
+                await msg.edit(content=":mouse_trap:")
+                cnt += 1
+        return f"{cnt}개의 치즈에 덫을 설치했습니다"
 
     async def event_jackpot(self, ctx, db):
         coin = int(db.content[20:])
@@ -484,20 +513,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             rest = 100
             for item in self.special_items:
                 rest -= item.chance
-            embed.add_field(name="items", value=' '.join([i.icon for i in self.items]), inline=True)
+            embed.add_field(name="items", value=' '.join([i.icon for i in self.special_items]), inline=True)
             embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
             await ctx.send(embed=embed)
         else:
             not_found = True
-            for item in self.items + self.special_items:
-                if item.icon == args:
+            for icon in [i.icon for i in self.items + self.special_items]:
+                if icon == args:
+                    item = self.find_item(icon)
                     embed = discord.Embed(
                         title="<가챠 정보>",
                         description=f"{item.icon}의 이벤트 목록입니다."
                     )
                     for event in item.events:
                         embed.add_field(
-                            name=' '.join(event.cond) + f' in {event.range}',
+                            name=f"{' '.join(event.cond)} in {event.range}",
                             value='{}', inline=False
                         )
                     await ctx.send(embed=embed)

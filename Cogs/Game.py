@@ -498,57 +498,65 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.bot_has_permissions(administrator=True)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
-        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="*"
+        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="* (str(-n *or* -s))"
     )
-    async def gacha(self, ctx):
+    async def gacha(self, ctx, option=None):
         db = await self.app.find_id('$', ctx.author.id)
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
         if db is None:
             await ctx.send(self.cannot_find_id)
         else:
-            msg = await ctx.send("일반 가챠를 돌리시려면 :white_check_mark:, 특수 가챠를 돌리시려면 :black_joker:,"
-                                 "취소하시려면 :negative_squared_cross_mark:를 눌러주세요.")
-            reaction_list = ['✅', '🃏', '❎']
-            for r in reaction_list:
-                await msg.add_reaction(r)
+            if option is None:
+                msg = await ctx.send("일반 가챠를 돌리시려면 :white_check_mark:, 특수 가챠를 돌리시려면 :black_joker:,"
+                                     "취소하시려면 :negative_squared_cross_mark:를 눌러주세요.")
+                reaction_list = ['✅', '🃏', '❎']
+                for r in reaction_list:
+                    await msg.add_reaction(r)
 
-            def check(reaction, user):
-                return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
+                def check(reaction, user):
+                    return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
 
-            try:
-                reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
-            except asyncio.TimeoutError:
-                await msg.edit(content="시간 초과!", delete_after=2)
-            else:
-                await msg.delete()
-                if str(reaction) in ['✅', '🃏']:
-                    if str(reaction) == '🃏':
-                        item_lst = self.special_items
-                    else:
-                        item_lst = self.items
-                    item = None
-                    prev = [message.content async for message in gacha_channel.history(limit=10)]
-                    embed = discord.Embed(title="<:video_game: 가챠>",
-                                          description=ctx.author.display_name + " 님의 결과")
-                    rand = random.random() * 100
-                    for i in item_lst:
-                        if rand <= i.chance:
-                            item = i
-                            break
-                        else:
-                            rand -= i.chance
-                    if str(reaction) == '🃏':
-                        await ctx.send(item.icon)
-                    else:
-                        await gacha_channel.send(item.icon)
-                    ev_lst = item.check_event(prev)
-                    if len(ev_lst) > 0:
-                        for ev in ev_lst:
-                            effect = await ev(ctx)
-                            embed.add_field(name="이벤트", value=effect)
-                        await ctx.send(embed=embed)
+                try:
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
+                except asyncio.TimeoutError:
+                    await msg.edit(content="시간 초과!", delete_after=2)
                 else:
-                    await ctx.send("취소했습니다.")
+                    await msg.delete()
+                    if str(reaction) in ['✅', '🃏']:
+                        if str(reaction) == '🃏':
+                            option = 'special'
+                        else:
+                            option = 'normal'
+                    else:
+                        await ctx.send("취소했습니다.")
+                        return None
+            if option == 'special':
+                item_lst = self.special_items
+            elif option == 'normal':
+                item_lst = self.items
+            else:
+                return None
+            item = None
+            prev = [message.content async for message in gacha_channel.history(limit=10)]
+            embed = discord.Embed(title="<:video_game: 가챠>",
+                                  description=ctx.author.display_name + " 님의 결과")
+            rand = random.random() * 100
+            for i in item_lst:
+                if rand <= i.chance:
+                    item = i
+                    break
+                else:
+                    rand -= i.chance
+            if option == 'special':
+                await ctx.send(item.icon)
+            elif option == 'normal':
+                await gacha_channel.send(item.icon)
+            ev_lst = item.check_event(prev)
+            if len(ev_lst) > 0:
+                for ev in ev_lst:
+                    effect = await ev(ctx)
+                    embed.add_field(name="이벤트", value=effect, inline=False)
+                await ctx.send(embed=embed)
 
     @commands.command(
         name="가챠정보", aliases=["gachainfo"],

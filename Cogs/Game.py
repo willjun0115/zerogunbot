@@ -60,7 +60,7 @@ class GachaEvent:
         self.exceptions = exceptions
 
     def check_cond(self, prev: list, ability: GachaAbility = None):
-        if self.exceptions:
+        if self.exceptions and self.exceptions.get('ability'):
             if ability.name in self.exceptions.get('ability'):
                 return False
         if "Identical" in self.cond:
@@ -606,10 +606,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         await ctx.send("취소했습니다.")
                         return None
-            if option in ['special', 'SPECIAL', '-s']:
+            if option in ['special', 'SPECIAL', '-s', 's']:
                 option = 's'
                 item_lst = self.special_items
-            elif option in ['normal', 'NORMAL', '-n']:
+            elif option in ['normal', 'NORMAL', '-n', 'n']:
                 option = 'n'
                 item_lst = self.items
             elif option in ['ability', 'ABILITY', '-a', 'a']:

@@ -88,10 +88,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                         if func in ([cmd.name] + cmd.aliases):
                             embed = discord.Embed(title=f"명령어 : {cmd}", description=cmd.help)
                             embed.add_field(name="대체명령어", value=', '.join(cmd.aliases))
-                            if cmd.cooldown:
-                                embed.add_field(name="쿨다운", value="{:0.1f}s".format(cmd.cooldown.per))
-                            else:
-                                embed.add_field(name="쿨다운", value="None")
                             embed.add_field(name="사용법", value=self.app.prefix + cmd.usage)
                             await ctx.send(embed=embed)
                             command_notfound = False

@@ -498,7 +498,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.bot_has_permissions(administrator=True)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
-        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="* (str(-n *or* -s))"
+        help="확률적으로 역할을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="* (str(*option*))"
     )
     async def gacha(self, ctx, option=None):
         db = await self.app.find_id('$', ctx.author.id)
@@ -530,9 +530,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         await ctx.send("취소했습니다.")
                         return None
-            if option == 'special':
+            if option in ['special', 'SPECIAL', '-s']:
                 item_lst = self.special_items
-            elif option == 'normal':
+            elif option in ['normal', 'NORMAL', '-n']:
                 item_lst = self.items
             else:
                 return None

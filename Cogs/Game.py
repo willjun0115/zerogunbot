@@ -520,6 +520,32 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send("행운 효과가 없습니다.")
 
     @commands.command(
+        name="특성", aliases=["ability"],
+        help="자신의 특성을 확인합니다.\n특성은 한 가지만 보유 가능합니다.",
+        usage="*"
+    )
+    async def check_ability(self, ctx):
+        ability = None
+        ability_name = await self.app.find_id('*', ctx.author.id)
+        for a in self.abilities:
+            if a.name == ability_name:
+                ability = a
+        if ability is not None:
+            embed = discord.Embed(
+                title="<특성>",
+                description=f"{ctx.author.display_name} 님의 특성 정보"
+            )
+            embed.add_field(name="> 특성", value=str(ability), inline=False)
+            embed.add_field(name="> 설명", value=ability.description, inline=False)
+            if ability.chance_revision:
+                embed.add_field(
+                    name="> 확률 보정",
+                    value='\n'.join([f"key : {ability.chance_revision.get(key)}" for key in ability.chance_revision.keys()]),
+                    inline=False
+                )
+            await ctx.send(embed=embed)
+
+    @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token/2*])", pass_context=True
     )
@@ -605,13 +631,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if ability and ability.pre_effects:
                 for effect in ability.pre_effects:
                     await effect(ctx)
-            if ability:
+            if ability and ability.chance_revision:
                 rand = random.random() * (100 + ability.rand_revision)
             else:
                 rand = random.random() * 100
             for i in item_lst:
                 chance = i.chance
-                if i.icon in ability.chance_revision.keys():
+                if ability.chance_revision and i.icon in ability.chance_revision.keys():
                     chance += ability.chance_revision.get(i.icon)
                 if rand <= chance:
                     item = i
@@ -623,15 +649,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             elif option == 'n':
                 await gacha_channel.send(item.icon)
             event_lst = item.check_event(prev, ability)
+            if ability and ability.post_effects:
+                for effect in ability.post_effects:
+                    await effect(ctx)
             if len(event_lst) > 0:
                 for event in event_lst:
                     for method in event.event_methods:
                         effect = await method(ctx)
                         embed.add_field(name="이벤트", value=effect, inline=False)
                 await ctx.send(embed=embed)
-            if ability and ability.post_effects:
-                for effect in ability.post_effects:
-                    await effect(ctx)
 
     @commands.command(
         name="가챠정보", aliases=["gachainfo"],
@@ -644,7 +670,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         for a in self.abilities:
             if a.name == ability_name:
                 ability = a
-        if args is None:
+        if args is None or args in ["normal", "일반", "일반가챠"]:
             embed = discord.Embed(
                 title="<가챠 정보>",
                 description="일반 가챠의 아이템 목록입니다.\n"

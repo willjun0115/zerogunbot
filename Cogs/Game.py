@@ -112,13 +112,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]),
             GachaItem(":mouse:", 25., [
                 GachaEvent(
-                    [":cheese:"], lambda ctx: self.event_get_coin(ctx, random.randint(50, 100))
-                    and self.event_remove_item(ctx, ":cheese:", 3), cond_range=3,
+                    [":cheese:"], lambda ctx: (self.event_get_coin(ctx, random.randint(50, 100)),
+                                               self.event_remove_item(ctx, ":cheese:", 3)),
+                    cond_range=3,
                     description="50~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
-                    [":mouse_trap:"], lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150))
-                    and self.event_remove_item(ctx, ":mouse_trap:", 3), cond_range=3,
+                    [":mouse_trap:"], lambda ctx: (self.event_get_coin(ctx, -random.randint(100, 150)),
+                                                   self.event_remove_item(ctx, ":mouse_trap:", 3)),
+                    cond_range=3,
                     description="100~150개의 토큰을 잃습니다."
                 )
             ]),

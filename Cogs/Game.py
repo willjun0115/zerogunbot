@@ -541,10 +541,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         await ctx.send(item.icon)
                     else:
                         await gacha_channel.send(item.icon)
-                    events = item.check_event(prev)
-                    if len(events) > 0:
-                        for ev in events:
-                            effect = await ev.event(ctx)
+                    ev_lst = item.check_event(prev)
+                    if len(ev_lst) > 0:
+                        for ev in ev_lst:
+                            effect = await ev(ctx)
                             embed.add_field(name="이벤트", value=effect)
                         await ctx.send(embed=embed)
                 else:

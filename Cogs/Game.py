@@ -136,11 +136,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     [":cheese:"], [lambda ctx: self.event_get_coin(ctx, random.randint(50, 100)),
                                    lambda ctx: self.event_remove_item(ctx, ":cheese:", 3, 1)],
                     cond_range=3,
+                    exceptions={'ability': ["cat"]},
                     description="치즈를 하나 먹고 50~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
                     [":mouse_trap:"], [lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150))],
                     cond_range=3,
+                    exceptions={'ability': ["cat"]},
                     description="쥐덫에 걸려 100~150개의 토큰을 잃습니다."
                 )
             ]),
@@ -176,15 +178,24 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]),
         ]
         self.abilities = [
-            GachaAbility("heart_afire", ":heart_on_fire:", 1.,
-                         chance_revision={":fire:": 10.},
-                         description="불의 등장 확률이 증가합니다. 불이 나오면 토큰을 얻습니다."),
-            GachaAbility("fastclock", ":hourglass:", 1.,
-                         post_effects=[lambda ctx: self.event_reset_cooldown(ctx)],
+            GachaAbility("heart_afire", ":heart_on_fire:", 2.,
+                         chance_revision={":fire:": 20.},
+                         post_effects=[
+                             lambda ctx, item: self.post_event_get_coin(ctx, item, ":fire:", random.randint(0, 400))
+                         ],
+                         description="불의 등장 확률이 증가합니다. 불이 나오면 0~400 토큰을 얻습니다."),
+            GachaAbility("fastclock", ":hourglass:", 2.,
+                         post_effects=[lambda ctx, item: self.post_event_reset_cooldown(ctx, item)],
                          description="일정 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
                          chance_revision={":fire_extinguisher:": 10.},
                          description="불로 인한 부정적인 효과를 받지 않으며, 소화기의 등장 확률이 증가합니다."),
+            GachaAbility("cat", ":cat:", 5.,
+                         chance_revision={":mouse:": -15.},
+                         post_effects=[
+                             lambda ctx, item: self.post_event_get_coin(ctx, item, ":mouse:", 100)
+                         ],
+                         description="쥐 등장 시 100 토큰을 얻습니다. 쥐로 인한 효과를 받지 않으며, 쥐의 등장 확률이 감소합니다."),
         ]
 
     def get_whole_revision(self, chance_revision: dict):
@@ -302,11 +313,18 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await db.edit(content=db.content[:20]+'0')
         return "모든 토큰을 잃었습니다."
 
-    async def event_reset_cooldown(self, ctx):
+    async def post_event_reset_cooldown(self, ctx, item):
         rand = random.random() * 100
         if rand <= 20:
             ctx.command.reset_cooldown(ctx)
             return "쿨타임 초기화 되었습니다."
+
+    async def post_event_get_coin(self, ctx, item, target=None, n: int = 0):
+        if target is None:
+            target = item
+        if item == target:
+            result = await self.event_get_coin(ctx, n)
+            return result
 
     async def prize_token_change(self, ctx):
         db = await self.app.find_id('$', ctx.author.id)
@@ -598,9 +616,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(self.cannot_find_id)
         else:
             if option is None:
-                msg = await ctx.send("일반 가챠를 돌리시려면 :white_check_mark:, 특수 가챠를 돌리시려면 :black_joker:,"
+                msg = await ctx.send("일반 가챠를 돌리시려면 :white_check_mark:, 특수 가챠를 돌리시려면 :eight_spoked_asterisk:, "
+                                     "특성 가챠를 돌리시려면 :black_joker:, "
                                      "취소하시려면 :negative_squared_cross_mark:를 눌러주세요.")
-                reaction_list = ['✅', '🃏', '❎']
+                reaction_list = ['✅', '✳️', '🃏', '❎']
                 for r in reaction_list:
                     await msg.add_reaction(r)
 
@@ -613,8 +632,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     await msg.delete()
-                    if str(reaction) in ['✅', '🃏']:
+                    if str(reaction) in ['✅', '✳️', '🃏']:
                         if str(reaction) == '🃏':
+                            option = 'a'
+                        elif str(reaction) == '✳️':
                             option = 's'
                         else:
                             option = 'n'
@@ -627,47 +648,82 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             elif option in ['normal', 'NORMAL', '-n']:
                 option = 'n'
                 item_lst = self.items
+            elif option in ['ability', 'ABILITY', '-a', 'a']:
+                coin = int(db.content[20:])
+                if coin < 100:
+                    await ctx.send("토큰이 부족합니다.")
+                    return None
+                else:
+                    await db.edit(content=db.content[:20] + str(coin - 100))
+                    option = 'a'
+                    item_lst = self.abilities
             else:
                 return None
+            item = None
             ability = None
             ability_data = await self.app.find_id('*', ctx.author.id)
             for a in self.abilities:
                 if a.name == ability_data.content[20:]:
                     ability = a
-            item = None
-            prev = [message.content async for message in gacha_channel.history(limit=10)]
-            embed = discord.Embed(title="<:video_game: 가챠>",
-                                  description=ctx.author.display_name + " 님의 결과")
-            if ability and ability.chance_revision:
-                n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
-                if option == 'n':
-                    rand = random.random() * (100 + n_revision)
-                elif option == 's':
-                    rand = random.random() * (100 + s_revision)
+            if option == 'a':
+                rand = random.random() * 100
+                for i in self.abilities:
+                    if rand <= i.chance:
+                        item = i
+                        break
+                    else:
+                        rand -= i.chance
+                if item:
+                    if ability:
+                        await ability_data.edit(content='*' + str(ctx.author.id) + ';' + item.name)
+                    else:
+                        global_guild = self.app.get_guild(self.app.global_guild_id)
+                        db_channel = get(global_guild.text_channels, name="db")
+                        await db_channel.send('*' + str(ctx.author.id) + ';' + item.name)
+                    await ctx.send(f"{str(item)}을(를) 얻었습니다!")
+                else:
+                    await ctx.send("아무것도 얻지 못했습니다.")
+            else:
+                prev = [message.content async for message in gacha_channel.history(limit=10)]
+                embed = discord.Embed(title="<:video_game: 가챠>",
+                                      description=ctx.author.display_name + " 님의 결과")
+                if ability and ability.chance_revision:
+                    n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
+                    if option == 'n':
+                        rand = random.random() * (100 + n_revision)
+                    elif option == 's':
+                        rand = random.random() * (100 + s_revision)
+                    else:
+                        rand = random.random() * 100
                 else:
                     rand = random.random() * 100
-            else:
-                rand = random.random() * 100
-            for i in item_lst:
-                chance = i.chance
-                if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():
-                    chance += ability.chance_revision.get(i.icon)
-                if rand <= chance:
-                    item = i
-                    break
-                else:
-                    rand -= chance
-            if option == 's':
-                await ctx.send(item.icon)
-            elif option == 'n':
-                await gacha_channel.send(item.icon)
-            event_lst = item.check_event(prev, ability)
-            if len(event_lst) > 0:
-                for event in event_lst:
-                    for method in event.event_methods:
-                        effect = await method(ctx)
+                for i in item_lst:
+                    chance = i.chance
+                    if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():
+                        chance += ability.chance_revision.get(i.icon)
+                    if rand <= chance:
+                        item = i
+                        break
+                    else:
+                        rand -= chance
+                if option == 's':
+                    await ctx.send(item.icon)
+                elif option == 'n':
+                    await gacha_channel.send(item.icon)
+                event_lst = item.check_event(prev, ability)
+                if len(event_lst) > 0:
+                    for event in event_lst:
+                        for method in event.event_methods:
+                            effect = await method(ctx)
+                            embed.add_field(name="이벤트", value=effect, inline=False)
+                    await ctx.send(embed=embed)
+                if ability and ability.post_effects:
+                    embed = discord.Embed(title="<특성 효과>",
+                                          description=ctx.author.display_name + " 님의 특성 효과")
+                    for post_effect in ability.post_effects:
+                        effect = await post_effect(ctx, item)
                         embed.add_field(name="이벤트", value=effect, inline=False)
-                await ctx.send(embed=embed)
+                    await ctx.send(embed=embed)
 
     @commands.command(
         name="가챠정보", aliases=["gachainfo"],

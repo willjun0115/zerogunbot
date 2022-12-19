@@ -34,7 +34,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             db = get(global_guild.text_channels, name="db")
             await db.edit(name=f"{present_season.strftime('%Y_%m')}")
             new_db = await db.clone(name="db")
-            await new_db.send(f"${self.app.user.id};10")
 
     @check_season_change.after_loop
     async def on_check_season_change_cancel(self):

@@ -572,8 +572,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             )
             rest = 100
             for item in self.items:
+                embed.add_field(name=item.icon, value="{:0.2f}".format(item.chance), inline=True)
                 rest -= item.chance
-            embed.add_field(name="items", value=' '.join([i.icon for i in self.items]), inline=True)
             embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
             await ctx.send(embed=embed)
         elif args in ["special", "특수", "특수가챠"]:
@@ -584,8 +584,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             )
             rest = 100
             for item in self.special_items:
+                embed.add_field(name=item.icon, value="{:0.2f}".format(item.chance), inline=True)
                 rest -= item.chance
-            embed.add_field(name="items", value=' '.join([i.icon for i in self.special_items]), inline=True)
             embed.add_field(name="> Rest", value='{:0.2f}%'.format(rest), inline=False)
             await ctx.send(embed=embed)
         else:

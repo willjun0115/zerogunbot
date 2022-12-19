@@ -18,8 +18,9 @@ class GachaAbility:
         self.description = description
         self.chance_revision = chance_revision
         self.rand_revision = 0.0
-        for value in chance_revision.values():
-            self.rand_revision += value
+        if self.chance_revision:
+            for value in self.chance_revision.values():
+                self.rand_revision += value
         self.pre_effects = pre_effects
         self.post_effects = post_effects
 

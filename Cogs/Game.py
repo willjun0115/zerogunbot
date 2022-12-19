@@ -538,13 +538,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="가챠정보", aliases=["gachainfo"],
-        help="'가챠'의 보상목록 및 정보를 공개합니다.", usage="*", pass_context=True
+        help="'가챠'의 정보를 공개합니다.\n'%가챠정보 특수'를 통해 특수 가챠의 정보를 확인할 수 있습니다."
+             "\n'%가챠정보 *item*을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str())", pass_context=True
     )
     async def gacha_info(self, ctx, args: str = None):
         if args is None:
             embed = discord.Embed(
                 title="<가챠 정보>",
-                description="일반 가챠의 아이템 목록입니다."
+                description="일반 가챠의 아이템 목록입니다.\n"
+                            "일반 가챠로 등장한 아이템은 가챠 채널에 추가됩니다."
             )
             rest = 100
             for item in self.items:
@@ -555,7 +557,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         elif args in ["special", "특수", "특수가챠"]:
             embed = discord.Embed(
                 title="<가챠 정보>",
-                description="특수 가챠의 아이템 목록입니다."
+                description="특수 가챠의 아이템 목록입니다.\n"
+                            "특수 가챠는 기본적으로 가챠 채널에 아이템을 추가하지 않으며, 기대 이익이 큰 만큼 높은 리스크를 동반합니다."
             )
             rest = 100
             for item in self.special_items:

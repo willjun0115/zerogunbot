@@ -530,8 +530,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 title="<특성>",
                 description=f"{ctx.author.display_name} 님의 특성 정보"
             )
-            embed.add_field(name="> 특성", value=str(ability), inline=False)
-            embed.add_field(name="> 설명", value=ability.description, inline=False)
+            embed.add_field(name=f"> {str(ability)}", value=ability.description, inline=False)
             if ability.chance_revision:
                 embed.add_field(
                     name="> 확률 보정",

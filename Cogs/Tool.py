@@ -77,20 +77,19 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             await ctx.send(embed=embed)
         else:
             command_notfound = True
-            for _title, cog in self.app.cogs.items():
+            for title, cog in self.app.cogs.items():
                 if func == cog.qualified_name:
                     embed = discord.Embed(title=f"카테고리 : {cog.qualified_name}", description=cog.description)
                     await ctx.send(embed=embed)
                     command_notfound = False
                     break
                 else:
-                    for title in cog.get_commands():
-                        if func in ([title.name] + title.aliases):
-                            cmd = self.app.get_command(title.name)
+                    for cmd in cog.get_commands():
+                        if func in ([cmd.name] + cmd.aliases):
                             embed = discord.Embed(title=f"명령어 : {cmd}", description=cmd.help)
                             embed.add_field(name="대체명령어", value=', '.join(cmd.aliases))
                             if cmd.cooldown:
-                                embed.add_field(name="쿨다운", value="{:0.2f}s".format(cmd.cooldown.per))
+                                embed.add_field(name="쿨다운", value="{:0.1f}s".format(cmd.cooldown.per))
                             else:
                                 embed.add_field(name="쿨다운", value="None")
                             embed.add_field(name="사용법", value=self.app.prefix + cmd.usage)

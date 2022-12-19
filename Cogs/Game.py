@@ -628,16 +628,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             prev = [message.content async for message in gacha_channel.history(limit=10)]
             embed = discord.Embed(title="<:video_game: 가챠>",
                                   description=ctx.author.display_name + " 님의 결과")
-            if ability and ability.pre_effects:
-                for effect in ability.pre_effects:
-                    await effect(ctx)
             if ability and ability.chance_revision:
                 rand = random.random() * (100 + ability.rand_revision)
             else:
                 rand = random.random() * 100
             for i in item_lst:
                 chance = i.chance
-                if ability.chance_revision and i.icon in ability.chance_revision.keys():
+                if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():
                     chance += ability.chance_revision.get(i.icon)
                 if rand <= chance:
                     item = i
@@ -649,9 +646,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             elif option == 'n':
                 await gacha_channel.send(item.icon)
             event_lst = item.check_event(prev, ability)
-            if ability and ability.post_effects:
-                for effect in ability.post_effects:
-                    await effect(ctx)
             if len(event_lst) > 0:
                 for event in event_lst:
                     for method in event.event_methods:

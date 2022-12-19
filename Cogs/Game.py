@@ -42,7 +42,7 @@ class GachaEvent:
         if "Identical" in self.cond:
             check = [prev[0]] * self.cond_range
         else:
-            check = list(self.cond)
+            check = self.cond.copy()
         for i in range(0, self.cond_range):
             if prev[i] in check:
                 check.remove(prev[i])
@@ -519,20 +519,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             not_found = True
             for icon in [i.icon for i in self.items + self.special_items]:
-                if str(args) in [icon, icon[1:-1]]:
+                if args in [icon, icon[1:-1]]:
                     item = self.find_item(icon)
-                    embed = discord.Embed(
-                        title="<가챠 정보>",
-                        description=f"{item.icon}의 이벤트 목록입니다."
-                    )
-                    for event in item.events:
-                        embed.add_field(
-                            name=f"{' '.join(event.cond)} in {event.range}",
-                            value='{description}', inline=False
+                    if item:
+                        embed = discord.Embed(
+                            title="<가챠 정보>",
+                            description=f"{item.icon}의 이벤트 목록입니다."
                         )
-                    await ctx.send(embed=embed)
-                    not_found = False
-                    break
+                        for event in item.events:
+                            embed.add_field(
+                                name=f"> {' '.join(event.cond)} in {event.cond_range}",
+                                value='{description}', inline=False
+                            )
+                        await ctx.send(embed=embed)
+                        not_found = False
+                        break
             if not_found:
                 await ctx.send("항목을 찾을 수 없습니다.")
 

@@ -126,6 +126,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 )
             ]),
             GachaItem(":cheese:", 10., []),
+            GachaItem(":radioactive:", 0., [
+                GachaEvent(
+                    [], [lambda ctx: self.event_remove_all_items(ctx, max_range=random.randint(3, 11))], cond_range=10,
+                    description="무작위 범위 내 아이템을 제거합니다."
+                ),
+            ]),
         ]
         self.all_icons = [i.icon for i in self.items]
         self.special_items = [
@@ -171,6 +177,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":skull:", 5., [
                 GachaEvent(
                     [], [lambda ctx: self.event_bankrupt(ctx)],
+                    exceptions={'ability': ["ghost", "peace_bringer"]},
                     description="토큰을 모두 잃습니다."
                 )
             ]),
@@ -190,32 +197,32 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             ]),
         ]
         self.abilities = [
-            GachaAbility("heart_afire", ":heart_on_fire:", 2.,
+            GachaAbility("heart_afire", ":heart_on_fire:", 2.5,
                          chance_revision={":fire:": 20.},
                          post_effects=[
                              lambda ctx, item: self.post_event_get_coin(ctx, item, ":fire:", random.randint(0, 400))
                          ],
-                         description="불의 등장 확률이 증가합니다."
-                                     "\n불이 나오면 0~400 토큰을 얻습니다."),
-            GachaAbility("fast_clock", ":hourglass:", 2.,
+                         description=":fire:의 등장 확률이 증가합니다."
+                                     "\n:fire:가 나오면 0~400 토큰을 얻습니다."),
+            GachaAbility("fast_clock", ":hourglass:", 2.5,
                          post_effects=[lambda ctx, item: self.post_event_reset_cooldown(ctx, item)],
                          description="20%의 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
                          chance_revision={":fire_extinguisher:": 10.},
-                         description="불로 인한 부정적인 효과를 받지 않으며, 소화기의 등장 확률이 증가합니다."),
+                         description=":fire:로 인한 부정적인 효과를 받지 않으며, :fire_extinguisher:의 등장 확률이 증가합니다."),
             GachaAbility("cat", ":cat:", 5.,
                          chance_revision={":mouse:": -15.},
                          post_effects=[
                              lambda ctx, item: self.post_event_get_coin(ctx, item, ":mouse:", 100)
                          ],
-                         description="쥐 등장 시 100 토큰을 얻습니다.\n"
-                                     "쥐로 인한 효과를 받지 않으며, 쥐의 등장 확률이 감소합니다."),
+                         description=":mouse: 등장 시 100 토큰을 얻습니다.\n"
+                                     ":mouse:로 인한 효과를 받지 않으며, :mouse:의 등장 확률이 감소합니다."),
             GachaAbility("genie", ":genie:", 3.,
                          chance_revision={":four_leaf_clover:": 10.},
                          post_effects=[
                              lambda ctx, item: self.post_event_genie(ctx, item)
                          ],
-                         description="클로버 등장 확률이 증가합니다.\n"
+                         description=":four_leaf_clover: 등장 확률이 증가합니다.\n"
                                      "가챠를 할 때 마다 행운에 비례한 토큰을 얻습니다."),
             GachaAbility("the_rich", ":money_mouth:", 1.,
                          chance_revision={":coin:": 20.},
@@ -224,13 +231,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          ],
                          description=":coin: 등장 확률이 증가합니다.\n"
                                      ":coin:로 인한 이벤트로 토큰을 얻지 못하는 대신, :coin:이 나오면 보유 토큰에 비례해 토큰을 얻습니다."),
-            GachaAbility("mage", ":mage:", 3.,
+            GachaAbility("mage", ":mage:", 5.,
                          chance_revision={":magic_wand:": 30.},
                          description="특수 가챠에서 :magic_wand:의 등장 확률이 발생합니다."),
-            GachaAbility("ghost", ":ghost:", 2.,
-                         chance_revision={":skull:": -5.},
-                         description="특수 가챠에서 :skull:이 나오지 않습니다."),
-            GachaAbility("dice", ":game_die:", 3.,
+            GachaAbility("ghost", ":ghost:", 1.5,
+                         post_effects=[
+                             lambda ctx, item: self.post_event_get_coin(ctx, item, ":skull:", 444)
+                         ],
+                         description=":skull:이 나오면 이벤트를 무시하고 444 토큰을 얻습니다."),
+            GachaAbility("dice", ":game_die:", 2.5,
                          post_effects=[
                              lambda ctx, item: self.post_event_get_coin(ctx, item, ":coin:", 10 * random.randint(1, 7)),
                              lambda ctx, item: self.post_event_get_coin(ctx, item, "-:coin:", -10 * random.randint(1, 7))
@@ -238,7 +247,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description="가챠를 돌릴 때 1~6사이의 숫자가 선택됩니다.\n"
                                      ":coin:이 나오면 (선택된 숫자*10)개의 토큰을 얻습니다.\n"
                                      "이외의 아이템이 나오면 (선택된 숫자*10)개의 토큰을 잃습니다."),
-            GachaAbility("magic_mirror", ":mirror:", 3.,
+            GachaAbility("magic_mirror", ":mirror:", 5.,
                          pre_effects=[
                              lambda ctx, item: self.pre_event_duplicate(ctx, item)
                          ],
@@ -249,6 +258,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                              lambda ctx, item: self.post_event_get_coin(ctx, item, ":gift:", 120)
                          ],
                          description=":gift: 등장 확률이 증가하며, :gift:가 나오면 추가로 120 토큰을 얻습니다."),
+            GachaAbility("peace_bringer", ":dove:", 5.,
+                         chance_revision={":bomb:": -5., ":firecracker:": -1.5, ":skull:": -5.},
+                         description="폭탄류 등장 확률이 감소하며, :skull: 등장 확률이 사라집니다."),
+            GachaAbility("radioactive", ":radioactive:", 1.,
+                         chance_revision={":bomb:": -7.5, ":firecracker:": -2.5, ":radioactive:": 10.},
+                         post_effects=[
+                             lambda ctx, item: self.post_event_get_coin(ctx, item, ":radioactive:", 200)
+                         ],
+                         description="폭탄류 아이템이 :radioactive:로 대체되어 등장합니다.\n"
+                                     ":radioactive: 등장 시 200 토큰을 얻습니다."),
         ]
 
     def get_whole_revision(self, chance_revision: dict):
@@ -399,15 +418,18 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 break
         return f"{cnt}개의 {icon}을 제거했습니다."
 
-    async def event_remove_all_items(self, ctx, icon: str, max_range: int = 1):
+    async def event_remove_all_items(self, ctx, icon: str = None, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
         msgs = [message async for message in gacha_channel.history(limit=max_range)]
         cnt = 0
         for msg in msgs:
-            if msg.content == icon:
+            if msg.content == icon or icon is None:
                 await msg.delete()
                 cnt += 1
-        return f"{cnt}개의 {icon}을 제거했습니다."
+        if icon:
+            return f"{cnt}개의 {icon}을 제거했습니다."
+        else:
+            return f"{cnt}개의 아이템을 제거했습니다."
 
     async def event_change_items(self, ctx, from_icon: str, to_icon: str, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
@@ -679,7 +701,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     return str(reaction) in reaction_list and reaction.message.id == msg.id and user == ctx.author
 
                 try:
-                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=5.0)
+                    reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
                 except asyncio.TimeoutError:
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:

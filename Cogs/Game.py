@@ -793,7 +793,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ability_name = None
         if option in ["특성적용", "-a"]:
             option = 'adjusted'
-        elif option.startswith("특성적용:") or option.startswith("-a:"):
+        elif option and option.startswith("특성적용:") or option.startswith("-a:"):
             option = 'adjusted'
             ability_name = option[option.index(':')+1:]
         ability = None

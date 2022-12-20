@@ -217,20 +217,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          ],
                          description="클로버 등장 확률이 증가합니다.\n"
                                      "가챠를 할 때 마다 행운에 비례한 토큰을 얻습니다."),
-            GachaAbility("rich", ":money_mouth:", 1.,
+            GachaAbility("the_rich", ":money_mouth:", 1.,
                          chance_revision={":coin:": 20.},
                          post_effects=[
                              lambda ctx, item: self.post_event_rich(ctx, item)
                          ],
                          description=":coin: 등장 확률이 증가합니다.\n"
                                      ":coin:로 인한 이벤트로 토큰을 얻지 못하는 대신, :coin:이 나오면 보유 토큰에 비례해 토큰을 얻습니다."),
-            GachaAbility("mage", ":mage:", 2.,
+            GachaAbility("mage", ":mage:", 3.,
                          chance_revision={":magic_wand:": 30.},
                          description="특수 가챠에서 :magic_wand:의 등장 확률이 발생합니다."),
             GachaAbility("ghost", ":ghost:", 2.,
                          chance_revision={":skull:": -5.},
                          description="특수 가챠에서 :skull:이 나오지 않습니다."),
-            GachaAbility("dice", ":game_die:", 2.,
+            GachaAbility("dice", ":game_die:", 3.,
                          post_effects=[
                              lambda ctx, item: self.post_event_get_coin(ctx, item, ":coin:", 10 * random.randint(1, 7)),
                              lambda ctx, item: self.post_event_get_coin(ctx, item, "-:coin:", -10 * random.randint(1, 7))
@@ -238,7 +238,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description="가챠를 돌릴 때 1~6사이의 숫자가 선택됩니다.\n"
                                      ":coin:이 나오면 (선택된 숫자*10)개의 토큰을 얻습니다.\n"
                                      "이외의 아이템이 나오면 (선택된 숫자*10)개의 토큰을 잃습니다."),
-            GachaAbility("magic_mirror", ":mirror:", 5.,
+            GachaAbility("magic_mirror", ":mirror:", 3.,
                          pre_effects=[
                              lambda ctx, item: self.pre_event_duplicate(ctx, item)
                          ],
@@ -787,6 +787,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="가챠정보", aliases=["gachainfo"],
         help="'가챠'의 정보를 공개합니다.\n'%가챠정보 특수'를 통해 특수 가챠의 정보를 확인할 수 있습니다."
+             "\n'%가챠정보 특성'을 통해 특성 가챠의 정보를 확인할 수 있습니다."
              "\n'%가챠정보 *item*을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))", pass_context=True
     )
     async def gacha_info(self, ctx, args: str = None, option: str = None):

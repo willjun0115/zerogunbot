@@ -873,6 +873,24 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     not_found = False
                     break
             if not_found:
+                for item in self.abilities:
+                    if args in [item.icon, item.icon[1:-1], item.name]:
+                        embed = discord.Embed(
+                            title="<가챠 정보>",
+                            description=f"{str(item)}의 특성 정보입니다."
+                        )
+                        embed.add_field(name=f"> {str(item)}", value=item.description, inline=False)
+                        if item.chance_revision:
+                            embed.add_field(
+                                name="> 확률 보정",
+                                value='\n'.join([f"{key} : {item.chance_revision.get(key):0.2f}" for key in
+                                                 item.chance_revision.keys()]),
+                                inline=False
+                            )
+                        await ctx.send(embed=embed)
+                        not_found = False
+                        break
+            if not_found:
                 await ctx.send("항목을 찾을 수 없습니다.")
 
     @commands.cooldown(1, 30., commands.BucketType.user)

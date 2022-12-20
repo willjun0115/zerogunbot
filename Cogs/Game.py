@@ -441,13 +441,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def post_event_get_coin(self, ctx, item, target=None, n: int = 0):
         if target.startswith('-'):
             target = target[1:]
-            if item != target:
+            if item.icon != target:
                 result = await self.event_get_coin(ctx, n)
                 return result
         else:
             if target is None:
-                target = item
-            if item == target:
+                target = item.icon
+            if item.icon == target:
                 result = await self.event_get_coin(ctx, n)
                 return result
 

@@ -29,7 +29,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         now = datetime.now()
         present_season_str = now.strftime('%Y.%m.01 00:00:00')
         present_season = datetime.strptime(present_season_str, '%Y.%m.%d %H:%M:%S')
-        new_season = present_season + relativedelta(months=1) - timedelta(seconds=30)
+        new_season = present_season + relativedelta(months=1) - timedelta(minutes=1)  # %Y.%m+1.01 23:59:00
         if datetime.now() > new_season:
             db = get(global_guild.text_channels, name="db")
             await db.edit(name=f"{present_season.strftime('%Y_%m')}")

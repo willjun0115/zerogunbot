@@ -84,17 +84,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":coin:", 50., [
                 GachaEvent(
                     [":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(20, 100))],
-                    exceptions={'ability': ["rich"]},
+                    exceptions={'ability': ["the_rich"]},
                     description="20~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
                     [":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(80, 120))],
-                    exceptions={'ability': ["rich"]},
+                    exceptions={'ability': ["the_rich"]},
                     description="80~120개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
                     [":coin:", ":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(160, 240))],
-                    exceptions={'ability': ["rich"]},
+                    exceptions={'ability': ["the_rich"]},
                     description="160~240개의 토큰을 얻습니다."
                 )
             ]),
@@ -206,7 +206,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description=":fire:의 등장 확률이 증가합니다."
                                      "\n:fire:가 나오면 0~400 토큰을 얻습니다."),
             GachaAbility("fast_clock", ":hourglass:", 2.5,
-                         post_effects=[lambda ctx, item: self.post_event_reset_cooldown(ctx)],
+                         post_effects=[lambda ctx, item: self.event_reset_cooldown(ctx)],
                          description="20%의 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
                          chance_revision={":fire_extinguisher:": 10.},
@@ -221,15 +221,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                      ":mouse:로 인한 효과를 받지 않으며, :mouse:의 등장 확률이 감소합니다."),
             GachaAbility("genie", ":genie:", 3.,
                          chance_revision={":four_leaf_clover:": 10.},
-                         post_effects=[
-                             lambda ctx, item: self.post_event_genie(ctx)
-                         ],
+                         post_effects=[lambda ctx, item: self.event_genie(ctx)],
                          description=":four_leaf_clover: 등장 확률이 증가합니다.\n"
                                      "가챠를 할 때 마다 행운에 비례한 토큰을 얻습니다."),
             GachaAbility("the_rich", ":money_mouth:", 1.,
                          chance_revision={":coin:": 20.},
                          post_effects=[
-                             lambda ctx, item: self.post_event_rich(ctx)
+                             lambda ctx, item: self.event_rich(ctx)
                              if item == ":coin:" else self.event_none(ctx)
                          ],
                          description=":coin: 등장 확률이 증가합니다.\n"
@@ -253,7 +251,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                      "이외의 아이템이 나오면 (선택된 숫자*10)개의 토큰을 잃습니다."),
             GachaAbility("magic_mirror", ":mirror:", 5.,
                          pre_effects=[
-                             lambda ctx, prev: self.pre_event_duplicate(ctx)
+                             lambda ctx, prev: self.event_add_item(ctx, prev[0].content, 1)
                          ],
                          description="가챠를 돌릴 때 가장 최근 아이템을 하나 복제합니다."),
             GachaAbility("santa", ":santa:", 5.,
@@ -459,40 +457,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await db.edit(content=db.content[:20]+'0')
         return "모든 토큰을 잃었습니다."
 
-    # pre events
-    async def pre_event_duplicate(self, ctx):
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        msgs = [message.content async for message in gacha_channel.history(limit=1)]
-        await gacha_channel.send(msgs[0])
-
-    # post events
-    async def post_event_reset_cooldown(self, ctx):
+    async def event_reset_cooldown(self, ctx):
         rand = random.random() * 100
         if rand <= 20:
             ctx.command.reset_cooldown(ctx)
             return "쿨타임 초기화 되었습니다."
 
-    async def post_event_get_coin(self, ctx, item, target=None, n: int = 0):
-        if target.startswith('-'):
-            target = target[1:]
-            if item.icon != target:
-                result = await self.event_get_coin(ctx, n)
-                return result
-        else:
-            if target is None:
-                target = item.icon
-            if item.icon == target:
-                result = await self.event_get_coin(ctx, n)
-                return result
-
-    async def post_event_genie(self, ctx):
+    async def event_genie(self, ctx):
         luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is not None:
             luck = int(luck_log.content[20:])
             result = await self.event_get_coin(ctx, luck)
             return result
 
-    async def post_event_rich(self, ctx):
+    async def event_rich(self, ctx):
         db = await self.app.find_id('$', ctx.author.id)
         coin = int(db.content[20:])
         n = 20 + random.randint(coin//10, coin//5)
@@ -664,10 +642,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.cooldown(1, 30., commands.BucketType.user)
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
-        help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token/2*])", pass_context=True
+        help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token*])", pass_context=True
     )
     async def gamble(self, ctx, bet):
         log = await self.app.find_id('$', ctx.author.id)
+        luck_log = await self.app.find_id('%', ctx.author.id)
+        luck = 0
+        if luck_log is not None:
+            luck = int(luck_log.content[20:])
         if log is None:
             await ctx.send(self.cannot_find_id)
         else:
@@ -675,18 +657,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             coin = int(log.content[20:])
             if coin < bet:
                 await ctx.send("토큰이 부족합니다.")
-            elif bet > coin//2:
-                await ctx.send("베팅은 보유 토큰의 절반까지만 할 수 있습니다.")
             elif bet <= 0:
                 await ctx.send("최소 토큰 1개 이상 베팅해야 합니다.")
             else:
                 embed = discord.Embed(title="<:video_game:  베팅 결과>", description=ctx.author.display_name + " 님의 결과")
-                multi = (random.random() - 0.5) * 1
-                prize = round(bet*multi)
+                mag = random.random() - 0.5
+                prize = round(bet*mag)
                 await log.edit(content=log.content[:20] + str(coin + prize))
                 embed.add_field(name="> 베팅", value=str(bet) + " :coin:")
-                embed.add_field(name="> 배율", value=str("{:0.3f}".format(multi))+"x")
-                embed.add_field(name="> 배당", value=str(prize) + " :coin:")
+                embed.add_field(name="> 배율", value=str("{:0.3f}".format(mag))+"x")
+                embed.add_field(name="> 손익", value=str(prize) + " :coin:")
                 await ctx.send(embed=embed)
 
     @commands.cooldown(1, 60., commands.BucketType.user)
@@ -860,7 +840,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if option == 'adjusted' and ability:
                     if ability.chance_revision and item.icon in ability.chance_revision.keys():
                         chance += ability.chance_revision.get(item.icon)
-                embed.add_field(name=item.icon, value="{:0.2f}%".format((chance/whole_rand)*100), inline=True)
+                if chance > 0:
+                    embed.add_field(name=item.icon, value="{:0.2f}%".format((chance / whole_rand) * 100), inline=True)
                 rest -= chance
             embed.add_field(name="> Rest", value='{:0.2f}%'.format((rest/whole_rand)*100), inline=False)
             await ctx.send(embed=embed)
@@ -881,7 +862,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if option == 'adjusted' and ability:
                     if ability.chance_revision and item.icon in ability.chance_revision.keys():
                         chance += ability.chance_revision.get(item.icon)
-                embed.add_field(name=item.icon, value="{:0.2f}%".format((chance / whole_rand) * 100), inline=True)
+                if chance > 0:
+                    embed.add_field(name=item.icon, value="{:0.2f}%".format((chance / whole_rand) * 100), inline=True)
                 rest -= chance
             embed.add_field(name="> Rest", value='{:0.2f}%'.format((rest / whole_rand) * 100), inline=False)
             await ctx.send(embed=embed)

@@ -560,7 +560,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for message in messages:
                         if message.content.startswith('$') is True:
                             member = await ctx.guild.fetch_member(int(message.content[1:19]))
-                            members[member] = int(message.content[20:])
+                            if member:
+                                members[member] = int(message.content[20:])
                     members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
                     winner = members[0]
                     winner_list.append((db.name, winner[0], winner[1]))
@@ -581,7 +582,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             for message in messages:
                 if message.content.startswith('$') is True:
                     member = await ctx.guild.fetch_member(int(message.content[1:19]))
-                    members[member] = int(message.content[20:])
+                    if member:
+                        members[member] = int(message.content[20:])
             members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
             embed = discord.Embed(title="<토큰 랭킹>", description=text)
             winner = members[0]

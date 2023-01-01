@@ -559,8 +559,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     messages = await db.history(limit=100).flatten()
                     for message in messages:
                         if message.content.startswith('$') is True:
-                            member = await ctx.guild.fetch_member(int(message.content[1:19]))
-                            if member:
+                            try:
+                                member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                            except:
+                                pass
+                            else:
                                 members[member] = int(message.content[20:])
                     members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
                     winner = members[0]
@@ -581,8 +584,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             messages = await db_channel.history(limit=100).flatten()
             for message in messages:
                 if message.content.startswith('$') is True:
-                    member = await ctx.guild.fetch_member(int(message.content[1:19]))
-                    if member:
+                    try:
+                        member = await ctx.guild.fetch_member(int(message.content[1:19]))
+                    except:
+                        pass
+                    else:
                         members[member] = int(message.content[20:])
             members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
             embed = discord.Embed(title="<토큰 랭킹>", description=text)

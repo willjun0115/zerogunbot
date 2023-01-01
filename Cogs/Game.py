@@ -736,9 +736,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             item = None
             ability = None
             ability_data = await self.app.find_id('*', ctx.author.id)
-            for a in self.abilities:
-                if a.name == ability_data.content[20:]:
-                    ability = a
+            if ability_data:
+                for a in self.abilities:
+                    if a.name == ability_data.content[20:]:
+                        ability = a
             if option == 'a':
                 rand = random.random() * 100
                 for i in self.abilities:

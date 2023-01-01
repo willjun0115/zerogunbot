@@ -61,7 +61,7 @@ class GachaEvent:
 
     def check_cond(self, prev: list, ability: GachaAbility = None):
         if self.exceptions and self.exceptions.get('ability'):
-            if ability.name in self.exceptions.get('ability'):
+            if ability and ability.name in self.exceptions.get('ability'):
                 return False
         if "Identical" in self.cond:
             check = [prev[0]] * self.cond_range

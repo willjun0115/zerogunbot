@@ -209,7 +209,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          post_effects=[lambda ctx, item: self.event_reset_cooldown(ctx)],
                          description="20%의 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
-                         chance_revision={":fire_extinguisher:": 20.},
+                         chance_revision={":fire_extinguisher:": 30.},
                          description=":fire:로 인한 부정적인 효과를 받지 않으며, :fire_extinguisher:의 등장 확률이 증가합니다."),
             GachaAbility("cat", ":cat:", 5.,
                          chance_revision={":mouse:": -15.},
@@ -236,19 +236,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          chance_revision={":magic_wand:": 30.},
                          description="특수 가챠에서 :magic_wand:의 등장 확률이 발생합니다."),
             GachaAbility("ghost", ":ghost:", 1.5,
+                         chance_revision={":skull:": 10.},
                          post_effects=[
                              lambda ctx, item: self.event_get_coin(ctx, 444)
                              if item.icon == ":skull:" else None
                          ],
-                         description=":skull:이 나오면 이벤트를 무시하고 444 토큰을 얻습니다."),
+                         description=":skull: 등장 확률이 증가하며, :skull:이 나오면 이벤트를 무시하고 444 토큰을 얻습니다."),
             GachaAbility("dice", ":game_die:", 2.5,
                          post_effects=[
-                             lambda ctx, item: self.event_get_coin(ctx, 10 * random.randint(1, 7))
-                             if item.icon == ":coin:" else self.event_get_coin(ctx, -10 * random.randint(1, 7))
+                             lambda ctx, item: self.event_get_coin(ctx, 10 * random.randint(1, 6))
+                             if item.icon == ":coin:" else None,
+                             lambda ctx, item: self.event_luck(ctx, random.randint(1, 6))
+                             if item.icon == ":four_leaf_clover:" else None,
                          ],
-                         description="가챠를 돌릴 때 1~6사이의 숫자가 선택됩니다.\n"
-                                     ":coin:이 나오면 (선택된 숫자*10)개의 토큰을 얻습니다.\n"
-                                     "이외의 아이템이 나오면 (선택된 숫자*10)개의 토큰을 잃습니다."),
+                         description=":coin:이 나오면 10~60개의 토큰을 얻습니다.\n"
+                                     ":four_leaf_clover:이 나오면 1~6개의 행운을 얻습니다."),
             GachaAbility("magic_mirror", ":mirror:", 5.,
                          pre_effects=[
                              lambda ctx, prev: self.event_add_item(ctx, prev[0].content, 1)
@@ -437,7 +439,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def event_add_item(self, ctx, icon: str, cnt: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        for i in range(cnt):
+        for i in range(0, cnt):
             await gacha_channel.send(icon)
         return f"{cnt}개의 {icon}을 추가했습니다."
 
@@ -467,13 +469,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         luck_log = await self.app.find_id('%', ctx.author.id)
         if luck_log is not None:
             luck = int(luck_log.content[20:])
-            result = await self.event_get_coin(ctx, luck)
+            result = await self.event_get_coin(ctx, luck * 10)
             return result
 
     async def event_rich(self, ctx):
         db = await self.app.find_id('$', ctx.author.id)
         coin = int(db.content[20:])
-        n = 20 + random.randint(coin//10, coin//5)
+        n = round(coin**0.5) + random.randint(0, coin//20)
         await db.edit(content=db.content[:20] + str(coin + n))
         return '+' + str(n) + " :coin:"
 

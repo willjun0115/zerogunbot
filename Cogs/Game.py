@@ -677,7 +677,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 embed.add_field(name="> 손익", value=str(prize) + " :coin:")
                 await ctx.send(embed=embed)
 
-    @commands.cooldown(1, 30., commands.BucketType.user)
+    @commands.cooldown(1, 15., commands.BucketType.user)
     @commands.bot_has_permissions(administrator=True)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],

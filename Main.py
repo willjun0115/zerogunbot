@@ -239,7 +239,7 @@ async def set_value(ctx, *, args):
 
 
 @admin_command.group(name="delvalue", aliases=["delval"])
-async def delete_value(ctx, key):
+async def delete_value(ctx):
     global temp
     temp = None
 

@@ -93,9 +93,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     description="80~120개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
-                    [":coin:", ":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(160, 240))],
+                    [":coin:", ":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(160, 200))],
                     exceptions={'ability': ["the_rich"]},
-                    description="160~240개의 토큰을 얻습니다."
+                    description="160~200개의 토큰을 얻습니다."
                 )
             ]),
             GachaItem(":four_leaf_clover:", 10., [
@@ -141,7 +141,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     description="토큰을 777개 얻습니다."
                 )
             ]),
-            GachaItem(":mouse:", 25., [
+            GachaItem(":mouse:", 30., [
                 GachaEvent(
                     [":cheese:"], [lambda ctx: self.event_get_coin(ctx, random.randint(50, 100)),
                                    lambda ctx: self.event_remove_item(ctx, ":cheese:", 3, 1)],
@@ -162,7 +162,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
                 )
             ]),
-            GachaItem(":gift:", 25., [
+            GachaItem(":gift:", 20., [
                 GachaEvent(
                     [":four_leaf_clover:"], [lambda ctx: self.event_gift(ctx)], cond_range=3,
                     description="50~50+(행운 중첩 수)개의 토큰을 얻습니다."
@@ -209,7 +209,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          post_effects=[lambda ctx, item: self.event_reset_cooldown(ctx)],
                          description="20%의 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
-                         chance_revision={":fire_extinguisher:": 10.},
+                         chance_revision={":fire_extinguisher:": 20.},
                          description=":fire:로 인한 부정적인 효과를 받지 않으며, :fire_extinguisher:의 등장 확률이 증가합니다."),
             GachaAbility("cat", ":cat:", 5.,
                          chance_revision={":mouse:": -15.},
@@ -258,7 +258,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          chance_revision={":gift:": 10.},
                          post_effects=[
                              lambda ctx, item: self.event_get_coin(ctx, 120)
-                             if item == ":gift:" else self.event_none(ctx)
+                             if item == ":gift:" else None
                          ],
                          description=":gift: 등장 확률이 증가하며, :gift:가 나오면 추가로 120 토큰을 얻습니다."),
             GachaAbility("peace_bringer", ":dove:", 5.,
@@ -268,7 +268,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          chance_revision={":bomb:": -7.5, ":firecracker:": -2.5, ":radioactive:": 10.},
                          post_effects=[
                              lambda ctx, item: self.event_get_coin(ctx, 200)
-                             if item == ":radioactive:" else self.event_none(ctx)
+                             if item == ":radioactive:" else None
                          ],
                          description="폭탄류 아이템이 :radioactive:로 대체되어 등장합니다.\n"
                                      ":radioactive: 등장 시 200 토큰을 얻습니다."),
@@ -804,7 +804,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     embed = discord.Embed(title="<특성 효과>",
                                           description=ctx.author.display_name + " 님의 특성 효과")
                     for post_effect in ability.post_effects:
-                        effect = await post_effect(ctx, item)
+                        effect = await post_effect(ctx, item.icon)
                         if effect:
                             embed.add_field(name="이벤트", value=effect, inline=False)
                     if embed.fields:

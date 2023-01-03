@@ -213,7 +213,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          chance_revision={":fire:": 20.},
                          post_effects=[
                              lambda ctx, data, item: self.event_get_coin(data, random.randint(0, 400))
-                             if item.icon == ":fire:" else None
+                             if item.icon == ":fire:" else self.event_none()
                          ],
                          description=":fire:의 등장 확률이 증가합니다."
                                      "\n:fire:가 나오면 0~400 토큰을 얻습니다."),
@@ -232,7 +232,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          ],
                          post_effects=[
                              lambda ctx, data, item: self.event_get_coin(data, 100)
-                             if item.icon == ":mouse:" else None
+                             if item.icon == ":mouse:" else self.event_none()
                          ],
                          description=":mouse: 등장 시 100 토큰을 얻습니다.\n"
                                      ":mouse:로 인한 효과를 받지 않습니다."),
@@ -248,7 +248,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          ],
                          post_effects=[
                              lambda ctx, data, item: self.event_rich(data)
-                             if item.icon == ":coin:" else None
+                             if item.icon == ":coin:" else self.event_none()
                          ],
                          description=":coin: 등장 확률이 증가합니다.\n"
                                      "가챠 이벤트로 토큰을 얻지 못하는 대신, :coin:이 나오면 보유 토큰에 비례해 토큰을 얻습니다."),
@@ -262,15 +262,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          ],
                          post_effects=[
                              lambda ctx, data, item: self.event_get_coin(data, 444)
-                             if item.icon == ":skull:" else None
+                             if item.icon == ":skull:" else self.event_none()
                          ],
                          description=":skull: 등장 확률이 증가하며, :skull:이 나오면 이벤트를 무시하고 444 토큰을 얻습니다."),
             GachaAbility("dice", ":game_die:", 2.5,
                          post_effects=[
                              lambda ctx, data, item: self.event_get_coin(data, 10 * random.randint(1, 6))
-                             if item.icon == ":coin:" else None,
+                             if item.icon == ":coin:" else self.event_none(),
                              lambda ctx, data, item: self.event_luck(data, random.randint(1, 6))
-                             if item.icon == ":four_leaf_clover:" else None,
+                             if item.icon == ":four_leaf_clover:" else self.event_none(),
                          ],
                          description=":coin:이 나오면 10~60개의 토큰을 얻습니다.\n"
                                      ":four_leaf_clover:이 나오면 1~6개의 행운을 얻습니다."),
@@ -283,7 +283,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          chance_revision={":gift:": 10.},
                          post_effects=[
                              lambda ctx, data, item: self.event_get_coin(data, 120)
-                             if item.icon == ":gift:" else None
+                             if item.icon == ":gift:" else self.event_none()
                          ],
                          description=":gift: 등장 확률이 증가하며, :gift:가 나오면 추가로 120 토큰을 얻습니다."),
             GachaAbility("peace_bringer", ":dove:", 5.,
@@ -293,7 +293,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          chance_revision={":bomb:": -7.5, ":firecracker:": -2.5, ":radioactive:": 10.},
                          post_effects=[
                              lambda ctx, data, item: self.event_get_coin(data, 200)
-                             if item.icon == ":radioactive:" else None
+                             if item.icon == ":radioactive:" else self.event_none()
                          ],
                          description="폭탄류 아이템이 :radioactive:로 대체되어 등장합니다.\n"
                                      ":radioactive: 등장 시 200 토큰을 얻습니다."),
@@ -361,6 +361,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return start, members
 
     # event methods
+    async def event_none(self):
+        return None
+
     async def event_mousetrap(self, ctx, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
         msgs = [message async for message in gacha_channel.history(limit=max_range)]
@@ -810,9 +813,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     event_lst_after = []
                     for effect in ability.inter_effects:
                         for event in event_lst:
-                            ev = effect(event)
-                            if ev:
-                                event_lst_after.extend(ev)
+                            ev_lst = effect(event)
+                            event_lst_after.extend(ev_lst)
                     event_lst = event_lst_after
 
                 if len(event_lst) > 0:

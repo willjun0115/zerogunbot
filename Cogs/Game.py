@@ -831,7 +831,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if embed.fields:
                         await ctx.send(embed=embed)
 
-                await self.app.update_data(ctx.author.id, data, find)
+                m, d = await self.app.update_data(ctx.author.id, data, find)
+                await ctx.send(str(d))
 
     @commands.command(
         name="가챠정보", aliases=["gachainfo"],

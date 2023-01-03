@@ -231,15 +231,20 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description="20%의 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
                          chance_revision={":fire_extinguisher:": 30.},
+                         inter_effects=[
+                             lambda event: None if ":fire:" == event.parent else [event]
+                         ],
                          description=":fire:로 인한 부정적인 효과를 받지 않으며, :fire_extinguisher:의 등장 확률이 증가합니다."),
             GachaAbility("cat", ":cat:", 5.,
-                         chance_revision={":mouse:": -15.},
+                         inter_effects=[
+                             lambda event: None if ":mouse:" == event.parent else [event]
+                         ],
                          post_effects=[
                              lambda ctx, item: self.event_get_coin(ctx, 100)
                              if item.icon == ":mouse:" else None
                          ],
                          description=":mouse: 등장 시 100 토큰을 얻습니다.\n"
-                                     ":mouse:로 인한 효과를 받지 않으며, :mouse:의 등장 확률이 감소합니다."),
+                                     ":mouse:로 인한 효과를 받지 않습니다."),
             GachaAbility("genie", ":genie:", 3.,
                          chance_revision={":four_leaf_clover:": 10.},
                          post_effects=[lambda ctx, item: self.event_genie(ctx)],
@@ -248,8 +253,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaAbility("the_rich", ":money_mouth:", 1.,
                          chance_revision={":coin:": 20.},
                          inter_effects=[
-                             lambda event_lst, event: event_lst.remove(event)
-                             if "get_coin" in event.tags else None
+                             lambda event: None if "get_coin" in event.tags else [event]
                          ],
                          post_effects=[
                              lambda ctx, item: self.event_rich(ctx)
@@ -263,8 +267,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaAbility("ghost", ":ghost:", 1.5,
                          chance_revision={":skull:": 10.},
                          inter_effects=[
-                             lambda event_lst, event: event_lst.remove(event)
-                             if event.parent == ":skull:" else None
+                             lambda event: None if event.parent == ":skull:" else [event]
                          ],
                          post_effects=[
                              lambda ctx, item: self.event_get_coin(ctx, 444)
@@ -281,10 +284,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description=":coin:이 나오면 10~60개의 토큰을 얻습니다.\n"
                                      ":four_leaf_clover:이 나오면 1~6개의 행운을 얻습니다."),
             GachaAbility("magic_mirror", ":mirror:", 5.,
-                         pre_effects=[
-                             lambda ctx, prev: self.event_add_item(ctx, prev[0].content, 1)
+                         inter_effects=[
+                             lambda event: [event, event]
                          ],
-                         description="가챠를 돌릴 때 가장 최근 아이템을 하나 복제합니다."),
+                         description="모든 이벤트가 두 번 발생합니다."),
             GachaAbility("santa", ":santa:", 5.,
                          chance_revision={":gift:": 10.},
                          post_effects=[
@@ -827,9 +830,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await gacha_channel.send(item.icon)
                 event_lst = item.check_event(prev, ability)
                 if ability and ability.inter_effects:
+                    event_lst_after = []
                     for effect in ability.inter_effects:
                         for event in event_lst:
-                            await effect(event_lst, event)
+                            ev = await effect(event)
+                            if ev:
+                                event_lst_after.extend(ev)
+                    event_lst = event_lst_after
                 if len(event_lst) > 0:
                     for event in event_lst:
                         for method in event.event_methods:

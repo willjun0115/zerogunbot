@@ -84,9 +84,9 @@ async def find_id(selector, id):
     return find
 
 
-async def find_data(id):
+async def find_data(db_name, id):
     global_guild = app.get_guild(app.global_guild_id)
-    db_channel = get(global_guild.text_channels, name="db")
+    db_channel = get(global_guild.text_channels, name=db_name)
     find = None
     data = {}
     async for message in db_channel.history(limit=500):

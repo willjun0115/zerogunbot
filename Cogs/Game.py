@@ -534,7 +534,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def check_token(self, ctx):
-        find, data = await self.app.find_data(ctx.author.id)
+        find, data = await self.app.find_data("db", ctx.author.id)
         if find is not None:
             coin = data.get('$')
             await ctx.send(str(coin) + ' :coin:')
@@ -565,7 +565,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for message in messages:
                         try:
                             member_id = int(message.content[0:18])
-                            find, data = await self.app.find_data(member_id)
+                            find, data = await self.app.find_data(db.name, member_id)
                             member = await ctx.guild.fetch_member(member_id)
                             coin = data.get('$')
                         except:
@@ -592,7 +592,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             for message in messages:
                 try:
                     member_id = int(message.content[0:18])
-                    find, data = await self.app.find_data(member_id)
+                    find, data = await self.app.find_data(season, member_id)
                     member = await ctx.guild.fetch_member(member_id)
                     coin = data.get('$')
                 except:
@@ -624,7 +624,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def luck(self, ctx):
-        find, data = await self.app.find_data(ctx.author.id)
+        find, data = await self.app.find_data("db", ctx.author.id)
         luck = data.get('%')
         if find is None:
             await ctx.send(self.cannot_find_id)
@@ -639,7 +639,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def check_ability(self, ctx):
-        find, data = await self.app.find_data(ctx.author.id)
+        find, data = await self.app.find_data("db", ctx.author.id)
         ability_name = data.get('*')
         ability = None
         for a in self.abilities:
@@ -667,7 +667,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token*])", pass_context=True
     )
     async def gamble(self, ctx, bet):
-        find, data = await self.app.find_data(ctx.author.id)
+        find, data = await self.app.find_data("db", ctx.author.id)
         if find is None:
             await ctx.send(self.cannot_find_id)
         else:
@@ -695,7 +695,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="가챠를 돌려 무작위 보상을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="* (str(*option*))"
     )
     async def gacha(self, ctx, option=None):
-        find, data = await self.app.find_data(ctx.author.id)
+        find, data = await self.app.find_data("db", ctx.author.id)
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
         if find is None:
             await ctx.send(self.cannot_find_id)
@@ -789,6 +789,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         rand = random.random() * 100
                 else:
                     rand = random.random() * 100
+
                 for i in item_lst:
                     chance = i.chance
                     if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():
@@ -850,8 +851,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ability = None
         if option == 'adjusted':
             if ability_name is None:
-                ability_data = await self.app.find_id('*', ctx.author.id)
-                ability_name = ability_data.content[20:]
+                find, data = await self.app.find_data("db", ctx.author.id)
+                ability_name = data.get('*')
             for a in self.abilities:
                 if a.name == ability_name:
                     ability = a

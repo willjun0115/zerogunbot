@@ -112,7 +112,7 @@ async def update_data(id, data: dict, message=None):
         global_guild = app.get_guild(app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
         msg = await db_channel.send(content)
-    return msg, data
+    return msg
 
 
 async def setup_database(ctx):

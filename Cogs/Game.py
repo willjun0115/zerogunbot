@@ -38,17 +38,17 @@ class GachaItem:
     def __str__(self):
         return self.icon
 
-    def check_event(self, prev: list, ability: GachaAbility = None):
+    def check_event(self, prev: list):
         event_lst = []
         for event in self.events:
-            if event.check_cond(prev, ability) is True:
+            if event.check_cond(prev) is True:
                 event_lst.append(event)
         return event_lst
 
 
 class GachaEvent:
     def __init__(self, parent: str, cond: list, event_methods: list, cond_range: int = 0,
-                 exceptions: dict = None, tags: list = None, description: str = "*No description*"):
+                 tags: list = None, description: str = "*No description*"):
         self.parent = parent
         if len(cond) < 1:
             self.cond = ["Any"]
@@ -61,12 +61,8 @@ class GachaEvent:
         self.event_methods = event_methods
         self.tags = tags
         self.description = description
-        self.exceptions = exceptions
 
-    def check_cond(self, prev: list, ability: GachaAbility = None):
-        if ability and self.exceptions and self.exceptions.get('ability'):
-            if ability.name in self.exceptions.get('ability'):
-                return False
+    def check_cond(self, prev: list):
         if "Identical" in self.cond:
             check = [prev[0]] * self.cond_range
         else:
@@ -88,19 +84,16 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":coin:", 50., [
                 GachaEvent(
                     ":coin:", [":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(20, 100))],
-                    exceptions={'ability': ["the_rich"]},
                     tags=["get_coin"],
                     description="20~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
                     ":coin:", [":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(80, 120))],
-                    exceptions={'ability': ["the_rich"]},
                     tags=["get_coin"],
                     description="80~120개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
                     ":coin:", [":coin:", ":coin:", ":coin:"], [lambda ctx: self.event_get_coin(ctx, random.randint(160, 200))],
-                    exceptions={'ability': ["the_rich"]},
                     tags=["get_coin"],
                     description="160~200개의 토큰을 얻습니다."
                 )
@@ -117,21 +110,18 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":fire:", 20., [
                 GachaEvent(
                     ":fire:", [":four_leaf_clover:"], [lambda ctx: self.event_luck(ctx, -random.randint(1, 5))],
-                    exceptions={'ability': ["firefighter"]},
                     tags=["lose_luck"],
                     description="행운을 1~5중첩 잃습니다. 중첩이 5 이하면 행운 효과를 모두 잃습니다."
                 ),
                 GachaEvent(
                     ":fire:", [":bomb:"], [lambda ctx: self.event_get_coin(ctx, -random.randint(120, 160)),
                                  lambda ctx: self.event_remove_item(ctx, ":bomb:", 3, 1)], cond_range=3,
-                    exceptions={'ability': ["firefighter"]},
                     tags=["lose_coin", "explosion"],
                     description="폭탄을 터트리고 120~160개의 토큰을 잃습니다."
                 ),
                 GachaEvent(
                     ":fire:", [":firecracker:"], [lambda ctx: self.event_get_coin(ctx, -random.randint(200, 300)),
                                  lambda ctx: self.event_remove_item(ctx, ":firecracker:", 3, 1)], cond_range=3,
-                    exceptions={'ability': ["firefighter"]},
                     tags=["lose_coin", "explosion"],
                     description="다이너마이트를 터트리고 200~300개의 토큰을 잃습니다."
                 )
@@ -159,14 +149,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     ":mouse:", [":cheese:"], [lambda ctx: self.event_get_coin(ctx, random.randint(50, 100)),
                                    lambda ctx: self.event_remove_item(ctx, ":cheese:", 3, 1)],
                     cond_range=3,
-                    exceptions={'ability': ["cat"]},
                     tags=["get_coin"],
                     description="치즈를 하나 먹고 50~100개의 토큰을 얻습니다."
                 ),
                 GachaEvent(
                     ":mouse:", [":mouse_trap:"], [lambda ctx: self.event_get_coin(ctx, -random.randint(100, 150))],
                     cond_range=3,
-                    exceptions={'ability': ["cat"]},
                     tags=["lose_coin"],
                     description="쥐덫에 걸려 100~150개의 토큰을 잃습니다."
                 )
@@ -195,7 +183,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaItem(":skull:", 5., [
                 GachaEvent(
                     ":skull:", [], [lambda ctx: self.event_bankrupt(ctx)],
-                    exceptions={'ability': ["ghost", "peace_bringer"]},
                     tags=["lose_coin"],
                     description="토큰을 모두 잃습니다."
                 )
@@ -828,12 +815,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await ctx.send(item.icon)
                 elif option == 'n':
                     await gacha_channel.send(item.icon)
-                event_lst = item.check_event(prev, ability)
+                event_lst = item.check_event(prev)
                 if ability and ability.inter_effects:
                     event_lst_after = []
                     for effect in ability.inter_effects:
                         for event in event_lst:
-                            ev = await effect(event)
+                            ev = effect(event)
                             if ev:
                                 event_lst_after.extend(ev)
                     event_lst = event_lst_after

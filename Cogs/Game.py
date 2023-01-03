@@ -237,7 +237,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description=":mouse: 등장 시 100 토큰을 얻습니다.\n"
                                      ":mouse:로 인한 효과를 받지 않습니다."),
             GachaAbility("genie", ":genie:", 3.,
-                         chance_revision={":four_leaf_clover:": 10.},
+                         chance_revision={":four_leaf_clover:": 20.},
                          post_effects=[lambda ctx, data, item: self.event_genie(data)],
                          description=":four_leaf_clover: 등장 확률이 증가합니다.\n"
                                      "가챠를 할 때 마다 행운에 비례한 토큰을 얻습니다."),
@@ -401,7 +401,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         else:
             return str(n) + " :coin:"
 
-    async def event_luck(self, data, n: int = 0):
+    async def event_luck(self, data: dict, n: int = 0):
         if data.get('%'):
             data['%'] += n
         else:
@@ -477,7 +477,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             result = await self.event_get_coin(data, luck * 10)
             return result
 
-    async def event_rich(self, data):
+    async def event_rich(self, data: dict):
         coin = int(data.get('$'))
         n = round(coin**0.5) + random.randint(0, coin//10)
         result = await self.event_get_coin(data, n)
@@ -822,6 +822,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             embed.add_field(name="이벤트", value=effect, inline=False)
                     await ctx.send(embed=embed)
 
+                await ctx.send(str(data))
+
                 if ability and ability.post_effects:
                     embed = discord.Embed(title="<특성 효과>",
                                           description=ctx.author.display_name + " 님의 특성 효과")
@@ -832,7 +834,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if embed.fields:
                         await ctx.send(embed=embed)
 
-                await ctx.send(str(data))
                 await self.app.update_data(ctx.author.id, data, find)
 
     @commands.command(

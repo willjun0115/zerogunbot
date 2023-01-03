@@ -89,7 +89,7 @@ async def find_data(db_name, id):
     db_channel = get(global_guild.text_channels, name=db_name)
     find = None
     data = {}
-    async for message in db_channel.history(limit=500):
+    async for message in db_channel.history(limit=100):
         if message.content.startswith(str(id)) is True:
             find = message
             contents = message.content.split(';')

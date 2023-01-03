@@ -824,8 +824,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             embed.add_field(name="이벤트", value=effect, inline=False)
                     await ctx.send(embed=embed)
 
-                await ctx.send(str(data))
-
                 if ability and ability.post_effects:
                     embed = discord.Embed(title="<특성 효과>",
                                           description=ctx.author.display_name + " 님의 특성 효과")

@@ -94,16 +94,24 @@ async def find_data(id):
             find = message
             contents = message.content.split(';')
             for content in contents[1:]:
-                data[content[0]] = content[1:]
+                if content[0] in ['$', '%']:
+                    data[content[0]] = int(content[1:])
+                else:
+                    data[content[0]] = content[1:]
             break
     return find, data
 
 
-async def update_data(message, id, data: dict):
+async def update_data(id, data: dict, message=None):
     content = str(id)
     for selector in data.keys():
         content += ';' + selector + str(data.get(selector))
-    msg = await message.edit(content=content)
+    if message:
+        msg = await message.edit(content=content)
+    else:
+        global_guild = app.get_guild(app.global_guild_id)
+        db_channel = get(global_guild.text_channels, name="db")
+        msg = await db_channel.send(content)
     return msg
 
 

@@ -219,12 +219,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaAbility("firefighter", ":firefighter:", 1.,
                          chance_revision={":fire_extinguisher:": 30.},
                          inter_effects=[
-                             lambda event: None if ":fire:" == event.parent else [event]
+                             lambda event: [] if ":fire:" == event.parent else [event]
                          ],
                          description=":fire:로 인한 부정적인 효과를 받지 않으며, :fire_extinguisher:의 등장 확률이 증가합니다."),
             GachaAbility("cat", ":cat:", 5.,
                          inter_effects=[
-                             lambda event: None if ":mouse:" == event.parent else [event]
+                             lambda event: [] if ":mouse:" == event.parent else [event]
                          ],
                          post_effects=[
                              lambda ctx, item: self.event_get_coin(ctx, 100)
@@ -240,7 +240,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaAbility("the_rich", ":money_mouth:", 1.,
                          chance_revision={":coin:": 20.},
                          inter_effects=[
-                             lambda event: None if "get_coin" in event.tags else [event]
+                             lambda event: [] if "get_coin" in event.tags else [event]
                          ],
                          post_effects=[
                              lambda ctx, item: self.event_rich(ctx)
@@ -254,7 +254,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaAbility("ghost", ":ghost:", 1.5,
                          chance_revision={":skull:": 10.},
                          inter_effects=[
-                             lambda event: None if event.parent == ":skull:" else [event]
+                             lambda event: [] if event.parent == ":skull:" else [event]
                          ],
                          post_effects=[
                              lambda ctx, item: self.event_get_coin(ctx, 444)

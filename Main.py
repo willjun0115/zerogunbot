@@ -84,6 +84,29 @@ async def find_id(selector, id):
     return find
 
 
+async def find_data(id):
+    global_guild = app.get_guild(app.global_guild_id)
+    db_channel = get(global_guild.text_channels, name="db")
+    find = None
+    data = {}
+    async for message in db_channel.history(limit=500):
+        if message.content.startswith(str(id)) is True:
+            find = message
+            contents = message.content.split(';')
+            for content in contents[1:]:
+                data[content[0]] = content[1:]
+            break
+    return find, data
+
+
+async def update_data(message, id, data: dict):
+    content = str(id)
+    for selector in data.keys():
+        content += ';' + selector + str(data.get(selector))
+    msg = await message.edit(content=content)
+    return msg
+
+
 async def setup_database(ctx):
     db = get(ctx.guild.text_channels, name="db")
     bot_perms = discord.PermissionOverwrite(
@@ -123,6 +146,8 @@ async def setup_database(ctx):
 app.encrypt = encrypt
 app.decrypt = decrypt
 app.find_id = find_id
+app.find_data = find_data
+app.update_data = update_data
 app.setup_database = setup_database
 
 

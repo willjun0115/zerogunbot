@@ -112,7 +112,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 GachaEvent(
                     ":fire:", [":four_leaf_clover:"], [lambda ctx, data: self.event_luck(data, -random.randint(1, 5))],
                     tags=["lose_luck"],
-                    description="행운을 1~5중첩 잃습니다. 중첩이 5 이하면 행운 효과를 모두 잃습니다."
+                    description="행운을 1~5중첩 잃습니다."
                 ),
                 GachaEvent(
                     ":fire:", [":bomb:"], [lambda ctx, data: self.event_get_coin(data, -random.randint(120, 160)),
@@ -128,15 +128,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 )
             ]),
             GachaItem(":cheese:", 10., []),
-            GachaItem(":radioactive:", 0., [
-                GachaEvent(
-                    ":radioactive:", [],
-                    [lambda ctx, data: self.event_remove_all_items(ctx, max_range=random.randint(3, 10))],
-                    cond_range=10,
-                    tags=["remove_item", "explosion"],
-                    description="무작위 범위 내 아이템을 제거합니다."
-                ),
-            ]),
         ]
         self.all_icons = [i.icon for i in self.items]
         self.special_items = [
@@ -160,13 +151,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     cond_range=3,
                     tags=["lose_coin"],
                     description="쥐덫에 걸려 100~150개의 토큰을 잃습니다."
-                )
-            ]),
-            GachaItem(":mouse_trap:", 15., [
-                GachaEvent(
-                    ":mouse_trap:", [":cheese:"], [lambda ctx, data: self.event_mousetrap(ctx, 3)], cond_range=3,
-                    tags=["change_item"],
-                    description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
                 )
             ]),
             GachaItem(":gift:", 20., [
@@ -207,6 +191,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     description="10 범위 안의 :coin:을 무작위 아이템으로 변경합니다."
                 )
             ]),
+            GachaItem(":mouse_trap:", 0., [
+                GachaEvent(
+                    ":mouse_trap:", [":cheese:"], [lambda ctx, data: self.event_mousetrap(ctx, 3)], cond_range=3,
+                    tags=["change_item"],
+                    description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
+                )
+            ]),
         ]
         self.abilities = [
             GachaAbility("heart_afire", ":heart_on_fire:", 2.5,
@@ -218,8 +209,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description=":fire:의 등장 확률이 증가합니다."
                                      "\n:fire:가 나오면 0~400 토큰을 얻습니다."),
             GachaAbility("fast_clock", ":hourglass:", 2.5,
-                         post_effects=[lambda ctx, data, item: self.event_reset_cooldown(ctx)],
-                         description="20%의 확률로 가챠의 쿨타임을 초기화합니다."),
+                         post_effects=[
+                             lambda ctx, data, item: self.event_reset_cooldown(ctx)
+                             if random.random() <= 0.25 else self.event_none()
+                         ],
+                         description="25%의 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 1.,
                          chance_revision={":fire_extinguisher:": 30.},
                          inter_effects=[
@@ -289,14 +283,24 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             GachaAbility("peace_bringer", ":dove:", 5.,
                          chance_revision={":bomb:": -5., ":firecracker:": -1.5, ":skull:": -5.},
                          description="폭탄류 등장 확률이 감소하며, :skull: 등장 확률이 사라집니다."),
-            GachaAbility("radioactive", ":radioactive:", 1.,
-                         chance_revision={":bomb:": -7.5, ":firecracker:": -2.5, ":radioactive:": 10.},
-                         post_effects=[
-                             lambda ctx, data, item: self.event_get_coin(data, 200)
-                             if item.icon == ":radioactive:" else self.event_none()
+            GachaAbility("mouse_trap", ":mouse_trap:", 2.5,
+                         chance_revision={":mouse_trap:": 20.},
+                         description="특수 가챠에서 :mouse_trap: 등장 확률이 발생합니다.\n"
+                                     ":mouse_trap:이 나오면 치즈에 쥐덫을 설치합니다."),
+            GachaAbility("smoker", ":smoking:", 5.,
+                         inter_effects=[
+                             lambda event: [] if event.parent == ":skull:" else [event]
                          ],
-                         description="폭탄류 아이템이 :radioactive:로 대체되어 등장합니다.\n"
-                                     ":radioactive: 등장 시 200 토큰을 얻습니다."),
+                         post_effects=[
+                             lambda ctx, data, item: self.event_luck(data, random.randint(5, 10))
+                             if item.icon == ":fire:" and data.get('$') >= 100 else self.event_none(),
+                             lambda ctx, data, item: self.event_get_coin(data, -100)
+                             if item.icon == ":fire:" and data.get('$') >= 100 else self.event_none(),
+                             lambda ctx, data, item: self.event_get_coin(data, data.get('%') * 20)
+                             if item.icon == ":skull:" else self.event_none(),
+                         ],
+                         description=":fire:이 나오면 토큰을 100개 소모하고 5~10의 행운을 얻습니다.\n"
+                                     ":skull:이 나오면 이벤트를 무시하고 행운에 비례한 토큰을 얻습니다."),
         ]
 
     def get_whole_revision(self, chance_revision: dict):
@@ -469,10 +473,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return None
 
     async def event_reset_cooldown(self, ctx):
-        rand = random.random() * 100
-        if rand <= 20:
-            ctx.command.reset_cooldown(ctx)
-            return "쿨타임 초기화 되었습니다."
+        ctx.command.reset_cooldown(ctx)
+        return "쿨타임 초기화 되었습니다."
 
     async def event_genie(self, data: dict):
         luck = data.get('%')

@@ -115,6 +115,22 @@ async def update_data(id, data: dict, message=None):
     return msg
 
 
+async def collect_data(db_name):
+    global_guild = app.get_guild(app.global_guild_id)
+    db_channel = get(global_guild.text_channels, name=db_name)
+    data_dict = {}
+    async for message in db_channel.history(limit=100):
+        data = {}
+        contents = message.content.split(';')
+        for content in contents[1:]:
+            if content[0] in ['$', '%']:
+                data[content[0]] = int(content[1:])
+            else:
+                data[content[0]] = content[1:]
+        data_dict[int(contents[0])] = data
+    return data_dict
+
+
 async def setup_database(ctx):
     db = get(ctx.guild.text_channels, name="db")
     bot_perms = discord.PermissionOverwrite(
@@ -156,6 +172,7 @@ app.decrypt = decrypt
 app.find_id = find_id
 app.find_data = find_data
 app.update_data = update_data
+app.collect_data = collect_data
 app.setup_database = setup_database
 
 

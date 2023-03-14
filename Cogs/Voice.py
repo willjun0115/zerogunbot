@@ -212,14 +212,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             browser.get(url)
 
             max_video = browser.find_elements(
-                By.XPATH, '//ytd-playlist-sidebar-primary-info-renderer/div[@id="stats"]/yt-formatted-string/span')[0].text
+                By.XPATH, '//ytd-playlist-byline-renderer/div[@class="metadata-stats"]/yt-formatted-string/span')[0].text
             await ctx.send(max_video + " 개의 곡 중 하나를 재생합니다.")
             n = random.randint(0, int(max_video)-1)
-            music_title = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('title')
+            music_title = browser.find_elements(By.XPATH, '//div[@id="meta"]/a[@id="video-title"]')[n].get_attribute('title')
             if "(" in music_title:
                 music_title = music_title[:music_title.index("(")]
             music_title = music_title.strip()
-            music_url = browser.find_elements(By.XPATH, '//a[@id="video-title"]')[n].get_attribute('href')
+            music_url = browser.find_elements(By.XPATH, '//div[@id="meta"]/a[@id="video-title"]')[n].get_attribute('href')
 
             async with ctx.typing():
                 player = await YTDLSource.from_url(music_url, loop=self.app.loop, stream=True)

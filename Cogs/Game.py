@@ -608,6 +608,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     members[member_id] = data.get('$')
                 else:
                     members[member] = data.get('$')
+            if len(members) == 0:
+                embed = discord.Embed(title="<토큰 랭킹>", description=text)
+                embed.add_field(name="해당 시즌에 참여한 유저가 없어요", value="ㅜ.ㅜ", inline=True)
+                await msg.edit(content=None, embed=embed)
             coin_mass = sum(members.values())
             members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
             embed = discord.Embed(title="<토큰 랭킹>", description=text)
@@ -616,16 +620,21 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             coins = ""
             shares = ""
             n = 1
-            for md in members[1:]:
-                n += 1
-                if n == 2:
-                    names += f":second_place: {md[0]}\n"
-                elif n == 3:
-                    names += f":third_place: {md[0]}\n"
-                else:
-                    names += f"{n}. {md[0]}\n"
-                coins += f"{md[1]}\n"
-                shares += f"({100 * md[1] / coin_mass:0.2f}%)\n"
+            if len(members) <= 1:
+                names = "-"
+                coins = "-"
+                shares = "-"
+            else:
+                for md in members[1:]:
+                    n += 1
+                    if n == 2:
+                        names += f":second_place: {md[0]}\n"
+                    elif n == 3:
+                        names += f":third_place: {md[0]}\n"
+                    else:
+                        names += f"{n}. {md[0]}\n"
+                    coins += f"{md[1]}\n"
+                    shares += f"({100 * md[1] / coin_mass:0.2f}%)\n"
             embed.add_field(name=f":first_place: " + str(winner[0]) + " :crown:", value=names, inline=True)
             embed.add_field(name=f"{winner[1]} :coin:", value=coins, inline=True)
             embed.add_field(name=f"({100 * winner[1] / coin_mass:0.2f}%)", value=shares, inline=True)

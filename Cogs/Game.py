@@ -566,79 +566,52 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "YYYY_MM 포맷으로 시즌별 토큰 순위를 조회할 수 있습니다.\n"
              "all로 검색 시 역대 토큰 1위 목록을 조회할 수 있습니다.", usage="* (*season*)"
     )
-    async def token_rank(self, ctx, season=None):
+    async def token_rank(self, ctx):
         global_guild = self.app.get_guild(self.app.global_guild_id)
-        if season == "all":
-            msg = await ctx.send("DB를 조회 중입니다... :mag:")
-            winner_list = []
-            for db in global_guild.text_channels:
-                if db.name.startswith("20"):
-                    members = {}
-                    data_dict = await self.app.collect_data(db.name)
-                    for member_id in data_dict.keys():
-                        data = data_dict.get(member_id)
-                        try:
-                            member = await ctx.guild.fetch_member(member_id)
-                        except:
-                            members[member_id] = data.get('$')
-                        else:
-                            members[member] = data.get('$')
-                    coin_mass = sum(members.values())
-                    members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
-                    winner = members[0]
-                    winner_list.append([db.name, str(winner[0]), winner[1], 100 * winner[1] / coin_mass])
-            embed = discord.Embed(title="<역대 1위 목록>", description="역대 토큰 1위 목록")
-            for w in winner_list:
-                embed.add_field(name=f"시즌 {w[0]}", value=f"{w[1]} :crown: : {w[2]} :coin: ({w[3]}%)", inline=True)
-            await msg.edit(content=None, embed=embed)
-        else:
-            if season is None:
-                season = "db"
-                text = "현재 토큰 순위 (유저명/토큰/점유율)"
+        season = "db"
+        text = "현재 토큰 순위 (유저명/토큰/점유율)"
+        msg = await ctx.send("DB를 조회 중입니다... :mag:")
+        members = {}
+        data_dict = await self.app.collect_data(season)
+        for member_id in data_dict.keys():
+            data = data_dict.get(member_id)
+            try:
+                member = await ctx.guild.fetch_member(member_id)
+            except:
+                members[member_id] = data.get('$')
             else:
-                text = season + " 시즌 토큰 순위 (유저명/토큰/점유율)"
-            msg = await ctx.send("DB를 조회 중입니다... :mag:")
-            members = {}
-            data_dict = await self.app.collect_data(season)
-            for member_id in data_dict.keys():
-                data = data_dict.get(member_id)
-                try:
-                    member = await ctx.guild.fetch_member(member_id)
-                except:
-                    members[member_id] = data.get('$')
-                else:
-                    members[member] = data.get('$')
-            if len(members) == 0:
-                embed = discord.Embed(title="<토큰 랭킹>", description=text)
-                embed.add_field(name="해당 시즌에 참여한 유저가 없어요", value="ㅜ.ㅜ", inline=True)
-                await msg.edit(content=None, embed=embed)
-            coin_mass = sum(members.values())
-            members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+                members[member] = data.get('$')
+        if len(members) == 0:
             embed = discord.Embed(title="<토큰 랭킹>", description=text)
-            winner = members[0]
-            names = ""
-            coins = ""
-            shares = ""
-            n = 1
-            if len(members) <= 1:
-                names = "-"
-                coins = "-"
-                shares = "-"
-            else:
-                for md in members[1:]:
-                    n += 1
-                    if n == 2:
-                        names += f":second_place: {md[0]}\n"
-                    elif n == 3:
-                        names += f":third_place: {md[0]}\n"
-                    else:
-                        names += f"{n}. {md[0]}\n"
-                    coins += f"{md[1]}\n"
-                    shares += f"({100 * md[1] / coin_mass:0.2f}%)\n"
-            embed.add_field(name=f":first_place: " + str(winner[0]) + " :crown:", value=names, inline=True)
-            embed.add_field(name=f"{winner[1]} :coin:", value=coins, inline=True)
-            embed.add_field(name=f"({100 * winner[1] / coin_mass:0.2f}%)", value=shares, inline=True)
+            embed.add_field(name="해당 시즌에 참여한 유저가 없어요", value="ㅜ.ㅜ", inline=True)
             await msg.edit(content=None, embed=embed)
+        coin_mass = sum(members.values())
+        members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+        embed = discord.Embed(title="<토큰 랭킹>", description=text)
+        winner = members[0]
+        names = ""
+        coins = ""
+        shares = ""
+        n = 1
+        if len(members) <= 1:
+            names = "-"
+            coins = "-"
+            shares = "-"
+        else:
+            for md in members[1:]:
+                n += 1
+                if n == 2:
+                    names += f":second_place: {md[0]}\n"
+                elif n == 3:
+                    names += f":third_place: {md[0]}\n"
+                else:
+                    names += f"{n}. {md[0]}\n"
+                coins += f"{md[1]}\n"
+                shares += f"({100 * md[1] / coin_mass:0.2f}%)\n"
+        embed.add_field(name=f":first_place: " + str(winner[0]) + " :crown:", value=names, inline=True)
+        embed.add_field(name=f"{winner[1]} :coin:", value=coins, inline=True)
+        embed.add_field(name=f"({100 * winner[1] / coin_mass:0.2f}%)", value=shares, inline=True)
+        await msg.edit(content=None, embed=embed)
 
     @commands.command(
         name="행운", aliases=["luck"],

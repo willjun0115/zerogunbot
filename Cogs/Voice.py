@@ -8,6 +8,7 @@ import os
 import opuslib
 import youtube_dl
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from gtts import gTTS
 

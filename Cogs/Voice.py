@@ -98,7 +98,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         name="tts", aliases=["TTS"],
         help="입력받은 문자열을 tts 음성으로 출력합니다.", usage="* str()"
     )
-    async def tts_voice(self, ctx, *, msg):
+    async def _tts(self, ctx, *, msg):
         await self.ensure_voice(ctx)
         for file in os.listdir("./"):
             if file.startswith("tts_ko"):

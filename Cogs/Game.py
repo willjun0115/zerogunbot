@@ -829,7 +829,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await self.app.update_data(ctx.author.id, data, find)
 
     @commands.command(
-        name="가챠정보", aliases=["gachainfo"],
+        name="가챠정보", aliases=["확률", "gachainfo"],
         help="'가챠'의 정보를 공개합니다.\n'%가챠정보 특수'를 통해 특수 가챠의 정보를 확인할 수 있습니다."
              "\n'%가챠정보 특성'을 통해 특성 가챠의 정보를 확인할 수 있습니다."
              "\n'%가챠정보 *item*'을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))", pass_context=True

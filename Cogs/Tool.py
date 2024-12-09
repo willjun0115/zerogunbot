@@ -17,10 +17,10 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     def __init__(self, app):
         self.app = app
-        self.check_season_change.start()
-        self.next_season = datetime(2022, 1, 1, 0, 0, 0)
+        #self.check_season_change.start()
+        #self.next_season = datetime(2022, 1, 1, 0, 0, 0)
 
-    @commands.Cog.listener()
+    '''@commands.Cog.listener()
     async def on_ready(self):
         self.check_season_change.start()
 
@@ -53,7 +53,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             f"\nnow(UTC): {now.strftime('%Y.%m.%d %H:%M:%S')}"
             f"\nnext season starts after {self.next_season - now}")
         if check is False:
-            self.check_season_change.start()
+            self.check_season_change.start()'''
 
     @commands.command(
         name="도움말", aliases=["help", "?"],

@@ -10,17 +10,15 @@ from dateutil.relativedelta import relativedelta
 
 
 class GachaAbility:
-    def __init__(self, name: str, icon: str, chance: float, chance_revision: dict = None,
-                 pre_effects: list = None, inter_effects: list = None, post_effects: list = None,
-                 description: str = "*No description*",):
+    def __init__(self, name: str, icon: str, chance: float, added_slots = 0, chance_revision: dict = None,
+                 effects: list = None, description: str = "*No description*"):
         self.name = name
         self.icon = icon
         self.chance = chance
         self.description = description
+        self.added_slots = added_slots
         self.chance_revision = chance_revision
-        self.pre_effects = pre_effects
-        self.inter_effects = inter_effects
-        self.post_effects = post_effects
+        self.effects = effects
 
     def __str__(self):
         return self.icon + ' ' + self.name
@@ -30,49 +28,28 @@ class GachaAbility:
 
 
 class GachaItem:
-    def __init__(self, icon: str, chance: float, events: list):
+    def __init__(self, icon: str, chance: float):
         self.icon = icon
         self.chance = chance
-        self.events = events
 
     def __str__(self):
         return self.icon
 
-    def check_event(self, prev: list):
-        event_lst = []
-        for event in self.events:
-            if event.check_cond(prev) is True:
-                event_lst.append(event)
-        return event_lst
-
 
 class GachaEvent:
-    def __init__(self, parent: str, cond: list, event_methods: list, cond_range: int = 0,
+    def __init__(self, cond: list, event_methods: list,
                  tags: list = None, description: str = "*No description*"):
-        self.parent = parent
-        if len(cond) < 1:
-            self.cond = ["Any"]
-        else:
-            self.cond = cond
-        if cond_range < len(self.cond):
-            self.cond_range = len(self.cond)
-        else:
-            self.cond_range = cond_range
+        self.cond = cond
         self.event_methods = event_methods
         self.tags = tags
         self.description = description
 
-    def check_cond(self, prev: list):
-        if "Identical" in self.cond:
-            check = [prev[0]] * self.cond_range
-        else:
-            check = self.cond.copy()
-        for i in range(0, self.cond_range):
-            if prev[i] in check:
-                check.remove(prev[i])
-            elif "Any" in check:
-                check.remove("Any")
-        return len(check) == 0
+    def check_cond(self, item_lst: list):
+        check = 0
+        for i in self.cond:
+            if i in item_lst or i == 'Any':
+                check += 1
+        return check == len(self.cond)
 
 
 class Game(commands.Cog, name="게임", description="오락 및 도박과 관련된 카테고리입니다.\n토큰을 수급할 수 있습니다."):
@@ -81,198 +58,80 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.app = app
         self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
         self.items = [
-            GachaItem(":coin:", 50., [
-                GachaEvent(
-                    ":coin:", [":coin:"], [lambda ctx, data: self.event_get_coin(data, random.randint(20, 50))],
-                    tags=["get_coin"],
-                    description="20~50개의 토큰을 얻습니다."
-                ),
-                GachaEvent(
-                    ":coin:", [":coin:", ":coin:"], [lambda ctx, data: self.event_get_coin(data, random.randint(40, 80))],
-                    tags=["get_coin"],
-                    description="40~80개의 토큰을 얻습니다."
-                ),
-                GachaEvent(
-                    ":coin:", [":coin:", ":coin:", ":coin:"], [lambda ctx, data: self.event_get_coin(data, random.randint(100, 150))],
-                    tags=["get_coin"],
-                    description="100~150개의 토큰을 얻습니다."
-                )
-            ]),
-            GachaItem(":four_leaf_clover:", 15., [
-                GachaEvent(
-                    ":four_leaf_clover:", [":four_leaf_clover:"], [lambda ctx, data: self.event_luck(data, 1)],
-                    cond_range=3,
-                    tags=["get_luck"],
-                    description="행운을 1중첩 얻습니다."
-                )
-            ]),
-            GachaItem(":bomb:", 5., []),
-            GachaItem(":fire:", 20., [
-                GachaEvent(
-                    ":fire:", [":four_leaf_clover:"], [lambda ctx, data: self.event_luck(data, -1)],
-                    tags=["lose_luck"],
-                    description="행운을 1중첩 잃습니다."
-                ),
-                GachaEvent(
-                    ":fire:", [":bomb:"], [lambda ctx, data: self.event_get_coin(data, -random.randint(120, 160)),
-                                 lambda ctx, data: self.event_remove_item(ctx, ":bomb:", 3, 1)], cond_range=3,
-                    tags=["lose_coin", "explosion"],
-                    description="폭탄을 터트리고 120~160개의 토큰을 잃습니다."
-                )
-            ]),
-            GachaItem(":cheese:", 10., []),
+            GachaItem(":coin:", 50.),
+            GachaItem(":four_leaf_clover:", 15.),
+            GachaItem(":bomb:", 4.),
+            GachaItem(":fire:", 20.),
+            GachaItem(":cheese:", 10.),
+            GachaItem(":gift:", 1.),
         ]
         self.all_icons = [i.icon for i in self.items]
-        self.special_items = [
-            GachaItem(":slot_machine:", 15., [
-                GachaEvent(
-                    ":slot_machine:", ["Identical"], [lambda ctx, data: self.event_get_coin(data, 777)], cond_range=3,
-                    tags=["get_coin"],
-                    description="토큰을 777개 얻습니다."
-                )
-            ]),
-            GachaItem(":fortune_cookie:", 20., [
-                GachaEvent(
-                    ":fortune_cookie:", [":four_leaf_clover:"],
-                    [lambda ctx, data: self.event_luck(data, 7)], cond_range=3,
-                    tags=["get_luck"],
-                    description="행운을 7중첩 얻습니다."
-                )
-            ]),
-            GachaItem(":mouse:", 30., [
-                GachaEvent(
-                    ":mouse:", [":cheese:"],
-                    [lambda ctx, data: self.event_get_coin(data, 100),
-                     lambda ctx, data: self.event_remove_item(ctx, ":cheese:", 5, 1)],
-                    cond_range=5,
-                    tags=["get_coin"],
-                    description="치즈를 하나 먹고 100개의 토큰을 얻습니다."
-                ),
-                GachaEvent(
-                    ":mouse:", [":mouse_trap:"], [lambda ctx, data: self.event_get_coin(data, -100)],
-                    cond_range=3,
-                    tags=["lose_coin"],
-                    description="쥐덫에 걸려 100개의 토큰을 잃습니다."
-                )
-            ]),
-            GachaItem(":gift:", 29., [
-                GachaEvent(
-                    ":gift:", [":four_leaf_clover:"], [lambda ctx, data: self.event_gift(data)], cond_range=3,
-                    tags=["get_coin"],
-                    description="(행운 중첩 수) * 30개의 토큰을 얻습니다."
-                )
-            ]),
-            GachaItem(":magnet:", 5., [
-                GachaEvent(
-                    ":magnet:", [":coin:"], [lambda ctx, data: self.event_magnet(ctx, data, 10)], cond_range=10,
-                    tags=["get_coin", "add_item", "remove_item"],
-                    description="범위 안의 :coin:을 모두 끌어당기고 토큰을 (범위 안의 :coin:의 개수)*20개 얻습니다."
-                )
-            ]),
-            GachaItem(":skull:", 1., [
-                GachaEvent(
-                    ":skull:", [], [lambda ctx, data: self.event_bankrupt(data)],
-                    tags=["lose_coin"],
-                    description="토큰을 모두 잃습니다."
-                )
-            ]),
-            GachaItem(":fire_extinguisher:", 0., [
-                GachaEvent(
-                    ":fire_extinguisher:", [":fire:"],
-                    [lambda ctx, data: self.event_fire_extinguisher(ctx, data, 10)], cond_range=10,
-                    tags=["get_coin", "remove_item"],
-                    description="범위 안의 불을 모두 제거하고 (제거한 불의 개수)*50의 토큰을 얻습니다."
-                )
-            ]),
-            GachaItem(":magic_wand:", 0., [
-                GachaEvent(
-                    ":magic_wand:", [],
-                    [lambda ctx, data: self.event_change_items(ctx, ":coin:", random.choice(self.all_icons), 10)],
-                    cond_range=10,
-                    tags=["change_item"],
-                    description="10 범위 안의 :coin:을 무작위 아이템으로 변경합니다."
-                )
-            ]),
-            GachaItem(":mouse_trap:", 0., [
-                GachaEvent(
-                    ":mouse_trap:", [":cheese:"], [lambda ctx, data: self.event_mousetrap(ctx, 3)], cond_range=3,
-                    tags=["change_item"],
-                    description="범위 안의 치즈를 모두 쥐덫으로 바꿉니다. 쥐덫에 걸리면 토큰을 잃습니다."
-                )
-            ]),
-            GachaItem(":smoking:", 0., [
-                GachaEvent(
-                    ":smoking:", [":fire:"],
-                    [lambda ctx, data: self.event_get_coin(data, 400),
-                     lambda ctx, data: self.event_luck(data, -1)], cond_range=5,
-                    tags=["get_coin", "lose_luck"],
-                    description="400 토큰을 얻고 행운을 1 잃습니다."
-                )
-            ]),
+        self.events = [
+            GachaEvent(
+                [":coin:"], [lambda ctx, data: self.event_get_coin(data, 10)],
+                description="토큰을 10 :coin: 얻습니다."
+            ),
+            GachaEvent(
+                [":coin:", ":coin:", ":coin:"], [lambda ctx, data: self.event_get_coin(data, 100)],
+                description="토큰을 100 :coin: 얻습니다."
+            )
         ]
         self.abilities = [
-            GachaAbility("heart_afire", ":heart_on_fire:", 2.5,
+            GachaAbility("heart_afire", ":heart_on_fire:", 0.,
                          chance_revision={":fire:": 20.},
-                         post_effects=[
+                         effects=[
                              lambda ctx, data, item: self.event_get_coin(data, random.randint(0, 400))
                              if item.icon == ":fire:" else self.event_none()
                          ],
                          description=":fire:의 등장 확률이 증가합니다."
                                      "\n:fire:가 나오면 0~400 토큰을 얻습니다."),
-            GachaAbility("fast_clock", ":hourglass:", 2.5,
-                         post_effects=[
+            GachaAbility("fast_clock", ":hourglass:", 5.,
+                         effects=[
                              lambda ctx, data, item: self.event_reset_cooldown(ctx)
                              if random.random() <= 0.25 else self.event_none()
                          ],
                          description="25%의 확률로 가챠의 쿨타임을 초기화합니다."),
-            GachaAbility("firefighter", ":firefighter:", 1.,
+            GachaAbility("firefighter", ":firefighter:", 0.,
                          chance_revision={":fire_extinguisher:": 30.},
-                         inter_effects=[
+                         effects=[
                              lambda event: [] if ":fire:" == event.parent else [event]
                          ],
                          description=":fire:로 인한 부정적인 효과를 받지 않습니다.\n"
                                      "특수 가챠에서 :fire_extinguisher:의 등장 확률이 발생합니다."),
-            GachaAbility("cat", ":cat:", 5.,
-                         inter_effects=[
-                             lambda event: [] if ":mouse:" == event.parent else [event]
-                         ],
-                         post_effects=[
+            GachaAbility("cat", ":cat:", 0.,
+                         effects=[
+                             lambda event: [] if ":mouse:" == event.parent else [event],
                              lambda ctx, data, item: self.event_get_coin(data, 100)
                              if item.icon == ":mouse:" else self.event_none()
                          ],
                          description=":mouse: 등장 시 100 토큰을 얻습니다.\n"
                                      ":mouse:로 인한 효과를 받지 않습니다."),
-            GachaAbility("genie", ":genie:", 3.,
+            GachaAbility("genie", ":genie:", 0.,
                          chance_revision={":four_leaf_clover:": 20.},
-                         post_effects=[lambda ctx, data, item: self.event_genie(data)],
                          description=":four_leaf_clover: 등장 확률이 증가합니다.\n"
                                      "가챠를 할 때마다 행운에 비례한 토큰을 얻습니다."),
-            GachaAbility("the_rich", ":money_mouth:", 1.,
+            GachaAbility("the_rich", ":money_mouth:", 0.,
                          chance_revision={":coin:": 20.},
-                         inter_effects=[
-                             lambda event: [] if "get_coin" in event.tags else [event]
-                         ],
-                         post_effects=[
+                         effects=[
+                             lambda event: [] if "get_coin" in event.tags else [event],
                              lambda ctx, data, item: self.event_rich(data)
                              if item.icon == ":coin:" else self.event_none()
                          ],
                          description=":coin: 등장 확률이 증가합니다.\n"
                                      "가챠 이벤트로 토큰을 얻지 못하는 대신, :coin:이 나오면 보유 토큰에 비례해 토큰을 얻습니다."),
-            GachaAbility("mage", ":mage:", 5.,
+            GachaAbility("mage", ":mage:", 0.,
                          chance_revision={":magic_wand:": 30.},
                          description="특수 가챠에서 :magic_wand:의 등장 확률이 발생합니다."),
-            GachaAbility("ghost", ":ghost:", 1.5,
+            GachaAbility("ghost", ":ghost:", 0.,
                          chance_revision={":skull:": 10.},
-                         inter_effects=[
-                             lambda event: [] if event.parent == ":skull:" else [event]
-                         ],
-                         post_effects=[
+                         effects=[
+                             lambda event: [] if event.parent == ":skull:" else [event],
                              lambda ctx, data, item: self.event_get_coin(data, 444)
                              if item.icon == ":skull:" else self.event_none()
                          ],
                          description=":skull: 등장 확률이 증가하며, :skull:이 나오면 이벤트를 무시하고 444 토큰을 얻습니다."),
-            GachaAbility("dice", ":game_die:", 2.5,
-                         post_effects=[
+            GachaAbility("dice", ":game_die:", 0.,
+                         effects=[
                              lambda ctx, data, item: self.event_get_coin(data, 10 * random.randint(1, 6))
                              if item.icon == ":coin:" else self.event_none(),
                              lambda ctx, data, item: self.event_luck(data, random.randint(1, 6))
@@ -280,14 +139,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          ],
                          description=":coin:이 나오면 10~60개의 토큰을 얻습니다.\n"
                                      ":four_leaf_clover:이 나오면 1~6개의 행운을 얻습니다."),
-            GachaAbility("magic_mirror", ":mirror:", 5.,
-                         inter_effects=[
+            GachaAbility("magic_mirror", ":mirror:", 0.,
+                         effects=[
                              lambda event: [event, event]
                          ],
                          description="모든 이벤트가 두 번 발생합니다."),
-            GachaAbility("santa", ":santa:", 5.,
+            GachaAbility("santa", ":santa:", 0.,
                          chance_revision={":gift:": 10.},
-                         post_effects=[
+                         effects=[
                              lambda ctx, data, item: self.event_get_coin(data, 100)
                              if item.icon == ":gift:" else self.event_none()
                          ],
@@ -306,16 +165,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         ]
 
     def get_whole_revision(self, chance_revision: dict):
-        normal_revision = 0.0
-        special_revision = 0.0
-        normal_icons = [i.icon for i in self.items]
-        special_icons = [j.icon for j in self.special_items]
+        whole_revision = 0.0
         for key, value in chance_revision.items():
-            if key in normal_icons:
-                normal_revision += value
-            elif key in special_icons:
-                special_revision += value
-        return normal_revision, special_revision
+            whole_revision += value
+        return whole_revision
+
+    def check_events(self, item_lst: list):
+        event_lst = []
+        for event in self.events:
+            if event.check_cond(item_lst):
+                event_lst.extend(event.event_methods)
+        return event_lst
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
@@ -370,39 +230,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def event_none(self):
         return None
 
-    async def event_mousetrap(self, ctx, max_range: int = 1):
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        msgs = [message async for message in gacha_channel.history(limit=max_range)]
-        cnt = 0
-        for msg in msgs:
-            if msg.content == ":cheese:":
-                await msg.edit(content=":mouse_trap:")
-                cnt += 1
-        return f"{cnt}개의 치즈에 덫을 설치했습니다."
-
-    async def event_fire_extinguisher(self, ctx, data: dict, max_range: int = 5):
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        msgs = [message async for message in gacha_channel.history(limit=max_range)]
-        cnt = 0
-        for msg in msgs:
-            if msg.content == ":fire:":
-                await msg.delete()
-                cnt += 1
-        coin = await self.event_get_coin(data, cnt * 50)
-        return f"{cnt}개의 불을 끄고 토큰을 얻었습니다!\n{coin}"
-
-    async def event_magnet(self, ctx, data: dict, max_range: int = 5):
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        msgs = [message async for message in gacha_channel.history(limit=max_range)]
-        cnt = 0
-        for msg in msgs:
-            if msg.content == ":coin:":
-                await msg.delete()
-                await gacha_channel.send(":coin:")
-                cnt += 1
-        coin = await self.event_get_coin(data, cnt * 20)
-        return f"{cnt}개의 :coin:을 끌어당겼습니다!\n{coin}"
-
     async def event_get_coin(self, data: dict, n: int = 0):
         data['$'] += n
         if n >= 0:
@@ -419,43 +246,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             return f'+{n} :four_leaf_clover:'
         else:
             return f'{n} :four_leaf_clover:'
-
-    async def event_gift(self, data: dict):
-        luck = data.get('%')
-        if luck is None:
-            return None
-        else:
-            gift = luck * 30
-            result = await self.event_get_coin(data, gift)
-            return result
-
-    async def event_remove_item(self, ctx, icon: str, max_range: int = 1, cnt: int = 1):
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        msgs = [message async for message in gacha_channel.history(limit=max_range)]
-        for msg in msgs:
-            if msg.content == icon:
-                await msg.delete()
-                break
-        return f"{cnt}개의 {icon}을 제거했습니다."
-
-    async def event_remove_all_items(self, ctx, icon: str = None, max_range: int = 1):
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        msgs = [message async for message in gacha_channel.history(limit=max_range)]
-        cnt = 0
-        for msg in msgs:
-            if msg.content == icon or icon is None:
-                await msg.delete()
-                cnt += 1
-        if icon:
-            return f"{cnt}개의 {icon}을 제거했습니다."
-        else:
-            return f"{cnt}개의 아이템을 제거했습니다."
-
-    async def event_add_item(self, ctx, icon: str, cnt: int = 1):
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
-        for i in range(0, cnt):
-            await gacha_channel.send(icon)
-        return f"{cnt}개의 {icon}을 추가했습니다."
 
     async def event_change_items(self, ctx, from_icon: str, to_icon: str, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
@@ -477,12 +267,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def event_reset_cooldown(self, ctx):
         ctx.command.reset_cooldown(ctx)
         return "쿨타임 초기화 되었습니다."
-
-    async def event_genie(self, data: dict):
-        luck = data.get('%')
-        if luck is not None:
-            result = await self.event_get_coin(data, luck * 10)
-            return result
 
     async def event_rich(self, data: dict):
         coin = int(data.get('$'))
@@ -685,17 +469,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     )
     async def gacha(self, ctx, option=None):
         find, data = await self.app.find_data("db", ctx.author.id)
-        gacha_channel = get(ctx.guild.text_channels, name="가챠")
         if find is None:
             await ctx.send(self.cannot_find_id)
         else:
             if option is None:
                 msg = await ctx.send(ctx.author.mention +
                                      " 일반 가챠를 돌리시려면 :white_check_mark:,"
-                                     "특수 가챠를 돌리시려면 :eight_spoked_asterisk:, "
                                      "특성 가챠를 돌리시려면 :black_joker: (100 :coin: 소모), "
                                      "취소하시려면 :negative_squared_cross_mark:를 눌러주세요.")
-                reaction_list = ['✅', '✳️', '🃏', '❎']
+                reaction_list = ['✅', '🃏', '❎']
                 for r in reaction_list:
                     await msg.add_reaction(r)
 
@@ -708,22 +490,15 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await msg.edit(content="시간 초과!", delete_after=2)
                 else:
                     await msg.delete()
-                    if str(reaction) in ['✅', '✳️', '🃏']:
-                        if str(reaction) == '🃏':
-                            option = 'a'
-                        elif str(reaction) == '✳️':
-                            option = 's'
-                        else:
-                            option = 'n'
+                    if str(reaction) == '✅':
+                        option = 'n'
+                    elif str(reaction) == '🃏':
+                        option = 'a'
                     else:
                         await ctx.send("취소했습니다.")
                         return None
-            if option in ['special', 'SPECIAL', '-s', 's']:
-                option = 's'
-                item_lst = self.special_items
-            elif option in ['normal', 'NORMAL', '-n', 'n']:
+            if option in ['normal', 'NORMAL', '-n', 'n']:
                 option = 'n'
-                item_lst = self.items
             elif option in ['ability', 'ABILITY', '-a', 'a']:
                 coin = data.get('$')
                 if coin < 100:
@@ -732,7 +507,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 else:
                     data['$'] -= 100
                     option = 'a'
-                    item_lst = self.abilities
             else:
                 return None
             item = None
@@ -759,46 +533,39 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await self.app.update_data(ctx.author.id, data, find)
                     await ctx.send("아무것도 얻지 못했습니다.")
                     return
-            else:
+            elif option == 'n':
+                item_lst = []
+                slot = 3 + ability.added_slot
                 embed = discord.Embed(title="<:video_game: 가챠>",
                                       description=ctx.author.display_name + " 님의 결과")
 
-                prev = [message.content async for message in gacha_channel.history(limit=10)]
-
-                if ability and ability.pre_effects:
-                    for pre_effect in ability.pre_effects:
-                        await pre_effect(ctx, data, prev)
-
                 if ability and ability.chance_revision:
-                    n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
-                    if option == 'n':
-                        rand = random.random() * (100 + n_revision)
-                    elif option == 's':
-                        rand = random.random() * (100 + s_revision)
-                    else:
-                        rand = random.random() * 100
+                    revision = self.get_whole_revision(ability.chance_revision)
+                    rand = random.random() * (100 + revision)
                 else:
-                    rand = random.random() * 100
+                    rand = random.random()
 
+                while slot == len(item_lst):
+                    for i in self.items:
+                        chance = i.chance
+                        if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():
+                            chance += ability.chance_revision.get(i.icon)
+                        if rand <= chance:
+                            item_lst.append(i)
+                            break
+                        else:
+                            rand -= chance
+
+                icon_lst = []
                 for i in item_lst:
-                    chance = i.chance
-                    if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():
-                        chance += ability.chance_revision.get(i.icon)
-                    if rand <= chance:
-                        item = i
-                        break
-                    else:
-                        rand -= chance
+                    icon_lst.append(i.icon)
+                await ctx.send(icon for icon in icon_lst)
 
-                if option == 's':
-                    await ctx.send(item.icon)
-                elif option == 'n':
-                    await gacha_channel.send(item.icon)
-                event_lst = item.check_event(prev)
+                event_lst = self.check_events(icon_lst)
 
-                if ability and ability.inter_effects:
+                if ability and ability.effects:
                     event_lst_after = []
-                    for effect in ability.inter_effects:
+                    for effect in ability.effects:
                         for event in event_lst:
                             ev_lst = effect(event)
                             event_lst_after.extend(ev_lst)
@@ -810,16 +577,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             effect = await method(ctx, data)
                             embed.add_field(name="이벤트", value=effect, inline=False)
                     await ctx.send(embed=embed)
-
-                if ability and ability.post_effects:
-                    embed = discord.Embed(title="<특성 효과>",
-                                          description=ctx.author.display_name + " 님의 특성 효과")
-                    for post_effect in ability.post_effects:
-                        effect = await post_effect(ctx, data, item)
-                        if effect:
-                            embed.add_field(name="이벤트", value=effect, inline=False)
-                    if embed.fields:
-                        await ctx.send(embed=embed)
 
                 await self.app.update_data(ctx.author.id, data, find)
 
@@ -854,8 +611,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             )
             whole_rand = 100.0
             if option == 'adjusted' and ability and ability.chance_revision:
-                n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
-                whole_rand += n_revision
+                revision = self.get_whole_revision(ability.chance_revision)
+                whole_rand += revision
             rest = whole_rand
             for item in self.items:
                 chance = item.chance
@@ -866,28 +623,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     embed.add_field(name=item.icon, value="{:0.2f}%".format((chance / whole_rand) * 100), inline=True)
                 rest -= chance
             embed.add_field(name="> Rest", value='{:0.2f}%'.format((rest/whole_rand)*100), inline=False)
-            await ctx.send(embed=embed)
-        elif args in ["special", "특수", "특수가챠"]:
-            embed = discord.Embed(
-                title="<가챠 정보>",
-                description="특수 가챠의 아이템 목록입니다.\n"
-                            "특수 가챠는 기본적으로 가챠 채널에 아이템을 추가하지 않으며, 기대 이익이 큰 만큼 높은 리스크를 동반합니다.\n"
-                            "특수 가챠는 일반 가챠와 마찬가지로 특정 조건을 만족했을 때 이벤트가 발생합니다."
-            )
-            whole_rand = 100.0
-            if option == 'adjusted' and ability and ability.chance_revision:
-                n_revision, s_revision = self.get_whole_revision(ability.chance_revision)
-                whole_rand += s_revision
-            rest = whole_rand
-            for item in self.special_items:
-                chance = item.chance
-                if option == 'adjusted' and ability:
-                    if ability.chance_revision and item.icon in ability.chance_revision.keys():
-                        chance += ability.chance_revision.get(item.icon)
-                if chance > 0:
-                    embed.add_field(name=item.icon, value="{:0.2f}%".format((chance / whole_rand) * 100), inline=True)
-                rest -= chance
-            embed.add_field(name="> Rest", value='{:0.2f}%'.format((rest / whole_rand) * 100), inline=False)
             await ctx.send(embed=embed)
         elif args in ["ability", "abilities", "특성", "특성가챠"]:
             embed = discord.Embed(
@@ -904,17 +639,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(embed=embed)
         else:
             not_found = True
-            for item in self.items + self.special_items:
+            for item in self.items:
                 if args in [item.icon, item.icon[1:-1]]:
                     embed = discord.Embed(
                         title="<가챠 정보>",
                         description=f"{item.icon}의 이벤트 목록입니다."
                     )
-                    for event in item.events:
-                        embed.add_field(
-                            name=f"> {' '.join(event.cond)} in {event.cond_range}",
-                            value=event.description, inline=False
-                        )
                     await ctx.send(embed=embed)
                     not_found = False
                     break

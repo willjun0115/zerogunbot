@@ -561,7 +561,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 icon_lst = []
                 for i in item_lst:
                     icon_lst.append(i.icon)
-                await ctx.send(icon for icon in icon_lst)
+                await ctx.send(''.join(icon_lst))
 
                 event_lst = self.check_events(icon_lst)
 

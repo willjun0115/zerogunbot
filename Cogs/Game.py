@@ -535,7 +535,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     return
             elif option == 'n':
                 item_lst = []
-                slot = 3 + ability.added_slot
+                slot = 3
+                if ability and ability.added_slots:
+                    slot += ability.added_slots
                 embed = discord.Embed(title="<:video_game: 가챠>",
                                       description=ctx.author.display_name + " 님의 결과")
 

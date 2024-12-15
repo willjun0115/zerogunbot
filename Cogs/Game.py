@@ -581,6 +581,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await ctx.send(embed=embed)
 
                 await self.app.update_data(ctx.author.id, data, find)
+                return
 
     @commands.command(
         name="가챠정보", aliases=["확률", "gachainfo"],

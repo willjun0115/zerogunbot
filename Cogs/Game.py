@@ -11,14 +11,14 @@ from dateutil.relativedelta import relativedelta
 
 class GachaAbility:
     def __init__(self, name: str, icon: str, chance: float, added_slots = 0, chance_revision: dict = None,
-                 effects: list = None, description: str = "*No description*"):
+                 special_events: list = None, description: str = "*No description*"):
         self.name = name
         self.icon = icon
         self.chance = chance
         self.description = description
         self.added_slots = added_slots
         self.chance_revision = chance_revision
-        self.effects = effects
+        self.special_events = special_events
 
     def __str__(self):
         return self.icon + ' ' + self.name
@@ -79,27 +79,27 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         self.abilities = [
             GachaAbility("heart_afire", ":heart_on_fire:", 0.,
                          chance_revision={":fire:": 20.},
-                         effects=[
+                         special_events=[
                              lambda ctx, data, item: self.event_get_coin(data, random.randint(0, 400))
                              if item.icon == ":fire:" else self.event_none()
                          ],
                          description=":fire:의 등장 확률이 증가합니다."
                                      "\n:fire:가 나오면 0~400 토큰을 얻습니다."),
             GachaAbility("fast_clock", ":hourglass:", 5.,
-                         effects=[
+                         special_events=[
                              lambda ctx, data, item: self.event_reset_cooldown(ctx)
                              if random.random() <= 0.25 else self.event_none()
                          ],
                          description="25%의 확률로 가챠의 쿨타임을 초기화합니다."),
             GachaAbility("firefighter", ":firefighter:", 0.,
                          chance_revision={":fire_extinguisher:": 30.},
-                         effects=[
+                         special_events=[
                              lambda event: [] if ":fire:" == event.parent else [event]
                          ],
                          description=":fire:로 인한 부정적인 효과를 받지 않습니다.\n"
                                      "특수 가챠에서 :fire_extinguisher:의 등장 확률이 발생합니다."),
             GachaAbility("cat", ":cat:", 0.,
-                         effects=[
+                         special_events=[
                              lambda event: [] if ":mouse:" == event.parent else [event],
                              lambda ctx, data, item: self.event_get_coin(data, 100)
                              if item.icon == ":mouse:" else self.event_none()
@@ -112,7 +112,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                      "가챠를 할 때마다 행운에 비례한 토큰을 얻습니다."),
             GachaAbility("the_rich", ":money_mouth:", 0.,
                          chance_revision={":coin:": 20.},
-                         effects=[
+                         special_events=[
                              lambda event: [] if "get_coin" in event.tags else [event],
                              lambda ctx, data, item: self.event_rich(data)
                              if item.icon == ":coin:" else self.event_none()
@@ -124,33 +124,28 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                          description="특수 가챠에서 :magic_wand:의 등장 확률이 발생합니다."),
             GachaAbility("ghost", ":ghost:", 0.,
                          chance_revision={":skull:": 10.},
-                         effects=[
+                         special_events=[
                              lambda event: [] if event.parent == ":skull:" else [event],
                              lambda ctx, data, item: self.event_get_coin(data, 444)
                              if item.icon == ":skull:" else self.event_none()
                          ],
                          description=":skull: 등장 확률이 증가하며, :skull:이 나오면 이벤트를 무시하고 444 토큰을 얻습니다."),
             GachaAbility("dice", ":game_die:", 0.,
-                         effects=[
-                             lambda ctx, data, item: self.event_get_coin(data, 10 * random.randint(1, 6))
-                             if item.icon == ":coin:" else self.event_none(),
-                             lambda ctx, data, item: self.event_luck(data, random.randint(1, 6))
-                             if item.icon == ":four_leaf_clover:" else self.event_none(),
+                         special_events=[
                          ],
-                         description=":coin:이 나오면 10~60개의 토큰을 얻습니다.\n"
-                                     ":four_leaf_clover:이 나오면 1~6개의 행운을 얻습니다."),
+                         description=""),
             GachaAbility("magic_mirror", ":mirror:", 0.,
-                         effects=[
+                         special_events=[
                              lambda event: [event, event]
                          ],
                          description="모든 이벤트가 두 번 발생합니다."),
             GachaAbility("santa", ":santa:", 0.,
                          chance_revision={":gift:": 10.},
-                         effects=[
-                             lambda ctx, data, item: self.event_get_coin(data, 100)
-                             if item.icon == ":gift:" else self.event_none()
+                         special_events=[
+                             lambda ctx, data, icon_lst: self.event_get_coin(data, 120)
+                             if ":gift:" in icon_lst else self.event_none()
                          ],
-                         description=":gift: 등장 확률이 증가하며, :gift:가 나오면 추가로 100 토큰을 얻습니다."),
+                         description=":gift: 등장 확률이 증가하며, :gift:가 나오면 추가로 120 토큰을 얻습니다."),
             GachaAbility("peace_bringer", ":dove:", 5.,
                          chance_revision={":bomb:": -5., ":firecracker:": -1.5, ":skull:": -1.},
                          description="폭탄류 등장 확률이 감소하며, :skull: 등장 확률이 사라집니다."),
@@ -169,13 +164,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         for key, value in chance_revision.items():
             whole_revision += value
         return whole_revision
-
-    def check_events(self, item_lst: list):
-        event_lst = []
-        for event in self.events:
-            if event.check_cond(item_lst):
-                event_lst.extend(event.event_methods)
-        return event_lst
 
     async def gather_members(self, ctx, game_name="게임"):
         members = []
@@ -535,6 +523,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     return
             else:
                 item_lst = []
+                event_lst = []
                 slot = 3
                 if ability and ability.added_slots:
                     slot += ability.added_slots
@@ -563,21 +552,17 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     icon_lst.append(i.icon)
                 await ctx.send(''.join(icon_lst))
 
-                event_lst = self.check_events(icon_lst)
+                for event in self.events:
+                    if event.check_cond(icon_lst):
+                        event_lst.extend(event.event_methods)
 
-                if ability and ability.effects:
-                    event_lst_after = []
-                    for effect in ability.effects:
-                        for event in event_lst:
-                            ev_lst = effect(event)
-                            event_lst_after.extend(ev_lst)
-                    event_lst = event_lst_after
+                if ability and ability.special_events:
+                    event_lst.extend(ability.special_events)
 
                 if len(event_lst) > 0:
                     for event in event_lst:
-                        for method in event.event_methods:
-                            effect = await method(ctx, data)
-                            embed.add_field(name="이벤트", value=effect, inline=False)
+                        effect = await event(ctx, data)
+                        embed.add_field(name="이벤트", value=effect, inline=False)
                     await ctx.send(embed=embed)
 
                 await self.app.update_data(ctx.author.id, data, find)

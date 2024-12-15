@@ -533,7 +533,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await self.app.update_data(ctx.author.id, data, find)
                     await ctx.send("아무것도 얻지 못했습니다.")
                     return
-            elif option == 'n':
+            else:
                 item_lst = []
                 slot = 3
                 if ability and ability.added_slots:
@@ -547,7 +547,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 else:
                     rand = random.random()
 
-                while slot == len(item_lst):
+                while slot > len(item_lst):
                     for i in self.items:
                         chance = i.chance
                         if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():

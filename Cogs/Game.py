@@ -449,7 +449,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 embed.add_field(name="> 손익", value=str(prize) + " :coin:")
                 await ctx.send(embed=embed)
 
-    @commands.cooldown(1, 15., commands.BucketType.user)
+    @commands.cooldown(1, 10., commands.BucketType.user)
     @commands.bot_has_permissions(administrator=True)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
@@ -497,7 +497,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     option = 'a'
             else:
                 return None
-            item = None
+            revision = 0
             ability = None
             ability_name = data.get('*')
             if ability_name:
@@ -505,6 +505,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     if a.name == ability_name:
                         ability = a
             if option == 'a':
+                item = None
                 rand = random.random() * 100
                 for i in self.abilities:
                     if rand <= i.chance:
@@ -532,11 +533,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
                 if ability and ability.chance_revision:
                     revision = self.get_whole_revision(ability.chance_revision)
-                    rand = random.random() * (100 + revision)
-                else:
-                    rand = random.random()
 
                 while slot > len(item_lst):
+                    rand = random.random() * (100 + revision)
                     for i in self.items:
                         chance = i.chance
                         if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():

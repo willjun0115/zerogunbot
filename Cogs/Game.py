@@ -45,11 +45,11 @@ class GachaEvent:
         self.description = description
 
     def check_cond(self, item_lst: list):
-        check = 0
-        for i in self.cond:
+        cond = self.cond
+        for i in cond:
             if i in item_lst or i == 'Any':
-                check += 1
-        return check == len(self.cond)
+                cond.remove(i)
+        return len(cond) == 0
 
 
 class Game(commands.Cog, name="게임", description="오락 및 도박과 관련된 카테고리입니다.\n토큰을 수급할 수 있습니다."):

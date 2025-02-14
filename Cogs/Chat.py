@@ -17,7 +17,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
     async def hello(self, ctx):
         what_message = random.randint(1, 3)
         if what_message == 1:
-            await ctx.channel.send('안녕하세요? ' + ctx.author.name + ' 님, 오늘도 좋은하루 보내세요!')
+            await ctx.channel.send('안녕하세요? ' + ctx.author.name + ' 님, 오늘도 좋은 하루 보내세요!')
         elif what_message == 2:
             await ctx.channel.send('안녕하세요? ' + ctx.author.name + ' 님, 오늘 하루 힘내세요!')
         else:
@@ -76,7 +76,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
             await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
 
     @commands.command(
-        name='패드립', aliases=["mf", "느금마", "느금", "너검", "너거매", "니애미", "ㄴㄱㅁ", "ㄴㅇㅁ"],
+        name='패드립', aliases=["느금마", "느금", "너검", "너거매", "니애미", "ㄴㄱㅁ", "ㄴㅇㅁ"],
         help="저희 봇에 그런 기능은 없습니다?", usage="*", hidden=True
     )
     async def fdr(self, ctx):

@@ -15,3 +15,6 @@ __pycache__/
 # Temporary files and binaries
 chromedriver.exe
 *.mp3
+*.webm
+*.m4a
+*.wav

@@ -70,12 +70,16 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         voice = get(self.app.voice_clients, guild=ctx.guild)
         channel = ctx.author.voice.channel
         try:
-            if voice and voice.is_connected():
-                await voice.move_to(channel)
+            if voice:
+                if voice.is_connected():
+                    await voice.move_to(channel)
+                else:
+                    await voice.disconnect(force=True)
+                    voice = await channel.connect()
             else:
-                await ctx.guild.change_voice_state(channel=channel)
                 voice = await channel.connect()
-        except:
+        except Exception as e:
+            print(f"Connection error: {e}")
             await ctx.send(":no_entry: 연결 오류가 발생했습니다.")
         else:
             await ctx.send(channel.name + "에 연결합니다.")

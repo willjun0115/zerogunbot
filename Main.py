@@ -58,9 +58,8 @@ async def on_ready():
     await app.change_presence(status=discord.Status.offline)
     game = discord.Game("시작하는 중...")
     await app.change_presence(status=discord.Status.online, activity=game)
-    while True:
-        game = discord.Game(prefix + "도움말")
-        await app.change_presence(status=discord.Status.online, activity=game)
+    game = discord.Game(prefix + "도움말")
+    await app.change_presence(status=discord.Status.online, activity=game)
 
 
 @app.event

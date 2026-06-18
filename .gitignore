@@ -1,0 +1,17 @@
+# Environment variables
+.env
+
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDEs and Editors
+.idea/
+.vscode/
+
+# Temporary files and binaries
+chromedriver.exe
+*.mp3

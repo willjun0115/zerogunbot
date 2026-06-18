@@ -97,5 +97,5 @@ if access and secret:
     upbit = pyupbit.Upbit(access, secret)
 
 
-def setup(app):
-    app.add_cog(BTC(app))
+async def setup(app):
+    await app.add_cog(BTC(app))

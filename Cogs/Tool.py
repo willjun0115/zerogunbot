@@ -2,11 +2,7 @@ import discord
 from discord.ext import tasks, commands
 from discord.utils import get
 import asyncio
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 import os
-import youtube_dl
-from discord import FFmpegPCMAudio
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import ast
@@ -166,7 +162,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @commands.command(
         name='암호화', aliases=["encrypt", "enc"],
-        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 999]) str()', pass_context=True
+        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 999]) str()'
     )
     async def chat_encryption(self, ctx, num, *, args):
         await ctx.message.delete()
@@ -179,7 +175,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @commands.command(
         name='복호화', aliases=["decrypt", "dec"],
-        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)', pass_context=True
+        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)'
     )
     async def chat_decryption(self, ctx, num, *, code):
         await ctx.message.delete()
@@ -193,7 +189,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @commands.cooldown(1, 60., commands.BucketType.member)
     @commands.command(
         name='0군인증', aliases=["인증", "0id"],
-        help='0군 인증서를 발급합니다. (쿨타임: 60초)', usage='*', pass_context=True
+        help='0군 인증서를 발급합니다. (쿨타임: 60초)', usage='*'
     )
     async def zero_identification(self, ctx):
         password = '0000'
@@ -213,5 +209,5 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 await ctx.send('잘못된 암호입니다.')
 
 
-def setup(app):
-    app.add_cog(Tool(app))
+async def setup(app):
+    await app.add_cog(Tool(app))

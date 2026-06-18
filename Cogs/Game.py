@@ -267,7 +267,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         db = await self.app.find_id('$', ctx.author.id)
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
-        messages = await db_channel.history(limit=100).flatten()
+        messages = [msg async for msg in db_channel.history(limit=100)]
         member_db = random.choice(
             [
                 m for m in messages
@@ -285,7 +285,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         db = await self.app.find_id('$', ctx.author.id)
         global_guild = self.app.get_guild(self.app.global_guild_id)
         db_channel = get(global_guild.text_channels, name="db")
-        messages = await db_channel.history(limit=100).flatten()
+        messages = [msg async for msg in db_channel.history(limit=100)]
         member_db = random.choice(
             [
                 m for m in messages
@@ -425,7 +425,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.cooldown(1, 30., commands.BucketType.user)
     @commands.command(
         name="도박", aliases=["베팅", "gamble", "bet"],
-        help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token*])", pass_context=True
+        help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token*])"
     )
     async def gamble(self, ctx, bet):
         find, data = await self.app.find_data("db", ctx.author.id)
@@ -571,7 +571,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         name="가챠정보", aliases=["확률", "gachainfo"],
         help="'가챠'의 정보를 공개합니다.\n'%가챠정보 특수'를 통해 특수 가챠의 정보를 확인할 수 있습니다."
              "\n'%가챠정보 특성'을 통해 특성 가챠의 정보를 확인할 수 있습니다."
-             "\n'%가챠정보 *item*'을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))", pass_context=True
+             "\n'%가챠정보 *item*'을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))"
     )
     async def gacha_info(self, ctx, args: str = None, option: str = None):
         ability_name = None
@@ -1315,5 +1315,5 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         await ctx.send(embed=embed)
 
 
-def setup(app):
-    app.add_cog(Game(app))
+async def setup(app):
+    await app.add_cog(Game(app))

@@ -26,7 +26,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
     @commands.has_permissions(manage_messages=True)
     @commands.command(
         name="말하기", aliases=["say", "chat"],
-        help="입력값을 채팅에 전송합니다.", usage="* str()", pass_context=True
+        help="입력값을 채팅에 전송합니다.", usage="* str()"
     )
     async def _say(self, ctx, *, args):
         await ctx.message.delete()
@@ -35,7 +35,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
     @commands.has_permissions(manage_messages=True)
     @commands.command(
         name="타이머챗", aliases=["timerchat", "tchat"],
-        help="시간이 지나면 사라지는 채팅을 전송합니다.", usage="* int() str()", pass_context=True
+        help="시간이 지나면 사라지는 채팅을 전송합니다.", usage="* int() str()"
     )
     async def _say_timer(self, ctx, sec, *, args):
         await ctx.message.delete()
@@ -46,7 +46,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
     @commands.has_permissions(manage_messages=True)
     @commands.command(
         name="도배", aliases=["bulkchat", "bchat"],
-        help="입력값을 반복 입력해 전송합니다.", usage="* int() str()", pass_context=True
+        help="입력값을 반복 입력해 전송합니다.", usage="* int() str()"
     )
     async def _say_bulk(self, ctx, num, *, args):
         await ctx.message.delete()
@@ -57,7 +57,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
     @commands.command(
         name="청소", aliases=["일괄삭제", "clear", "purge"],
         help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."
-             "\n특정 사용자의 채팅만을 지울 수도 있습니다. (쿨타임: 60초)", usage="* int((0, 999]) (@*member*)", pass_context=True
+             "\n특정 사용자의 채팅만을 지울 수도 있습니다. (쿨타임: 60초)", usage="* int((0, 999]) (@*member*)"
     )
     async def clean(self, ctx, num=1, member: discord.Member = None):
         await ctx.message.delete()
@@ -85,5 +85,5 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         await msg.edit(content='그런 말 못써요 ㅠㅠ')
 
 
-def setup(app):
-    app.add_cog(Chat(app))
+async def setup(app):
+    await app.add_cog(Chat(app))

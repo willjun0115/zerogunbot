@@ -8,10 +8,19 @@ import ctypes
 import ctypes.util
 import datetime
 import ast
+from dotenv import load_dotenv
 
 prefix = '%'
 intents = discord.Intents.all()
-app = commands.Bot(
+load_dotenv()
+
+class ZeroGunBot(commands.Bot):
+    async def setup_hook(self):
+        for filename in os.listdir("Cogs"):
+            if filename.endswith(".py"):
+                await self.load_extension(f"Cogs.{filename[:-3]}")
+
+app = ZeroGunBot(
     command_prefix=commands.when_mentioned_or(prefix),
     help_command=None,
     strip_after_prefix=True,
@@ -19,10 +28,6 @@ app = commands.Bot(
 )
 app.global_guild_id = 943244634602213396
 app.prefix = prefix
-
-for filename in os.listdir("Cogs"):
-    if filename.endswith(".py"):
-        app.load_extension(f"Cogs.{filename[:-3]}")
 
 rn = random.randint(0, 999)
 temp = None
@@ -154,7 +159,7 @@ async def setup_database(ctx):
         else:
             unique_data = []
             delete_count = 0
-            messages = await db.history(limit=500).flatten()
+            messages = [msg async for msg in db.history(limit=500)]
             for msg in messages:
                 if msg.content[:19] in unique_data:
                     await msg.delete()
@@ -326,12 +331,12 @@ async def admin_status_detail(ctx):
     await ctx.send(embed=embed)
 
 
-@admin_command.group(name="fetch", aliases=["find", "get", "f"], pass_context=True)
+@admin_command.group(name="fetch", aliases=["find", "get", "f"])
 async def admin_fetch(ctx):
     return
 
 
-@admin_fetch.group(name="guild", aliases=["server"], pass_context=True)
+@admin_fetch.group(name="guild", aliases=["server"])
 async def admin_fetch_guild(ctx, id=None):
     if id is None:
         id = ctx.guild.id
@@ -347,7 +352,7 @@ async def admin_fetch_guild(ctx, id=None):
         embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
         await ctx.send(embed=embed)
     else:
-        embed.set_thumbnail(url=guild.icon_url)
+        embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
         embed.add_field(
             name="name : " + guild.name,
             value=f"created at {guild.created_at}\n"
@@ -392,7 +397,7 @@ async def admin_fetch_guild(ctx, id=None):
         await ctx.send(embed=embed)
 
 
-@admin_fetch.group(name="user", aliases=["member"], pass_context=True)
+@admin_fetch.group(name="user", aliases=["member"])
 async def admin_fetch_user(ctx, id):
     id = int(id)
     embed = discord.Embed(title="Fetch", description=f"fetch user by id : {id}")
@@ -403,7 +408,7 @@ async def admin_fetch_user(ctx, id):
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the user.")
     else:
-        embed.set_thumbnail(url=user.avatar_url)
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else None)
         embed.add_field(
             name="name : " + str(user),
             value=f"created at {user.created_at}\n",
@@ -412,7 +417,7 @@ async def admin_fetch_user(ctx, id):
     await ctx.send(embed=embed)
 
 
-@admin_command.group(name="search", aliases=["s"], pass_context=True)
+@admin_command.group(name="search", aliases=["s"])
 async def admin_search(ctx, *, args):
     cannot_find = True
     embed = discord.Embed(title="Search", description=f"search for : {args}")

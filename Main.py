@@ -1,20 +1,28 @@
-import asyncio
 import random
 import discord
 from discord.ext import commands
 from discord.utils import get
 import os
-import ctypes
-import ctypes.util
 import datetime
-import ast
 from dotenv import load_dotenv
 
 prefix = '%'
 intents = discord.Intents.all()
 load_dotenv()
 
+import typing
+
 class ZeroGunBot(commands.Bot):
+    global_guild_id: int
+    prefix: str
+    encrypt: typing.Any
+    decrypt: typing.Any
+    find_id: typing.Any
+    find_data: typing.Any
+    update_data: typing.Any
+    collect_data: typing.Any
+    setup_database: typing.Any
+
     async def setup_hook(self):
         for filename in os.listdir("Cogs"):
             if filename.endswith(".py"):
@@ -40,7 +48,7 @@ def encrypt(num, args):
         x = x * 2 + num
         cc = chr(x)
         code = code + cc
-    return str(code)
+    return code
 
 
 def decrypt(num, code):
@@ -50,7 +58,7 @@ def decrypt(num, code):
         x = (x - num) // 2
         cc = chr(x)
         args = args + cc
-    return str(args)
+    return args
 
 
 @app.event
@@ -79,7 +87,11 @@ async def on_member_join(member):
 
 async def find_id(selector, id):
     global_guild = app.get_guild(app.global_guild_id)
+    if global_guild is None:
+        return None
     db_channel = get(global_guild.text_channels, name="db")
+    if db_channel is None:
+        return None
     find = None
     async for message in db_channel.history(limit=500):
         if message.content.startswith(selector + str(id)) is True:
@@ -90,7 +102,11 @@ async def find_id(selector, id):
 
 async def find_data(db_name, user_id):
     global_guild = app.get_guild(app.global_guild_id)
+    if global_guild is None:
+        return None, {}
     db_channel = get(global_guild.text_channels, name=db_name)
+    if db_channel is None:
+        return None, {}
     find = None
     data = {}
     async for message in db_channel.history(limit=100):
@@ -114,14 +130,22 @@ async def update_data(user_id, data: dict, message=None):
         msg = await message.edit(content=content)
     else:
         global_guild = app.get_guild(app.global_guild_id)
+        if global_guild is None:
+            return None
         db_channel = get(global_guild.text_channels, name="db")
+        if db_channel is None:
+            return None
         msg = await db_channel.send(content)
     return msg
 
 
 async def collect_data(db_name):
     global_guild = app.get_guild(app.global_guild_id)
+    if global_guild is None:
+        return {}
     db_channel = get(global_guild.text_channels, name=db_name)
+    if db_channel is None:
+        return {}
     data_dict = {}
     async for message in db_channel.history(limit=100):
         data = {}
@@ -188,13 +212,13 @@ async def admin_command(ctx):
 
 @admin_command.group(name="load", aliases=["l"])
 async def load_cogs(ctx, extension):
-    app.load_extension(f"Cogs.{extension}")
+    await app.load_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 로드했습니다.")
 
 
 @admin_command.group(name="unload", aliases=["ul"])
 async def unload_cogs(ctx, extension):
-    app.unload_extension(f"Cogs.{extension}")
+    await app.unload_extension(f"Cogs.{extension}")
     await ctx.send(f":white_check_mark: {extension}을(를) 언로드했습니다.")
 
 
@@ -203,23 +227,25 @@ async def reload_cogs(ctx, extension=None):
     if extension is None:
         for file_name in os.listdir("Cogs"):
             if file_name.endswith(".py"):
-                app.unload_extension(f"Cogs.{file_name[:-3]}")
-                app.load_extension(f"Cogs.{file_name[:-3]}")
+                await app.unload_extension(f"Cogs.{file_name[:-3]}")
+                await app.load_extension(f"Cogs.{file_name[:-3]}")
                 await ctx.send(":white_check_mark: 명령어를 다시 불러왔습니다.")
     else:
-        app.unload_extension(f"Cogs.{extension}")
-        app.load_extension(f"Cogs.{extension}")
+        await app.unload_extension(f"Cogs.{extension}")
+        await app.load_extension(f"Cogs.{extension}")
         await ctx.send(f":white_check_mark: {extension}을(를) 다시 불러왔습니다.")
 
 
 @admin_command.group(name="execute", aliases=["exe"])
 async def execute_command(ctx, *, strings=None):
-    if strings:
-        strings = strings.split('--')
+    if not strings:
+        await ctx.send("Command Not Found.")
+        return
+    strings_list = strings.split('--')
     cmd = None
     args = []
     kwargs = {}
-    for string in strings:
+    for string in strings_list:
         if string.startswith("cmd:"):
             cmd = app.get_command(string[4:].strip())
         elif string.startswith("args:"):
@@ -300,6 +326,7 @@ async def delete_value(ctx):
 
 @admin_command.group(name="status", aliases=["stat"])
 async def admin_status(ctx):
+    assert app.user is not None
     embed = discord.Embed(
         title="Status",
         description=
@@ -315,6 +342,7 @@ async def admin_status(ctx):
 
 @admin_status.group(name="detail", aliases=["+"])
 async def admin_status_detail(ctx):
+    assert app.user is not None
     appinfo = await app.application_info()
     embed = discord.Embed(
         title="Detail",
@@ -344,56 +372,60 @@ async def admin_fetch_guild(ctx, id=None):
     embed = discord.Embed(title="Fetch Guild", description=f"get guild by id : {id}")
     try:
         guild = app.get_guild(id)
-    except discord.NotFound:
+        if guild is None:
+            guild = await app.fetch_guild(id)
+    except (discord.NotFound, discord.HTTPException):
         embed.add_field(name="NotFound", value="No guild was found.")
         await ctx.send(embed=embed)
+        return
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the guild.")
         await ctx.send(embed=embed)
-    else:
-        embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+        return
+
+    embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+    embed.add_field(
+        name="name : " + guild.name,
+        value=f"created at {guild.created_at}\n"
+              f"owner : {str(guild.owner)}\n"
+              f"members_number : {len(guild.members)}",
+        inline=False
+    )
+    await ctx.send(embed=embed)
+    embed = discord.Embed(title="Members", description=f"list of members in {guild.name}")
+    for member in guild.members:
         embed.add_field(
-            name="name : " + guild.name,
-            value=f"created at {guild.created_at}\n"
-                  f"owner : {str(guild.owner)}\n"
-                  f"members_number : {len(guild.members)}",
-            inline=False
-        )
-        await ctx.send(embed=embed)
-        embed = discord.Embed(title="Members", description=f"list of members in {guild.name}")
-        for member in guild.members:
-            embed.add_field(
-                name="> " + str(member),
-                value=f"id: {member.id}\n"
-                      f"joined at {member.joined_at}\n"
-                      f"status: {member.raw_status}\n"
-                      f"roles: {', '.join([role.name for role in member.roles])}",
-                inline=True
-            )
-        await ctx.send(embed=embed)
-        embed = discord.Embed(title="Channels", description=f"list of channels in {guild.name}")
-        for category in guild.categories:
-            embed.add_field(
-                name="> " + category.name,
-                value=f"{len(category.channels)} channels\n" +
-                      "\n".join([c.mention for c in category.channels]),
-                inline=True
-            )
-        embed.add_field(
-            name="no category",
-            value=f"{len([c for c in guild.channels if c.category is None and c not in guild.categories])} channels\n" +
-                  "\n".join([c.mention for c in guild.channels if c.category is None and c not in guild.categories]),
+            name="> " + str(member),
+            value=f"id: {member.id}\n"
+                    f"joined at {member.joined_at}\n"
+                    f"status: {member.raw_status}\n"
+                    f"roles: {', '.join([role.name for role in member.roles])}",
             inline=True
         )
-        await ctx.send(embed=embed)
-        embed = discord.Embed(title="Roles", description=f"list of roles in {guild.name}")
-        for role in guild.roles[1:]:
-            embed.add_field(
-                name=str(role.position) + ") " + role.name,
-                value="\n".join([str(m) for m in role.members]),
-                inline=True
-            )
-        await ctx.send(embed=embed)
+    await ctx.send(embed=embed)
+    embed = discord.Embed(title="Channels", description=f"list of channels in {guild.name}")
+    for category in guild.categories:
+        embed.add_field(
+            name="> " + category.name,
+            value=f"{len(category.channels)} channels\n" +
+                  "\n".join([c.mention for c in category.channels]),
+            inline=True
+        )
+    embed.add_field(
+        name="no category",
+        value=f"{len([c for c in guild.channels if c.category is None and c not in guild.categories])} channels\n" +
+              "\n".join([c.mention for c in guild.channels if c.category is None and c not in guild.categories]),
+        inline=True
+    )
+    await ctx.send(embed=embed)
+    embed = discord.Embed(title="Roles", description=f"list of roles in {guild.name}")
+    for role in guild.roles[1:]:
+        embed.add_field(
+            name=str(role.position) + ") " + role.name,
+            value="\n".join([str(m) for m in role.members]),
+            inline=True
+        )
+    await ctx.send(embed=embed)
 
 
 @admin_fetch.group(name="user", aliases=["member"])
@@ -402,17 +434,23 @@ async def admin_fetch_user(ctx, id):
     embed = discord.Embed(title="Fetch", description=f"fetch user by id : {id}")
     try:
         user = app.get_user(id)
-    except discord.NotFound:
+        if user is None:
+            user = await app.fetch_user(id)
+    except (discord.NotFound, discord.HTTPException):
         embed.add_field(name="NotFound", value="No user was found.")
+        await ctx.send(embed=embed)
+        return
     except discord.Forbidden:
         embed.add_field(name="Forbidden", value="Cannot fetch the user.")
-    else:
-        embed.set_thumbnail(url=user.avatar.url if user.avatar else None)
-        embed.add_field(
-            name="name : " + str(user),
-            value=f"created at {user.created_at}\n",
-            inline=False
-        )
+        await ctx.send(embed=embed)
+        return
+
+    embed.set_thumbnail(url=user.avatar.url if user.avatar else None)  # type: ignore
+    embed.add_field(
+        name="name : " + str(user),
+        value=f"created at {user.created_at}\n",
+        inline=False
+    )
     await ctx.send(embed=embed)
 
 
@@ -449,7 +487,7 @@ async def admin_help(ctx):
     description = ""
     for cmd in admin_command.commands:
         description += f"{cmd.name}\n"
-        if cmd.commands is not None:
+        if isinstance(cmd, commands.Group):
             for sub_cmd in cmd.commands:
                 description += f"+{sub_cmd.name}\n"
     embed = discord.Embed(
@@ -488,4 +526,5 @@ async def on_command_error(ctx, error):
 
 
 token = os.environ.get("TOKEN")
+assert token is not None, "TOKEN environment variable is not set"
 app.run(token)

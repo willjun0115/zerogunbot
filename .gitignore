@@ -18,3 +18,6 @@ chromedriver.exe
 *.webm
 *.m4a
 *.wav
+
+# AI Agent workspace/scratch directories
+brain/

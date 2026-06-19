@@ -2,16 +2,13 @@ import discord
 import random
 import asyncio
 from discord.utils import get
-from discord.ext import commands, tasks
+from discord.ext import commands
 import operator
-from collections import OrderedDict
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 
 
 class GachaAbility:
-    def __init__(self, name: str, icon: str, chance: float, added_slots = 0, chance_revision: dict = None,
-                 special_events: list = None, description: str = "*No description*"):
+    def __init__(self, name: str, icon: str, chance: float, added_slots = 0, chance_revision: dict | None = None,
+                 special_events: list | None = None, description: str = "*No description*"):
         self.name = name
         self.icon = icon
         self.chance = chance
@@ -38,7 +35,7 @@ class GachaItem:
 
 class GachaEvent:
     def __init__(self, cond: list, event_methods: list,
-                 tags: list = None, description: str = "*No description*"):
+                 tags: list | None = None, description: str = "*No description*"):
         self.cond = cond
         self.event_methods = event_methods
         self.tags = tags
@@ -237,6 +234,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     async def event_change_items(self, ctx, from_icon: str, to_icon: str, max_range: int = 1):
         gacha_channel = get(ctx.guild.text_channels, name="가챠")
+        if gacha_channel is None:
+            return "가챠 채널을 찾을 수 없습니다."
         msgs = [message async for message in gacha_channel.history(limit=max_range)]
         cnt = 0
         for msg in msgs:
@@ -246,7 +245,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return f"{cnt}개의 {from_icon}을 {to_icon}으로 변경했습니다."
 
     async def event_bankrupt(self, data: dict):
-        if int(data.get('$')) > 0:
+        if int(data.get('$') or 0) > 0:
             data['$'] = 0
             return "보유 토큰을 모두 잃었습니다."
         else:
@@ -257,7 +256,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         return "쿨타임 초기화 되었습니다."
 
     async def event_rich(self, data: dict):
-        coin = int(data.get('$'))
+        coin = int(data.get('$') or 0)
         n = round(coin**0.5) + random.randint(0, coin//10)
         result = await self.event_get_coin(data, n)
         return result
@@ -266,7 +265,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_token_change(self, ctx):
         db = await self.app.find_id('$', ctx.author.id)
         global_guild = self.app.get_guild(self.app.global_guild_id)
+        if global_guild is None:
+            return "글로벌 서버를 찾을 수 없습니다."
         db_channel = get(global_guild.text_channels, name="db")
+        if db_channel is None:
+            return "db 채널을 찾을 수 없습니다."
         messages = [msg async for msg in db_channel.history(limit=100)]
         member_db = random.choice(
             [
@@ -284,7 +287,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def prize_scales(self, ctx):
         db = await self.app.find_id('$', ctx.author.id)
         global_guild = self.app.get_guild(self.app.global_guild_id)
+        if global_guild is None:
+            return "글로벌 서버를 찾을 수 없습니다."
         db_channel = get(global_guild.text_channels, name="db")
+        if db_channel is None:
+            return "db 채널을 찾을 수 없습니다."
         messages = [msg async for msg in db_channel.history(limit=100)]
         member_db = random.choice(
             [
@@ -444,9 +451,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 prize = round(bet*mag)
                 data['$'] += prize
                 await self.app.update_data(ctx.author.id, data, find)
-                embed.add_field(name="> 베팅", value=str(bet) + " :coin:")
-                embed.add_field(name="> 배율", value=str("{:0.3f}".format(mag))+"x")
-                embed.add_field(name="> 손익", value=str(prize) + " :coin:")
+                embed.add_field(name="> 베팅", value=f"{bet} :coin:")
+                embed.add_field(name="> 배율", value=f"{mag:0.3f}x")
+                embed.add_field(name="> 손익", value=f"{prize} :coin:")
                 await ctx.send(embed=embed)
 
     @commands.cooldown(1, 10., commands.BucketType.user)
@@ -539,7 +546,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     for i in self.items:
                         chance = i.chance
                         if ability and ability.chance_revision and i.icon in ability.chance_revision.keys():
-                            chance += ability.chance_revision.get(i.icon)
+                            chance += ability.chance_revision[i.icon]
                         if rand <= chance:
                             item_lst.append(i)
                             break
@@ -573,8 +580,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
              "\n'%가챠정보 특성'을 통해 특성 가챠의 정보를 확인할 수 있습니다."
              "\n'%가챠정보 *item*'을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))"
     )
-    async def gacha_info(self, ctx, args: str = None, option: str = None):
-        ability_name = None
+    async def gacha_info(self, ctx, args: str | None = None, option: str | None = None):
+        ability_name: str | None = None
         if option in ["특성적용", "-a"]:
             option = 'adjusted'
         elif option and (option.startswith("특성적용:") or option.startswith("-a:")):
@@ -605,7 +612,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 chance = item.chance
                 if option == 'adjusted' and ability:
                     if ability.chance_revision and item.icon in ability.chance_revision.keys():
-                        chance += ability.chance_revision.get(item.icon)
+                        chance += ability.chance_revision[item.icon]
                 if chance > 0:
                     embed.add_field(name=item.icon, value="{:0.2f}%".format((chance / whole_rand) * 100), inline=True)
                 rest -= chance
@@ -687,7 +694,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     user_react = ':fist:'
                 elif str(reaction) == '✌️':
                     user_react = ':v:'
-                elif str(reaction) == '🖐️':
+                else:
                     user_react = ':hand_splayed:'
                 i = hand.index(user_react) + 1
                 if i > 2:
@@ -886,9 +893,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 await msg_.delete()
                                 break
                             await msg_.clear_reactions()
-                        await ctx.send(f'{ctx.author.nick} {str(board[ctx.author])} : {member.nick} {str(board[member])}')
+                        await ctx.send(f'{ctx.author.display_name} {str(board[ctx.author])} : {member.display_name} {str(board[member])}')
                         for m in party:
-                            card = board.get(m)
+                            card = board[m]
                             if card[card.rfind(':') + 1:] == 'A':
                                 board[m] = 1
                             else:
@@ -903,7 +910,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 await member_log.edit(
                                     content=member_log.content[:20] + str(int(member_log.content[20:]) - coin)
                                 )
-                                await ctx.send(ctx.author.nick + " 승!")
+                                await ctx.send(f"{ctx.author.display_name} 승!")
                             elif board[ctx.author] < board[member]:
                                 await author_log.edit(
                                     content=author_log.content[:20] + str(int(author_log.content[20:]) - coin)
@@ -911,7 +918,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                 await member_log.edit(
                                     content=member_log.content[:20] + str(int(member_log.content[20:]) + coin)
                                 )
-                                await ctx.send(member.nick + " 승!")
+                                await ctx.send(f"{member.display_name} 승!")
                     else:
                         await ctx.send("신청을 거절했습니다.")
 
@@ -955,7 +962,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     board[member] = a + ' ' + b
                     member_sum = 0
                     ace = False
-                    for i in board.get(member).split():
+                    for i in board[member].split():
                         if i[i.rfind(':') + 1:] == 'A':
                             ace = True
                             member_sum += 1
@@ -1060,7 +1067,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         else:
                             board[member] = 21
                     elif member_sum < 21:
-                        board[member] = int(member_sum)
+                        board[member] = member_sum
                     else:
                         board[member] = 0
                 winners = [finish_members[0]]
@@ -1072,9 +1079,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             winners = [member]
                 for member in finish_members:
                     if member in winners:
-                        prize = int((len(finish_members) - 1) // len(winners)) * int(coin)
+                        prize = (len(finish_members) - 1) // len(winners) * coin
                     else:
-                        prize = -1 * int(coin)
+                        prize = -1 * coin
                     member_log = await self.app.find_id('$', member.id)
                     member_coin = int(member_log.content[20:])
                     await member_log.edit(content=member_log.content[:20] + str(member_coin + prize))
@@ -1147,7 +1154,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         deck.remove(b)
                         board[member] = a + ' ' + b
                     for member in members:
-                        hand = board.get(member).split()
+                        hand = board[member].split()
                         hand1 = hand[0]
                         hand2 = hand[1]
                         n = 0
@@ -1197,9 +1204,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         elif '9열끗' in hand:
                             if '4열끗' in hand:
                                 n = '멍텅구리구사'
-                        board[member] = board.get(member) + ' ' + n
+                        board[member] = board[member] + ' ' + n
                     for member in members:
-                        hand = board.get(member).split()
+                        hand = board[member].split()
                         member_dm = await member.create_dm()
                         await member_dm.send(hand[0] + ' , ' + hand[1])
                     call = 0
@@ -1263,29 +1270,29 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         await msg_.clear_reactions()
                         await msg_.edit(content=players[num].mention + " 님 베팅해주세요.", embed=embed)
                     for member in call_members:
-                        m_hand = board.get(member).split()
-                        w_hand = board.get(winner).split()
+                        m_hand = board[member].split()
+                        w_hand = board[winner].split()
                         if level_table.index(m_hand[2]) > level_table.index(w_hand[2]):
                             winner = member
                     w_hand = board[winner].split()
                     if w_hand[2] in ['13광땡', '18광땡']:
                         for member in call_members:
-                            m_hand = board.get(member).split()
+                            m_hand = board[member].split()
                             if m_hand[2] == '암행어사':
                                 winner = member
                     elif w_hand[2] in pairs[:9]:
                         for member in call_members:
-                            m_hand = board.get(member).split()
+                            m_hand = board[member].split()
                             if m_hand[2] == '땡잡이':
                                 winner = member
                     elif level_table.index(w_hand[2]) < 30:
                         for member in call_members:
-                            m_hand = board.get(member).split()
+                            m_hand = board[member].split()
                             if m_hand[2] == '멍텅구리구사':
                                 regame = True
                     elif level_table.index(w_hand[2]) < 20:
                         for member in call_members:
-                            m_hand = board.get(member).split()
+                            m_hand = board[member].split()
                             if m_hand[2] == '구사':
                                 regame = True
                     if regame:
@@ -1295,7 +1302,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
                         embed = discord.Embed(title="<섯다 결과>", description='재경기')
                         for member in members:
-                            hand = board.get(member).split()
+                            hand = board[member].split()
                             embed.add_field(name=member.name, value=hand[0] + ' , ' + hand[1]
                                                                     + ' (' + hand[2] + ')', inline=True)
                         await ctx.send(embed=embed)
@@ -1309,7 +1316,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                             await member_log.edit(content=member_log.content[:20] + str(member_coin - pay[member]))
                         embed = discord.Embed(title="<섯다 결과>", description=winner.name + ' 우승!')
                         for member in members:
-                            hand = board.get(member).split()
+                            hand = board[member].split()
                             embed.add_field(name=member.name, value=hand[0] + ' , ' + hand[1]
                                             + ' (' + hand[2] + ')', inline=True)
                         await ctx.send(embed=embed)

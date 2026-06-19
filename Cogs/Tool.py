@@ -1,12 +1,7 @@
 import discord
-from discord.ext import tasks, commands
+from discord.ext import commands
 from discord.utils import get
 import asyncio
-import os
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-import ast
-import operator
 
 
 class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
@@ -141,7 +136,13 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     )
     async def edit_db(self, ctx, selector, member: discord.Member, val):
         global_guild = self.app.get_guild(self.app.global_guild_id)
+        if global_guild is None:
+            await ctx.send("글로벌 서버를 찾을 수 없습니다.")
+            return
         db_channel = get(global_guild.text_channels, name="db")
+        if db_channel is None:
+            await ctx.send("db 채널을 찾을 수 없습니다.")
+            return
         if len(selector) == 1:
             data = await self.app.find_id(selector, member.id)
             if data is not None:

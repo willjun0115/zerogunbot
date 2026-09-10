@@ -8,43 +8,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     def __init__(self, app):
         self.app = app
-        #self.check_season_change.start()
-        #self.next_season = datetime(2022, 1, 1, 0, 0, 0)
 
-    '''@commands.Cog.listener()
-    async def on_ready(self):
-        self.check_season_change.start()
-
-    @tasks.loop(minutes=1)
-    async def check_season_change(self):
-        global_guild = self.app.get_guild(self.app.global_guild_id)
-        now = datetime.now()
-        present_season_str = now.strftime('%Y.%m.01 00:00:00')
-        present_season = datetime.strptime(present_season_str, '%Y.%m.%d %H:%M:%S')
-        self.next_season = present_season + relativedelta(months=1) - timedelta(minutes=1)  # %Y.%m+1.01 23:59:00
-        if datetime.now() > self.next_season:
-            db = get(global_guild.text_channels, name="db")
-            await db.edit(name=f"{present_season.strftime('%Y_%m')}")
-            new_db = await db.clone(name="db")
-
-    @check_season_change.after_loop
-    async def on_check_season_change_cancel(self):
-        if self.check_season_change.is_being_cancelled():
-            self.check_season_change.restart()
-
-    @commands.command(
-        name="시즌", hidden=True
-    )
-    async def check_season(self, ctx):
-        check = self.check_season_change.is_running()
-        await ctx.send("season checking task is running: " + str(check))
-        now = datetime.now()
-        await ctx.send(
-            f"present_season: {now.strftime('%Y_%m')}"
-            f"\nnow(UTC): {now.strftime('%Y.%m.%d %H:%M:%S')}"
-            f"\nnext season starts after {self.next_season - now}")
-        if check is False:
-            self.check_season_change.start()'''
 
     @commands.command(
         name="도움말", aliases=["help", "?"],
@@ -53,9 +17,11 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     async def help_command(self, ctx, func=None):
         if func is None:
             embed = discord.Embed(title="도움말", description=f"접두사는 {self.app.prefix} 입니다.")
-            cog_list = {"도구": "Tool", "채팅": "Chat", "음성": "Voice", "게임": "Game", "비트코인": "BTC"}
+            cog_list = {"도구": "Tool", "채팅": "Chat", "음성": "Voice", "게임": "Game"}
             for x in cog_list.keys():
                 cog_data = self.app.get_cog(x)
+                if cog_data is None:
+                    continue
                 command_list = cog_data.get_commands()
                 embed.add_field(
                     name=f"> {x}({cog_list[x]})",
@@ -135,25 +101,37 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
     async def edit_db(self, ctx, selector, member: discord.Member, val):
-        if len(selector) == 1:
-            data = await self.app.find_id(selector, member.id)
-            if data is not None:
-                if val[0] == '+':
-                    val = val[1:]
-                    await data.edit(content=data.content[:20] + str(int(data.content[20:]) + int(val)))
-                elif val[0] == '-':
-                    val = val[1:]
-                    await data.edit(content=data.content[:20] + str(int(data.content[20:]) - int(val)))
-                else:
-                    await data.edit(content=data.content[:20] + str(val))
-                await ctx.send('DB를 업데이트했습니다.')
-            else:
-                parsed_val = int(val) if selector in ['$', '%'] and val.isdigit() else val
-                if hasattr(self.app, 'db'):
-                    await self.app.db.update_single_field('db', member.id, selector, parsed_val)
-                await ctx.send('DB에 ' + member.mention + ' 님의 ID를 기록했습니다.')
-        else:
+        if len(selector) != 1:
             await ctx.send("식별자는 1글자여야 합니다.")
+            return
+
+        is_delta = val[0] in ['+', '-']
+        op = val[0] if is_delta else None
+        num_str = val[1:] if is_delta else val
+
+        if selector in ['$', '%']:
+            try:
+                parsed_num = int(num_str)
+            except ValueError:
+                await ctx.send("숫자 형식이 올바르지 않습니다.")
+                return
+            parsed_val = parsed_num
+        else:
+            parsed_val = val
+
+        find, user_data = await self.app.db.find_data('db', member.id)
+        if find is None:
+            initial_val = parsed_val if not is_delta else (parsed_val if op == '+' else -parsed_val)
+            await self.app.db.update_data(member.id, {selector: initial_val})
+            await ctx.send('DB에 ' + member.mention + ' 님의 ID를 기록했습니다.')
+        else:
+            if is_delta:
+                curr_val = int(user_data.get(selector, 0))
+                user_data[selector] = curr_val + parsed_val if op == '+' else curr_val - parsed_val
+            else:
+                user_data[selector] = parsed_val
+            await self.app.db.update_data(member.id, user_data)
+            await ctx.send('DB를 업데이트했습니다.')
 
     @commands.command(
         name='암호화', aliases=["encrypt", "enc"],

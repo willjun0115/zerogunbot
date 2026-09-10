@@ -30,3 +30,6 @@ brain/
 *.db
 *.sqlite
 *.sqlite3
+
+# Ignored Cogs
+Cogs/BTC.py

@@ -25,10 +25,12 @@ class ZeroGunBot(commands.Bot):
     collect_data: typing.Any
     setup_database: typing.Any
 
+    IGNORED_COGS = {"BTC.py"}
+
     async def setup_hook(self):
         await self.db.init_db()
         for filename in os.listdir("Cogs"):
-            if filename.endswith(".py"):
+            if filename.endswith(".py") and filename not in self.IGNORED_COGS and not filename.startswith("_"):
                 await self.load_extension(f"Cogs.{filename[:-3]}")
 
 app = ZeroGunBot(
@@ -125,19 +127,6 @@ async def admin_command(ctx):
     return
 
 
-@admin_command.command(name="migrate_db", aliases=["migrate", "마이그레이션"])
-async def migrate_database(ctx):
-    """디스코드 db 텍스트 채널의 이전 메시지 데이터를 SQLite로 마이그레이션합니다."""
-    global_guild = app.get_guild(app.global_guild_id) or ctx.guild
-    db_channel = get(global_guild.text_channels, name="db")
-    if db_channel is None:
-        await ctx.send(":x: 'db' 텍스트 채널을 찾을 수 없습니다.")
-        return
-    msg = await ctx.send("디스코드 db 채널의 메시지 데이터를 SQLite로 이전하고 있습니다... :hourglass_flowing_sand:")
-    count = await app.db.migrate_from_channel(db_channel, limit=1000)
-    await msg.edit(content=f":white_check_mark: 총 {count}개의 데이터 항목을 SQLite로 성공적으로 마이그레이션했습니다!")
-
-
 @admin_command.group(name="load", aliases=["l"])
 async def load_cogs(ctx, extension):
     await app.load_extension(f"Cogs.{extension}")
@@ -154,10 +143,13 @@ async def unload_cogs(ctx, extension):
 async def reload_cogs(ctx, extension=None):
     if extension is None:
         for file_name in os.listdir("Cogs"):
-            if file_name.endswith(".py"):
-                await app.unload_extension(f"Cogs.{file_name[:-3]}")
+            if file_name.endswith(".py") and file_name not in app.IGNORED_COGS and not file_name.startswith("_"):
+                try:
+                    await app.unload_extension(f"Cogs.{file_name[:-3]}")
+                except Exception:
+                    pass
                 await app.load_extension(f"Cogs.{file_name[:-3]}")
-                await ctx.send(":white_check_mark: 명령어를 다시 불러왔습니다.")
+        await ctx.send(":white_check_mark: 명령어를 다시 불러왔습니다.")
     else:
         await app.unload_extension(f"Cogs.{extension}")
         await app.load_extension(f"Cogs.{extension}")

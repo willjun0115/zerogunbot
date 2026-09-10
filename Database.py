@@ -202,61 +202,78 @@ class Database:
                     """,
                     (season, user_id, coins, luck, ability)
                 )
+    async def get_coins(self, user_id: int, season: str = 'db') -> Optional[int]:
+        """유저의 토큰 수를 조회합니다. 등록되지 않은 유저인 경우 None을 반환합니다."""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT coins FROM user_data WHERE season = ? AND user_id = ?",
+                (season, user_id)
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row is not None else None
+
+    async def add_coins(self, user_id: int, amount: int, season: str = 'db') -> int:
+        """유저의 토큰을 증감하고 최종 잔액을 반환합니다. 유저가 없으면 새로 등록합니다."""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT coins FROM user_data WHERE season = ? AND user_id = ?",
+                (season, user_id)
+            ) as cursor:
+                row = await cursor.fetchone()
+
+            if row is None:
+                new_coins = max(0, amount)
+                await db.execute(
+                    """
+                    INSERT INTO user_data (season, user_id, coins, luck, ability, updated_at)
+                    VALUES (?, ?, ?, 0, NULL, CURRENT_TIMESTAMP)
+                    """,
+                    (season, user_id, new_coins)
+                )
+            else:
+                new_coins = max(0, row[0] + amount)
+                await db.execute(
+                    """
+                    UPDATE user_data
+                    SET coins = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE season = ? AND user_id = ?
+                    """,
+                    (new_coins, season, user_id)
+                )
             await db.commit()
+            return new_coins
 
-    async def migrate_from_channel(self, channel, limit: int = 1000) -> int:
-        """
-        디스코드 텍스트 채널의 메시지들로부터 SQLite로 데이터를 마이그레이션합니다.
-        """
-        migrated_count = 0
-        async for message in channel.history(limit=limit):
-            content = message.content.strip()
-            if not content:
-                continue
+    async def set_coins(self, user_id: int, amount: int, season: str = 'db') -> int:
+        """유저의 토큰 잔액을 특정 값으로 설정합니다."""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT 1 FROM user_data WHERE season = ? AND user_id = ?",
+                (season, user_id)
+            ) as cursor:
+                exists = await cursor.fetchone()
 
-            try:
-                # 1. 신규 포맷: user_id;$100;%10;*ability
-                if ';' in content:
-                    parts = content.split(';')
-                    user_id_str = parts[0]
-                    # Check if user_id is integer
-                    if user_id_str.isdigit():
-                        user_id = int(user_id_str)
-                        data: Dict[str, Any] = {}
-                        for part in parts[1:]:
-                            if not part:
-                                continue
-                            tag = part[0]
-                            val = part[1:]
-                            if tag in ['$', '%']:
-                                try:
-                                    data[tag] = int(val)
-                                except ValueError:
-                                    pass
-                            elif tag == '*':
-                                data[tag] = val
-                        
-                        await self.update_data(user_id, data, season='db')
-                        migrated_count += 1
-                        continue
+            if exists:
+                await db.execute(
+                    "UPDATE user_data SET coins = ?, updated_at = CURRENT_TIMESTAMP WHERE season = ? AND user_id = ?",
+                    (amount, season, user_id)
+                )
+            else:
+                await db.execute(
+                    """
+                    INSERT INTO user_data (season, user_id, coins, luck, ability, updated_at)
+                    VALUES (?, ?, ?, 0, NULL, CURRENT_TIMESTAMP)
+                    """,
+                    (season, user_id, amount)
+                )
+            await db.commit()
+            return amount
 
-                # 2. 구형 포맷: $userid;100
-                if content[0] in ['$', '%', '*'] and len(content) > 1:
-                    tag = content[0]
-                    rest = content[1:]
-                    if ';' in rest:
-                        uid_str, val_str = rest.split(';', 1)
-                    else:
-                        uid_str = rest[:18]
-                        val_str = rest[18:]
-                    
-                    if uid_str.isdigit():
-                        user_id = int(uid_str)
-                        val = int(val_str) if tag in ['$', '%'] and val_str.isdigit() else val_str
-                        await self.update_single_field('db', user_id, tag, val)
-                        migrated_count += 1
-            except Exception as e:
-                print(f"Migration skip error on message: {content}, error: {e}")
-                continue
-
-        return migrated_count
+    async def get_luck(self, user_id: int, season: str = 'db') -> Optional[int]:
+        """유저의 행운 수치를 조회합니다."""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT luck FROM user_data WHERE season = ? AND user_id = ?",
+                (season, user_id)
+            ) as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row is not None else None

@@ -10,8 +10,9 @@ import yt_dlp
 from gtts import gTTS
 import json
 import csv
+from typing import Any
 
-ytdl_format_options = {
+ytdl_format_options: Any = {
     'format': 'bestaudio/best',
     'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
@@ -22,10 +23,11 @@ ytdl_format_options = {
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0'
+    'source_address': '0.0.0.0',
+    'socket_timeout': 10,
 }
 
-ffmpeg_options = {
+ffmpeg_options: dict[str, Any] = {
     'options': '-vn'
 }
 
@@ -44,12 +46,40 @@ class YTDLSource(discord.PCMVolumeTransformer):
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
+
+        # If url is not an HTTP link, perform a flat search to select the first video entry
+        if not url.startswith(('http://', 'https://')):
+            search_opts: Any = {
+                'extract_flat': True,
+                'skip_download': True,
+                'quiet': True,
+                'no_warnings': True,
+                'socket_timeout': 10,
+            }
+            with yt_dlp.YoutubeDL(search_opts) as ydl:
+                search_data = await loop.run_in_executor(
+                    None, lambda: ydl.extract_info(f"ytsearch10:{url}", download=False)
+                )
+
+            video_url = None
+            if search_data and 'entries' in search_data:
+                for entry in search_data['entries']:
+                    ie_key = entry.get('ie_key', '')
+                    entry_url = entry.get('url') or ''
+                    if ie_key == 'Youtube' or 'watch?v=' in entry_url:
+                        video_url = entry_url
+                        break
+
+            if not video_url:
+                raise ValueError(f"'{url}'에 매칭되는 유튜브 동영상을 찾을 수 없습니다.")
+            url = video_url
+
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
 
         if 'entries' in data:  # type: ignore
             data = data['entries'][0]  # type: ignore
 
-        filename = data['url'] if stream else ytdl.prepare_filename(data)
+        filename = data.get('url') if stream else ytdl.prepare_filename(data)
         assert filename is not None
         return cls(discord.FFmpegPCMAudio(filename, **ffmpeg_options), data=data)
 
@@ -141,17 +171,18 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def yt_search(self, ctx, *, args):
         msg = await ctx.send("데이터 수집 중... :mag:")
-        search_opts = {
+        search_opts: Any = {
             'extract_flat': True,
             'skip_download': True,
             'quiet': True,
             'no_warnings': True,
+            'socket_timeout': 10,
         }
         loop = self.app.loop or asyncio.get_event_loop()
         try:
-            with yt_dlp.YoutubeDL(search_opts) as ydl:  # type: ignore
+            with yt_dlp.YoutubeDL(search_opts) as ydl:
                 data = await loop.run_in_executor(
-                    None, lambda: ydl.extract_info(f"ytsearch5:{args}", download=False)
+                    None, lambda: ydl.extract_info(f"ytsearch10:{args}", download=False)
                 )
         except Exception as e:
             await msg.edit(content=f":x: 검색 도중 에러가 발생했습니다: {e}")
@@ -161,20 +192,31 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await msg.edit(content=":x: 검색 결과가 없습니다.")
             return
 
+        # Filter entries to only keep videos (exclude channels, playlists)
+        video_entries = []
+        for entry in data['entries']:
+            ie_key = entry.get('ie_key', '')
+            entry_url = entry.get('url') or ''
+            if ie_key == 'Youtube' or 'watch?v=' in entry_url:
+                video_entries.append(entry)
+
+        if not video_entries:
+            await msg.edit(content=":x: 검색 결과가 없습니다.")
+            return
+
         search_list = {}
         embed = discord.Embed(title=f"\"{args}\"의 검색 결과 :mag:",
                               description="번호를 입력해 선택하거나, x를 입력해 취소하세요.")
-        
-        entries = list(data['entries'])  # type: ignore
-        num_results = min(5, len(entries))
+
+        num_results = min(5, len(video_entries))
         for n in range(num_results):
-            entry = entries[n]
+            entry = video_entries[n]
             video_id = entry.get('id')
             get_title = entry.get('title', '제목 없음')
             get_href = f"https://www.youtube.com/watch?v={video_id}"
             get_uploader = entry.get('uploader', '알 수 없음')
             duration_sec = entry.get('duration')
-            
+
             if duration_sec:
                 mins, secs = divmod(duration_sec, 60)
                 hours, mins = divmod(mins, 60)
@@ -188,7 +230,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             get_info = f"게시자: {get_uploader} | 길이: {duration_str}"
             search_list[n+1] = get_href
             embed.add_field(name=f"> {str(n+1)}. {get_title}", value=get_info, inline=False)
-            
+
         await msg.edit(content=None, embed=embed)
 
         answer_list = ["X", "x"] + [str(i) for i in range(1, num_results + 1)]
@@ -318,14 +360,15 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if not tag_filters or "eng" in tag_filters or "all" in tag_filters:
                 url = "https://www.youtube.com/playlist?list=PLINKc5JL2InSNdUPIxLdvUWMTn0lnzpom"
                 msg_load = await ctx.send("유튜브 플레이리스트 및 곡 정보를 로딩하고 있습니다... :hourglass_flowing_sand:")
-                playlist_opts = {
+                playlist_opts: Any = {
                     'extract_flat': True,
                     'skip_download': True,
                     'quiet': True,
                     'no_warnings': True,
+                    'socket_timeout': 10,
                 }
                 try:
-                    with yt_dlp.YoutubeDL(playlist_opts) as ydl:  # type: ignore
+                    with yt_dlp.YoutubeDL(playlist_opts) as ydl:
                         data = await loop.run_in_executor(
                             None, lambda: ydl.extract_info(url, download=False)
                         )
@@ -411,16 +454,17 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 if not player:
                     if song_type == "csv":
                         query = f"{artist} {title}"
-                        search_opts = {
+                        search_opts: Any = {
                             'extract_flat': True,
                             'skip_download': True,
                             'quiet': True,
                             'no_warnings': True,
+                            'socket_timeout': 10,
                         }
                         try:
-                            with yt_dlp.YoutubeDL(search_opts) as ydl:  # type: ignore
+                            with yt_dlp.YoutubeDL(search_opts) as ydl:
                                 data = await loop.run_in_executor(
-                                    None, lambda: ydl.extract_info(f"ytsearch1:{query}", download=False)
+                                    None, lambda: ydl.extract_info(f"ytsearch5:{query}", download=False)
                                 )
                         except Exception as e:
                             await msg.edit(content=f":x: 음원 검색 중 에러가 발생했습니다: {e}")
@@ -430,7 +474,19 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                             await msg.edit(content=f":x: '{query}' 검색 결과가 없습니다.")
                             return
 
-                        entry = data['entries'][0]  # type: ignore
+                        # Find the first video entry
+                        entry = None
+                        for e in data['entries']:
+                            ie_key = e.get('ie_key', '')
+                            entry_url = e.get('url') or ''
+                            if ie_key == 'Youtube' or 'watch?v=' in entry_url:
+                                entry = e
+                                break
+
+                        if not entry:
+                            await msg.edit(content=f":x: '{query}' 검색 결과가 없습니다.")
+                            return
+
                         video_id = entry.get('id')
                         music_url = f"https://www.youtube.com/watch?v={video_id}"
 

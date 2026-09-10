@@ -20,5 +20,8 @@ ffmpeg.exe
 *.m4a
 *.wav
 
+# Helper Scripts
+crawl_song_info.py
+
 # AI Agent workspace/scratch directories
 brain/

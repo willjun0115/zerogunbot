@@ -25,3 +25,8 @@ crawl_song_info.py
 
 # AI Agent workspace/scratch directories
 brain/
+
+# SQLite Database
+*.db
+*.sqlite
+*.sqlite3

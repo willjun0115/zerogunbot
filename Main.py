@@ -11,10 +11,12 @@ intents = discord.Intents.all()
 load_dotenv()
 
 import typing
+from Database import Database
 
 class ZeroGunBot(commands.Bot):
     global_guild_id: int
     prefix: str
+    db: Database
     encrypt: typing.Any
     decrypt: typing.Any
     find_id: typing.Any
@@ -24,6 +26,7 @@ class ZeroGunBot(commands.Bot):
     setup_database: typing.Any
 
     async def setup_hook(self):
+        await self.db.init_db()
         for filename in os.listdir("Cogs"):
             if filename.endswith(".py"):
                 await self.load_extension(f"Cogs.{filename[:-3]}")
@@ -34,6 +37,7 @@ app = ZeroGunBot(
     strip_after_prefix=True,
     intents=intents
 )
+app.db = Database()
 app.global_guild_id = 943244634602213396
 app.prefix = prefix
 
@@ -86,113 +90,24 @@ async def on_member_join(member):
 
 
 async def find_id(selector, id):
-    global_guild = app.get_guild(app.global_guild_id)
-    if global_guild is None:
-        return None
-    db_channel = get(global_guild.text_channels, name="db")
-    if db_channel is None:
-        return None
-    find = None
-    async for message in db_channel.history(limit=500):
-        if message.content.startswith(selector + str(id)) is True:
-            find = message
-            break
-    return find
+    return await app.db.find_id(selector, id, season='db')
 
 
 async def find_data(db_name, user_id):
-    global_guild = app.get_guild(app.global_guild_id)
-    if global_guild is None:
-        return None, {}
-    db_channel = get(global_guild.text_channels, name=db_name)
-    if db_channel is None:
-        return None, {}
-    find = None
-    data = {}
-    async for message in db_channel.history(limit=100):
-        if message.content.startswith(str(user_id)) is True:
-            find = message
-            contents = message.content.split(';')
-            for content in contents[1:]:
-                if content[0] in ['$', '%']:
-                    data[content[0]] = int(content[1:])
-                else:
-                    data[content[0]] = content[1:]
-            break
-    return find, data
+    return await app.db.find_data(db_name, user_id)
 
 
 async def update_data(user_id, data: dict, message=None):
-    content = str(user_id)
-    for selector in data.keys():
-        content += ';' + selector + str(data.get(selector))
-    if message:
-        msg = await message.edit(content=content)
-    else:
-        global_guild = app.get_guild(app.global_guild_id)
-        if global_guild is None:
-            return None
-        db_channel = get(global_guild.text_channels, name="db")
-        if db_channel is None:
-            return None
-        msg = await db_channel.send(content)
-    return msg
+    return await app.db.update_data(user_id, data, message=message, season='db')
 
 
 async def collect_data(db_name):
-    global_guild = app.get_guild(app.global_guild_id)
-    if global_guild is None:
-        return {}
-    db_channel = get(global_guild.text_channels, name=db_name)
-    if db_channel is None:
-        return {}
-    data_dict = {}
-    async for message in db_channel.history(limit=100):
-        data = {}
-        contents = message.content.split(';')
-        for content in contents[1:]:
-            if content[0] in ['$', '%']:
-                data[content[0]] = int(content[1:])
-            else:
-                data[content[0]] = content[1:]
-        data_dict[int(contents[0])] = data
-    return data_dict
+    return await app.db.collect_data(db_name)
 
 
 async def setup_database(ctx):
-    db = get(ctx.guild.text_channels, name="db")
-    bot_perms = discord.PermissionOverwrite(
-        read_messages=True, read_message_history=True, send_messages=True, manage_messages=True
-    )
-    overwrites = {
-        ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False, send_messages=False),
-        app.user: bot_perms
-    }
-    if db is None:
-        await ctx.guild.create_text_channel(
-            "db", topic="0군봇 데이터베이스 채널입니다. 절대 수정하거나 삭제하지 말아주세요."
-                        "\n또한, 해당 채널에 봇이 보내는 채팅 이외의 불필요한 메시지 전송은 지양해주세요.",
-            overwrites=overwrites
-        )
-        return "local database channel has been created."
-    else:
-        if db.overwrites_for(app.user) != bot_perms:
-            await db.set_permissions(app.user, overwrite=bot_perms)
-            return "database overwrites update."
-        else:
-            unique_data = []
-            delete_count = 0
-            messages = [msg async for msg in db.history(limit=500)]
-            for msg in messages:
-                if msg.content[:19] in unique_data:
-                    await msg.delete()
-                    delete_count += 1
-                else:
-                    unique_data.append(msg.content[:19])
-            if delete_count > 0:
-                return f"{delete_count} overlapped data has been deleted."
-            else:
-                return None
+    await app.db.init_db()
+    return "SQLite 데이터베이스가 정상적으로 초기화되었습니다."
 
 
 app.encrypt = encrypt
@@ -208,6 +123,19 @@ app.setup_database = setup_database
 @app.group(name="admin", aliases=["%"])
 async def admin_command(ctx):
     return
+
+
+@admin_command.command(name="migrate_db", aliases=["migrate", "마이그레이션"])
+async def migrate_database(ctx):
+    """디스코드 db 텍스트 채널의 이전 메시지 데이터를 SQLite로 마이그레이션합니다."""
+    global_guild = app.get_guild(app.global_guild_id) or ctx.guild
+    db_channel = get(global_guild.text_channels, name="db")
+    if db_channel is None:
+        await ctx.send(":x: 'db' 텍스트 채널을 찾을 수 없습니다.")
+        return
+    msg = await ctx.send("디스코드 db 채널의 메시지 데이터를 SQLite로 이전하고 있습니다... :hourglass_flowing_sand:")
+    count = await app.db.migrate_from_channel(db_channel, limit=1000)
+    await msg.edit(content=f":white_check_mark: 총 {count}개의 데이터 항목을 SQLite로 성공적으로 마이그레이션했습니다!")
 
 
 @admin_command.group(name="load", aliases=["l"])
@@ -525,6 +453,7 @@ async def on_command_error(ctx, error):
         await ctx.send(" :stopwatch: 쿨타임 중인 명령어입니다. (남은 쿨타임: {:0.1f}초)".format(error.retry_after))
 
 
-token = os.environ.get("TOKEN")
-assert token is not None, "TOKEN environment variable is not set"
-app.run(token)
+if __name__ == '__main__':
+    token = os.environ.get("TOKEN")
+    assert token is not None, "TOKEN environment variable is not set"
+    app.run(token)

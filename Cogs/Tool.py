@@ -135,14 +135,6 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
     )
     async def edit_db(self, ctx, selector, member: discord.Member, val):
-        global_guild = self.app.get_guild(self.app.global_guild_id)
-        if global_guild is None:
-            await ctx.send("글로벌 서버를 찾을 수 없습니다.")
-            return
-        db_channel = get(global_guild.text_channels, name="db")
-        if db_channel is None:
-            await ctx.send("db 채널을 찾을 수 없습니다.")
-            return
         if len(selector) == 1:
             data = await self.app.find_id(selector, member.id)
             if data is not None:
@@ -156,7 +148,9 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                     await data.edit(content=data.content[:20] + str(val))
                 await ctx.send('DB를 업데이트했습니다.')
             else:
-                await db_channel.send(selector + str(member.id) + ';' + str(val))
+                parsed_val = int(val) if selector in ['$', '%'] and val.isdigit() else val
+                if hasattr(self.app, 'db'):
+                    await self.app.db.update_single_field('db', member.id, selector, parsed_val)
                 await ctx.send('DB에 ' + member.mention + ' 님의 ID를 기록했습니다.')
         else:
             await ctx.send("식별자는 1글자여야 합니다.")

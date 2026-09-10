@@ -101,6 +101,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="음성 채널에 연결합니다.", usage="*"
     )
     async def join_ch(self, ctx):
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            await ctx.send(":no_entry: 먼저 음성 채널에 입장해 주세요.")
+            return False
         voice = get(self.app.voice_clients, guild=ctx.guild)
         channel = ctx.author.voice.channel
         try:
@@ -115,8 +118,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         except Exception as e:
             print(f"Connection error: {e}")
             await ctx.send(":no_entry: 연결 오류가 발생했습니다.")
+            return False
         else:
             await ctx.send(channel.name + "에 연결합니다.")
+            return True
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @commands.command(
@@ -124,8 +129,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="음성 채널을 나갑니다.", usage="*"
     )
     async def leave_ch(self, ctx):
-        await ctx.voice_client.disconnect()
-        await ctx.send("연결을 끊습니다.")
+        if ctx.voice_client:
+            await ctx.voice_client.disconnect()
+            await ctx.send("연결을 끊습니다.")
+        else:
+            await ctx.send(":no_entry: 봇이 음성 채널에 연결되어 있지 않습니다.")
         self.clear_mp3()
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
@@ -134,14 +142,16 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="입력받은 문자열을 tts 음성으로 출력합니다.", usage="* str()"
     )
     async def _tts(self, ctx, *, msg):
-        await self.ensure_voice(ctx)
+        if not await self.ensure_voice(ctx):
+            return
         for file in os.listdir("./"):
             if file.startswith("tts_ko"):
                 os.remove(file)
         tts = gTTS(text=msg, lang='ko', slow=False)
         tts.save('tts_ko.mp3')
-        ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'),
-                              after=lambda e: print(f'Player error: {e}') if e else None)
+        if ctx.voice_client:
+            ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'),
+                                  after=lambda e: print(f'Player error: {e}') if e else None)
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @commands.command(
@@ -150,18 +160,20 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
              "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(*url*) (-s)"
     )
     async def play_song(self, ctx, url: str, stream=None):
-        await self.ensure_voice(ctx)
+        if not await self.ensure_voice(ctx):
+            return
         if stream == '-s':
             stream = True
         else:
             stream = False
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
-        ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-        msg = f'Now playing: {player.title}'
-        if stream is True:
-            msg = f'Now streaming: {player.title}'
-        await ctx.send(msg)
+        if ctx.voice_client:
+            ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+            msg = f'Now playing: {player.title}'
+            if stream is True:
+                msg = f'Now streaming: {player.title}'
+            await ctx.send(msg)
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @commands.command(
@@ -270,6 +282,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
              "\n예시: %노래맞추기 force loop=3 tag=kor+jap", usage="[force/f] [loop=n] [tag=kor|eng|jap|all]"
     )
     async def music_quiz(self, ctx, *args):
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            await ctx.send(":no_entry: 먼저 음성 채널에 입장한 후 명령어를 사용해 주세요.")
+            return
+
         force = False
         loop_count = 1
         tag_filters = []
@@ -309,7 +325,13 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     async def _run_quiz(self, ctx, tag_filters, loop_count):
         loop = self.app.loop or asyncio.get_event_loop()
         try:
-            await self.ensure_voice(ctx)
+            if not ctx.author.voice or not ctx.author.voice.channel:
+                await ctx.send(":no_entry: 먼저 음성 채널에 입장한 후 명령어를 사용해 주세요.")
+                return
+
+            if not await self.ensure_voice(ctx):
+                return
+
             channel = ctx.author.voice.channel
             members = [m for m in channel.members if m.bot is False]
             if len(members) < 1:
@@ -413,7 +435,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 if loop_count > 1:
                     await ctx.send(f"📢 **{loop_idx + 1}번째 퀴즈 시작!** (총 {loop_count}회 진행 중)")
                 
-                await self.ensure_voice(ctx)
+                if not await self.ensure_voice(ctx):
+                    await ctx.send(":warning: 음성 채널 연결이 끊어져 퀴즈를 중단합니다.")
+                    return
 
                 voice = get(self.app.voice_clients, guild=ctx.guild)
                 if voice and voice.is_playing():
@@ -503,6 +527,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                         continue
 
                 # 오디오 재생
+                if not ctx.voice_client or not ctx.voice_client.is_connected():
+                    await ctx.send(":warning: 음성 채널 연결이 끊어져 퀴즈를 중단합니다.")
+                    return
                 ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
 
                 # 정답 리스트 구축
@@ -510,7 +537,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 normalized_answers = [normalize(ans) for ans in answers if ans]
 
                 def check(m):
-                    if m.author not in channel.members or m.channel != ctx.channel:
+                    current_ch = (ctx.voice_client.channel if ctx.voice_client else None) or channel
+                    if current_ch and m.author not in current_ch.members:
+                        return False
+                    if m.channel != ctx.channel:
                         return False
                     return normalize(m.content) in normalized_answers
 
@@ -545,8 +575,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 voice.stop()
 
     async def ensure_voice(self, ctx):
-        if ctx.voice_client is None:
-            await self.join_ch(ctx)
+        if not ctx.author.voice or not ctx.author.voice.channel:
+            await ctx.send(":no_entry: 먼저 음성 채널에 입장해 주세요.")
+            return False
+        if ctx.voice_client is None or not ctx.voice_client.is_connected():
+            return await self.join_ch(ctx)
+        elif ctx.voice_client.channel != ctx.author.voice.channel:
+            return await self.join_ch(ctx)
+        return True
 
 
 async def setup(app):

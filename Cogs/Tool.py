@@ -23,9 +23,17 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 if cog_data is None:
                     continue
                 command_list = cog_data.get_commands()
+                cmd_names = []
+                for c in command_list:
+                    if c.hidden is False and c.enabled is True:
+                        cost = getattr(c, 'token_cost', 0) or getattr(c.callback, 'token_cost', 0)
+                        if cost > 0:
+                            cmd_names.append(f"{c.name} [🪙 {cost}]")
+                        else:
+                            cmd_names.append(c.name)
                 embed.add_field(
                     name=f"> {x}({cog_list[x]})",
-                    value="\n".join([c.name for c in command_list if c.hidden is False and c.enabled is True]),
+                    value="\n".join(cmd_names) if cmd_names else "명령어 없음",
                     inline=True
                 )
             await ctx.send(embed=embed)
@@ -41,8 +49,11 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                     for cmd in cog.get_commands():
                         if func in ([cmd.name] + cmd.aliases):
                             embed = discord.Embed(title=f"명령어 : {cmd}", description=cmd.help)
-                            embed.add_field(name="대체명령어", value=', '.join(cmd.aliases))
+                            embed.add_field(name="대체명령어", value=', '.join(cmd.aliases) if cmd.aliases else "없음")
                             embed.add_field(name="사용법", value=self.app.prefix + cmd.usage)
+                            cost = getattr(cmd, 'token_cost', 0) or getattr(cmd.callback, 'token_cost', 0)
+                            if cost > 0:
+                                embed.add_field(name="소모 토큰", value=f":coin: {cost}개", inline=False)
                             await ctx.send(embed=embed)
                             command_notfound = False
                             break

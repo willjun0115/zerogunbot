@@ -4,6 +4,7 @@ import asyncio
 from discord.utils import get
 from discord.ext import commands
 import operator
+from Utils import token_cost
 
 
 class GachaAbility:
@@ -405,6 +406,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.cooldown(1, 10., commands.BucketType.user)
     @commands.bot_has_permissions(administrator=True)
+    @token_cost(10)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
         help="가챠를 돌려 무작위 보상을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="* (str(*option*))"
@@ -412,6 +414,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     async def gacha(self, ctx, option=None):
         find, data = await self.app.find_data("db", ctx.author.id)
         if find is None:
+            await self.app.db.add_coins(ctx.author.id, 10)
             await ctx.send(self.cannot_find_id)
         else:
             if option is None:
@@ -429,7 +432,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 try:
                     reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=10.0)
                 except asyncio.TimeoutError:
-                    await msg.edit(content="시간 초과!", delete_after=2)
+                    await self.app.db.add_coins(ctx.author.id, 10)
+                    await msg.edit(content="시간 초과! (10 :coin: 이 환불되었습니다.)", delete_after=3)
+                    return None
                 else:
                     await msg.delete()
                     if str(reaction) == '✅':
@@ -437,19 +442,23 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     elif str(reaction) == '🃏':
                         option = 'a'
                     else:
-                        await ctx.send("취소했습니다.")
+                        await self.app.db.add_coins(ctx.author.id, 10)
+                        await ctx.send("취소했습니다. (10 :coin: 이 환불되었습니다.)")
                         return None
             if option in ['normal', 'NORMAL', '-n', 'n']:
                 option = 'n'
             elif option in ['ability', 'ABILITY', '-a', 'a']:
                 coin = data.get('$')
                 if coin < 100:
-                    await ctx.send("토큰이 부족합니다.")
+                    await self.app.db.add_coins(ctx.author.id, 10)
+                    await ctx.send("특성 가챠를 위한 토큰이 부족합니다. (10 :coin: 이 환불되었습니다.)")
                     return None
                 else:
                     data['$'] -= 100
                     option = 'a'
             else:
+                await self.app.db.add_coins(ctx.author.id, 10)
+                await ctx.send("잘못된 옵션입니다. (10 :coin: 이 환불되었습니다.)")
                 return None
             revision = 0
             ability = None

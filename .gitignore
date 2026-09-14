@@ -19,9 +19,7 @@ ffmpeg.exe
 *.webm
 *.m4a
 *.wav
-
-# Helper Scripts
-crawl_song_info.py
+temp/
 
 # AI Agent workspace/scratch directories
 brain/

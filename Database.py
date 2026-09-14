@@ -39,7 +39,10 @@ class Database:
 
     async def init_db(self):
         """데이터베이스 및 테이블을 초기화합니다."""
-        async with aiosqlite.connect(self.db_path) as db:
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+            await db.execute("PRAGMA journal_mode = WAL;")
+            await db.execute("PRAGMA synchronous = NORMAL;")
+            await db.execute("PRAGMA busy_timeout = 5000;")
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS user_data (
                     user_id INTEGER PRIMARY KEY,
@@ -231,60 +234,77 @@ class Database:
                 return row[0] if row is not None else None
 
     async def add_coins(self, user_id: int, amount: int, *args, **kwargs) -> int:
-        """유저의 토큰을 증감하고 최종 잔액을 반환합니다. 유저가 없으면 새로 등록합니다."""
-        async with aiosqlite.connect(self.db_path) as db:
+        """
+        유저의 토큰을 원자적으로 증감하고 최종 잔액을 반환합니다.
+        유저가 없으면 새로 등록하며, 결과는 0 미만으로 내려가지 않습니다.
+        """
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
             async with db.execute(
-                "SELECT coins FROM user_data WHERE user_id = ?",
-                (user_id,)
+                """
+                INSERT INTO user_data (user_id, coins, luck, ability, updated_at)
+                VALUES (?, MAX(0, ?), 0, NULL, CURRENT_TIMESTAMP)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    coins = MAX(0, user_data.coins + ?),
+                    updated_at = CURRENT_TIMESTAMP
+                RETURNING coins
+                """,
+                (user_id, amount, amount)
             ) as cursor:
                 row = await cursor.fetchone()
+                await db.commit()
+                return row[0] if row is not None else 0
 
-            if row is None:
-                new_coins = max(0, amount)
-                await db.execute(
-                    """
-                    INSERT INTO user_data (user_id, coins, luck, ability, updated_at)
-                    VALUES (?, ?, 0, NULL, CURRENT_TIMESTAMP)
-                    """,
-                    (user_id, new_coins)
-                )
-            else:
-                new_coins = max(0, row[0] + amount)
-                await db.execute(
-                    """
-                    UPDATE user_data
-                    SET coins = ?, updated_at = CURRENT_TIMESTAMP
-                    WHERE user_id = ?
-                    """,
-                    (new_coins, user_id)
-                )
-            await db.commit()
-            return new_coins
+    async def consume_coins(self, user_id: int, amount: int, *args, **kwargs) -> Tuple[bool, Optional[int]]:
+        """
+        유저의 토큰을 원자적으로(atomically) 차감합니다.
+        - 잔액이 amount 이상일 때만 차감하고 (True, new_coins)를 반환합니다.
+        - 잔액이 부족하거나 미등록 유저인 경우 (False, current_coins)를 반환합니다 (미등록 시 None).
+        - 단일 SQL UPDATE WHERE 절로 처리되어 동시 요청(Race Condition) 시에도 중복 소모가 원천 차단됩니다.
+        """
+        if amount <= 0:
+            coins = await self.get_coins(user_id)
+            return (True, coins) if coins is not None else (False, None)
+
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+            async with db.execute(
+                """
+                UPDATE user_data
+                SET coins = coins - ?, updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = ? AND coins >= ?
+                RETURNING coins
+                """,
+                (amount, user_id, amount)
+            ) as cursor:
+                row = await cursor.fetchone()
+                if row is not None:
+                    await db.commit()
+                    return True, row[0]
+
+            # 차감 실패 시 현재 잔액 및 등록 상태 확인
+            async with db.execute("SELECT coins FROM user_data WHERE user_id = ?", (user_id,)) as cursor:
+                row = await cursor.fetchone()
+                if row is None:
+                    return False, None
+                return False, row[0]
 
     async def set_coins(self, user_id: int, amount: int, *args, **kwargs) -> int:
-        """유저의 토큰 잔액을 특정 값으로 설정합니다."""
-        async with aiosqlite.connect(self.db_path) as db:
+        """유저의 토큰 잔액을 특정 값으로 원자적으로 설정합니다."""
+        target_amount = max(0, amount)
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
             async with db.execute(
-                "SELECT 1 FROM user_data WHERE user_id = ?",
-                (user_id,)
+                """
+                INSERT INTO user_data (user_id, coins, luck, ability, updated_at)
+                VALUES (?, ?, 0, NULL, CURRENT_TIMESTAMP)
+                ON CONFLICT(user_id) DO UPDATE SET
+                    coins = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                RETURNING coins
+                """,
+                (user_id, target_amount, target_amount)
             ) as cursor:
-                exists = await cursor.fetchone()
-
-            if exists:
-                await db.execute(
-                    "UPDATE user_data SET coins = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?",
-                    (amount, user_id)
-                )
-            else:
-                await db.execute(
-                    """
-                    INSERT INTO user_data (user_id, coins, luck, ability, updated_at)
-                    VALUES (?, ?, 0, NULL, CURRENT_TIMESTAMP)
-                    """,
-                    (user_id, amount)
-                )
-            await db.commit()
-            return amount
+                row = await cursor.fetchone()
+                await db.commit()
+                return row[0] if row is not None else target_amount
 
     async def get_luck(self, user_id: int, *args, **kwargs) -> Optional[int]:
         """유저의 행운 수치를 조회합니다."""

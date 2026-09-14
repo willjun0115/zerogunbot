@@ -12,7 +12,7 @@ load_dotenv()
 
 import typing
 from Database import Database
-from Utils import InsufficientTokensError, UserNotRegisteredError
+from Utils import InsufficientTokensError, UserNotRegisteredError, NotInVoiceChannelError
 
 class ZeroGunBot(commands.Bot):
     global_guild_id: int
@@ -427,6 +427,8 @@ async def on_command_error(ctx, error):
         await ctx.send(f":no_entry: 토큰이 부족합니다. (필요: {err.cost} :coin: / 보유: {err.current} :coin:)")
     elif isinstance(error, UserNotRegisteredError) or isinstance(original_error, UserNotRegisteredError):
         await ctx.send(":no_entry: 등록되지 않은 사용자입니다. `%등록` 명령어로 먼저 등록해주세요.")
+    elif isinstance(error, NotInVoiceChannelError) or isinstance(original_error, NotInVoiceChannelError):
+        await ctx.send(":no_entry: 먼저 음성 채널에 입장해 주세요.")
     elif isinstance(error, commands.CommandNotFound):
         return
     elif isinstance(error, commands.MissingRequiredArgument):

@@ -283,17 +283,14 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.cooldown(1, 60., commands.BucketType.channel)
     @commands.command(
         name="토큰순위", aliases=["순위", "rank"],
-        help="현재 토큰 보유 순위를 조회합니다. (쿨타임 1분)\n"
-             "YYYY_MM 포맷으로 시즌별 토큰 순위를 조회할 수 있습니다.\n"
-             "all로 검색 시 역대 토큰 1위 목록을 조회할 수 있습니다.", usage="* (*season*)"
+        help="현재 토큰 보유 순위를 조회합니다. (쿨타임 1분)", usage="*"
     )
     async def token_rank(self, ctx):
         global_guild = self.app.get_guild(self.app.global_guild_id)
-        season = "db"
         text = "현재 토큰 순위 (유저명/토큰/점유율)"
         msg = await ctx.send("DB를 조회 중입니다... :mag:")
         members = {}
-        data_dict = await self.app.collect_data(season)
+        data_dict = await self.app.collect_data()
         for member_id in data_dict.keys():
             data = data_dict.get(member_id)
             try:

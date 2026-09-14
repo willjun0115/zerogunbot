@@ -64,21 +64,22 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         help="숫자만큼 채팅 기록을 읽어 메세지를 지웁니다."
              "\n특정 사용자의 채팅만을 지울 수도 있습니다. (쿨타임: 60초 / 소모: 10 :coin:)", usage="* int((0, 999]) (@*member*)"
     )
-    async def clean(self, ctx, num=1, member: discord.Member | None = None):
+    async def clean(self, ctx, num: int = 1, member: discord.Member | None = None):
+        if num < 1 or num > 999:
+            await self.app.db.add_coins(ctx.author.id, 10)
+            await ctx.send(" :no_entry: 지울 수 있는 채팅 기록은 1개 이상 999개 이하입니다. (10 :coin: 환불)")
+            return
         await ctx.message.delete()
-        if int(num) > 999:
-            await ctx.send(" :no_entry: 읽을 수 있는 채팅 기록은 최대 999개 입니다.")
+        if member is None:
+            deleted = await ctx.channel.purge(limit=num)
         else:
-            if member is None:
-                deleted = await ctx.channel.purge(limit=int(num))
-            else:
-                target_members = [member]
+            target_members = [member]
 
-                def check(m):
-                    return m.author in target_members and m.channel == ctx.channel
+            def check(m):
+                return m.author in target_members and m.channel == ctx.channel
 
-                deleted = await ctx.channel.purge(limit=int(num), check=check)
-            await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
+            deleted = await ctx.channel.purge(limit=num, check=check)
+        await ctx.send(f":white_check_mark: {len(deleted)}개의 채팅을 삭제했습니다.")
 
 
 async def setup(app):

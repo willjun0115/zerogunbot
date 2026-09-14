@@ -11,7 +11,7 @@ from gtts import gTTS
 import json
 import csv
 from typing import Any
-from Utils import token_cost
+from Utils import token_cost, require_voice
 
 ytdl_format_options: Any = {
     'format': 'bestaudio/best',
@@ -138,6 +138,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.clear_mp3()
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
+    @require_voice()
     @token_cost(5)
     @commands.command(
         name="tts", aliases=["TTS"],
@@ -145,17 +146,23 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def _tts(self, ctx, *, msg):
         if not await self.ensure_voice(ctx):
+            await self.app.db.add_coins(ctx.author.id, 5)
             return
-        for file in os.listdir("./"):
-            if file.startswith("tts_ko"):
-                os.remove(file)
-        tts = gTTS(text=msg, lang='ko', slow=False)
-        tts.save('tts_ko.mp3')
-        if ctx.voice_client:
-            ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'),
-                                  after=lambda e: print(f'Player error: {e}') if e else None)
+        try:
+            for file in os.listdir("./"):
+                if file.startswith("tts_ko"):
+                    os.remove(file)
+            tts = gTTS(text=msg, lang='ko', slow=False)
+            tts.save('tts_ko.mp3')
+            if ctx.voice_client:
+                ctx.voice_client.play(discord.FFmpegPCMAudio('tts_ko.mp3'),
+                                      after=lambda e: print(f'Player error: {e}') if e else None)
+        except Exception as e:
+            await self.app.db.add_coins(ctx.author.id, 5)
+            await ctx.send(f":x: TTS 생성 중 오류가 발생하여 5 토큰이 환불되었습니다: {e}")
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
+    @require_voice()
     @token_cost(10)
     @commands.command(
         name="재생", aliases=["play", "p"],
@@ -164,19 +171,24 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     )
     async def play_song(self, ctx, url: str, stream=None):
         if not await self.ensure_voice(ctx):
+            await self.app.db.add_coins(ctx.author.id, 10)
             return
         if stream == '-s':
             stream = True
         else:
             stream = False
-        async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
-        if ctx.voice_client:
-            ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
-            msg = f'Now playing: {player.title}'
-            if stream is True:
-                msg = f'Now streaming: {player.title}'
-            await ctx.send(msg)
+        try:
+            async with ctx.typing():
+                player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
+            if ctx.voice_client:
+                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+                msg = f'Now playing: {player.title}'
+                if stream is True:
+                    msg = f'Now streaming: {player.title}'
+                await ctx.send(msg)
+        except Exception as e:
+            await self.app.db.add_coins(ctx.author.id, 10)
+            await ctx.send(f":x: 음악 재생 중 오류가 발생하여 10 토큰이 환불되었습니다: {e}")
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @token_cost(10)
@@ -201,11 +213,13 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                     None, lambda: ydl.extract_info(f"ytsearch10:{args}", download=False)
                 )
         except Exception as e:
-            await msg.edit(content=f":x: 검색 도중 에러가 발생했습니다: {e}")
+            await self.app.db.add_coins(ctx.author.id, 10)
+            await msg.edit(content=f":x: 검색 도중 에러가 발생하여 10 토큰이 환불되었습니다: {e}")
             return
 
         if not data or 'entries' not in data or len(data['entries']) == 0:  # type: ignore
-            await msg.edit(content=":x: 검색 결과가 없습니다.")
+            await self.app.db.add_coins(ctx.author.id, 10)
+            await msg.edit(content=":x: 검색 결과가 없어 10 토큰이 환불되었습니다.")
             return
 
         # Filter entries to only keep videos (exclude channels, playlists)
@@ -217,7 +231,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 video_entries.append(entry)
 
         if not video_entries:
-            await msg.edit(content=":x: 검색 결과가 없습니다.")
+            await self.app.db.add_coins(ctx.author.id, 10)
+            await msg.edit(content=":x: 재생 가능한 영상 결과가 없어 10 토큰이 환불되었습니다.")
             return
 
         search_list = {}

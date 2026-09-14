@@ -380,26 +380,35 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         help="베팅한 토큰이 -1.0x ~ 1.0x 의 랜덤한 배율로 반환됩니다.", usage="* int((0, *token*])"
     )
     async def gamble(self, ctx, bet):
-        find, data = await self.app.find_data("db", ctx.author.id)
-        if find is None:
-            await ctx.send(self.cannot_find_id)
-        else:
+        try:
             bet = int(bet)
-            coin = data.get('$')
-            if coin < bet:
-                await ctx.send("토큰이 부족합니다.")
-            elif bet <= 0:
-                await ctx.send("최소 토큰 1개 이상 베팅해야 합니다.")
+        except (ValueError, TypeError):
+            await ctx.send("숫자를 입력해 주세요.")
+            return
+
+        if bet <= 0:
+            await ctx.send("최소 토큰 1개 이상 베팅해야 합니다.")
+            return
+
+        # 원자적 베팅금 차감
+        success, current = await self.app.db.consume_coins(ctx.author.id, bet)
+        if not success:
+            if current is None:
+                await ctx.send(self.cannot_find_id)
             else:
-                embed = discord.Embed(title="<:video_game:  베팅 결과>", description=ctx.author.display_name + " 님의 결과")
-                mag = random.random() - 0.5
-                prize = round(bet*mag)
-                data['$'] += prize
-                await self.app.update_data(ctx.author.id, data, find)
-                embed.add_field(name="> 베팅", value=f"{bet} :coin:")
-                embed.add_field(name="> 배율", value=f"{mag:0.3f}x")
-                embed.add_field(name="> 손익", value=f"{prize} :coin:")
-                await ctx.send(embed=embed)
+                await ctx.send("토큰이 부족합니다.")
+            return
+
+        embed = discord.Embed(title="<:video_game:  베팅 결과>", description=ctx.author.display_name + " 님의 결과")
+        mag = random.random() - 0.5
+        prize = round(bet * mag)
+        payout = bet + prize
+        if payout > 0:
+            await self.app.db.add_coins(ctx.author.id, payout)
+        embed.add_field(name="> 베팅", value=f"{bet} :coin:")
+        embed.add_field(name="> 배율", value=f"{mag:0.3f}x")
+        embed.add_field(name="> 손익", value=f"{prize} :coin:")
+        await ctx.send(embed=embed)
 
     @commands.cooldown(1, 10., commands.BucketType.user)
     @commands.bot_has_permissions(administrator=True)
@@ -445,13 +454,12 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if option in ['normal', 'NORMAL', '-n', 'n']:
                 option = 'n'
             elif option in ['ability', 'ABILITY', '-a', 'a']:
-                coin = data.get('$')
-                if coin < 100:
+                success, cur_coins = await self.app.db.consume_coins(ctx.author.id, 100)
+                if not success:
                     await self.app.db.add_coins(ctx.author.id, 10)
                     await ctx.send("특성 가챠를 위한 토큰이 부족합니다. (10 :coin: 이 환불되었습니다.)")
                     return None
                 else:
-                    data['$'] -= 100
                     option = 'a'
             else:
                 await self.app.db.add_coins(ctx.author.id, 10)
@@ -474,12 +482,10 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         rand -= i.chance
                 if item:
-                    data['*'] = item.name
-                    await self.app.update_data(ctx.author.id, data, find)
+                    await self.app.db.update_single_field(ctx.author.id, '*', item.name)
                     await ctx.send(f"{str(item)}을(를) 얻었습니다!")
                     return
                 else:
-                    await self.app.update_data(ctx.author.id, data, find)
                     await ctx.send("아무것도 얻지 못했습니다.")
                     return
             else:
@@ -518,13 +524,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 if ability and ability.special_events:
                     event_lst.extend(ability.special_events)
 
+                initial_coins = data.get('$', 0)
+                initial_luck = data.get('%', 0)
                 if len(event_lst) > 0:
                     for event in event_lst:
                         effect = await event(ctx, data)
                         embed.add_field(name="이벤트", value=effect, inline=False)
                     await ctx.send(embed=embed)
 
-                await self.app.update_data(ctx.author.id, data, find)
+                delta_coins = data.get('$', 0) - initial_coins
+                if delta_coins != 0:
+                    await self.app.db.add_coins(ctx.author.id, delta_coins)
+                if data.get('%', 0) != initial_luck:
+                    await self.app.db.update_single_field(ctx.author.id, '%', data.get('%', 0))
                 return
 
     @commands.command(

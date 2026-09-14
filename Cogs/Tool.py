@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 from discord.utils import get
 import asyncio
+import io
+import datetime
 
 
 class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
@@ -143,6 +145,150 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 user_data[selector] = parsed_val
             await self.app.db.update_data(member.id, user_data)
             await ctx.send('DB를 업데이트했습니다.')
+
+    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
+    @commands.command(
+        name="DB출력", aliases=["db출력", "dumpdb", "exportdb", "DB조회", "db조회"],
+        help="DB 내용을 채팅으로 출력하거나 텍스트 파일로 반환합니다. (관리자 권한)\n"
+             "사용법:\n"
+             "• %DB출력 (기본: 상위 요약 + 전체 텍스트 파일 첨부)\n"
+             "• %DB출력 파일 (텍스트 파일만 첨부)\n"
+             "• %DB출력 채팅 (채팅창 요약만 출력)\n"
+             "• %DB출력 all (전체 시즌 데이터)\n"
+             "• %DB출력 @유저 (특정 유저의 DB 조회)",
+        usage="* (@member / str(*season/mode*))"
+    )
+    async def dump_db(self, ctx, *args):
+        # 1. 특정 유저를 멘션한 경우: 단일 유저 DB 조회
+        if ctx.message.mentions:
+            target = ctx.message.mentions[0]
+            find, user_data = await self.app.db.find_data('db', target.id)
+            if find is None:
+                await ctx.send(f":warning: {target.mention} 님의 DB 데이터가 존재하지 않습니다.")
+                return
+
+            embed = discord.Embed(
+                title=f"👤 {target.display_name} 님의 DB 정보",
+                color=0x2ecc71
+            )
+            embed.set_thumbnail(url=target.display_avatar.url if target.display_avatar else None)
+            embed.add_field(name="유저 ID", value=str(target.id), inline=False)
+            embed.add_field(name="🪙 토큰 ($)", value=f"{user_data.get('$', 0):,} 개", inline=True)
+            embed.add_field(name="🍀 행운 (%)", value=f"{user_data.get('%', 0):,}", inline=True)
+            ability = user_data.get('*')
+            embed.add_field(name="✨ 능력 (*)", value=str(ability) if ability is not None else "없음", inline=True)
+            await ctx.send(embed=embed)
+            return
+
+        # 2. 전체 목록 또는 특정 시즌 덤프
+        season = 'db'
+        file_only = False
+        chat_only = False
+
+        for arg in args:
+            arg_lower = arg.lower()
+            if arg_lower in ['파일', 'file', '-f']:
+                file_only = True
+            elif arg_lower in ['채팅', 'chat', '-c', '출력']:
+                chat_only = True
+            elif arg_lower in ['all', '전체', '모두']:
+                season = 'all'
+            else:
+                season = arg
+
+        records = await self.app.db.dump_data(season=season)
+
+        if not records:
+            season_msg = "전체" if season == 'all' else f"'{season}'"
+            await ctx.send(f":warning: {season_msg} 시즌에 저장된 데이터가 없습니다.")
+            return
+
+        # 텍스트 파일 포맷팅 생성 (표 형태)
+        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        lines = [
+            "=" * 96,
+            f"[ ZeroGunBot Database Export ]",
+            f"추출 일시: {now_str} (KST)",
+            f"조회 대상: {'전체 시즌 (ALL)' if season == 'all' else f'{season} 시즌'}",
+            f"총 레코드: {len(records)}개",
+            "=" * 96,
+            f"{'시즌':<8} | {'유저 ID':<20} | {'닉네임/이름':<20} | {'토큰($)':<12} | {'행운(%)':<8} | {'능력(*)':<10} | {'최근 변경 일시'}",
+            "-" * 96
+        ]
+
+        for r in records:
+            uid = r["user_id"]
+            user = self.app.get_user(uid)
+            if user:
+                name_str = user.name
+            else:
+                member = ctx.guild.get_member(uid) if ctx.guild else None
+                name_str = member.display_name if member else "알 수 없음"
+
+            if len(name_str) > 18:
+                name_str = name_str[:15] + "..."
+
+            ability_str = str(r["ability"]) if r["ability"] is not None else "-"
+            updated_str = str(r["updated_at"]) if r["updated_at"] else "-"
+            coins_str = f"{r['coins']:,}"
+            luck_str = f"{r['luck']:,}"
+
+            lines.append(
+                f"{r['season']:<8} | {uid:<20} | {name_str:<20} | {coins_str:<12} | {luck_str:<8} | {ability_str:<10} | {updated_str}"
+            )
+
+        lines.append("=" * 96)
+        full_text = "\n".join(lines)
+
+        # 텍스트 파일 버퍼 생성
+        file_buffer = io.BytesIO(full_text.encode('utf-8'))
+        file_name = f"db_export_{season}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        discord_file = discord.File(fp=file_buffer, filename=file_name)
+
+        # 파일만 전송하는 옵션인 경우
+        if file_only:
+            await ctx.send(
+                content=f"📁 **데이터베이스 내보내기 완료** (시즌: `{season}`, 총 `{len(records)}`개)",
+                file=discord_file
+            )
+            return
+
+        # 채팅 출력 (임베드 요약)
+        embed = discord.Embed(
+            title=f"📊 데이터베이스 조회 ({'전체 시즌' if season == 'all' else f'{season} 시즌'})",
+            description=f"총 **{len(records)}**개의 유저 데이터가 조회되었습니다.",
+            color=0x3498db
+        )
+
+        preview_limit = min(10, len(records))
+        preview_text_list = []
+        for i, r in enumerate(records[:preview_limit]):
+            uid = r["user_id"]
+            user = self.app.get_user(uid)
+            name_str = user.name if user else f"<@{uid}>"
+            coins_str = f"{r['coins']:,}"
+            luck_str = f"{r['luck']:,}"
+            ability_str = f" / ✨ `{r['ability']}`" if r["ability"] else ""
+            season_tag = f"[{r['season']}] " if season == 'all' else ""
+            preview_text_list.append(
+                f"**{i+1}.** {season_tag}{name_str} (`{uid}`): 🪙 **{coins_str}** | 🍀 **{luck_str}**{ability_str}"
+            )
+
+        embed.add_field(
+            name=f"상위 목록 ({preview_limit}/{len(records)})",
+            value="\n".join(preview_text_list),
+            inline=False
+        )
+
+        if len(records) > preview_limit and chat_only:
+            embed.set_footer(text=f"전체 목록을 파일로 받으려면 '%DB출력 {season} 파일'을 입력하세요.")
+        else:
+            embed.set_footer(text="상세 전체 데이터는 첨부된 텍스트 파일을 확인하세요.")
+
+        if chat_only:
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send(embed=embed, file=discord_file)
 
     @commands.command(
         name='암호화', aliases=["encrypt", "enc"],

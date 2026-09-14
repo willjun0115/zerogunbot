@@ -144,6 +144,33 @@ class Database:
                     data_dict[uid] = d
         return data_dict
 
+    async def dump_data(self, season: Optional[str] = None) -> list[Dict[str, Any]]:
+        """
+        데이터베이스의 전체 또는 특정 시즌 유저 데이터를 리스트로 가져옵니다.
+        """
+        async with aiosqlite.connect(self.db_path) as db:
+            if season and season.lower() != 'all':
+                query = "SELECT season, user_id, coins, luck, ability, updated_at FROM user_data WHERE season = ? ORDER BY coins DESC"
+                params = (season,)
+            else:
+                query = "SELECT season, user_id, coins, luck, ability, updated_at FROM user_data ORDER BY season, coins DESC"
+                params = ()
+
+            async with db.execute(query, params) as cursor:
+                rows = await cursor.fetchall()
+                results = []
+                for row in rows:
+                    s, uid, coins, luck, ability, updated_at = row
+                    results.append({
+                        "season": s,
+                        "user_id": uid,
+                        "coins": coins,
+                        "luck": luck,
+                        "ability": ability,
+                        "updated_at": updated_at
+                    })
+                return results
+
     async def find_id(self, selector: str, user_id: int, season: str = 'db') -> Optional[LegacyRecord]:
         """
         기존 find_id(selector, user_id) 호출과의 하위 호환을 위한 메서드.

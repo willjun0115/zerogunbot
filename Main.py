@@ -93,19 +93,20 @@ async def on_member_join(member):
 
 
 async def find_id(selector, id):
-    return await app.db.find_id(selector, id, season='db')
+    return await app.db.find_id(selector, id)
 
 
-async def find_data(db_name, user_id):
-    return await app.db.find_data(db_name, user_id)
+async def find_data(db_name, user_id=None):
+    target = user_id if user_id is not None else db_name
+    return await app.db.find_data(target)
 
 
 async def update_data(user_id, data: dict, message=None):
-    return await app.db.update_data(user_id, data, message=message, season='db')
+    return await app.db.update_data(user_id, data, message=message)
 
 
-async def collect_data(db_name):
-    return await app.db.collect_data(db_name)
+async def collect_data(db_name=None):
+    return await app.db.collect_data()
 
 
 async def setup_database(ctx):

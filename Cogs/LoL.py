@@ -43,7 +43,7 @@ QUEUE_NAMES = {
 }
 
 
-class LoL(commands.Cog, name="롤 전적", description="리그 오브 레전드(LoL) 전적 및 통계 검색 카테고리입니다."):
+class LoL(commands.Cog, name="롤", description="리그 오브 레전드(LoL) 전적 및 통계 검색 카테고리입니다."):
     def __init__(self, app):
         self.app = app
         self.ddragon_version: str = "14.12.1"

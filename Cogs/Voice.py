@@ -11,6 +11,7 @@ from gtts import gTTS
 import json
 import csv
 from typing import Any
+from Utils import token_cost
 
 ytdl_format_options: Any = {
     'format': 'bestaudio/best',
@@ -137,9 +138,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.clear_mp3()
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
+    @token_cost(5)
     @commands.command(
         name="tts", aliases=["TTS"],
-        help="입력받은 문자열을 tts 음성으로 출력합니다.", usage="* str()"
+        help="입력받은 문자열을 tts 음성으로 출력합니다. (소모: 5 :coin:)", usage="* str()"
     )
     async def _tts(self, ctx, *, msg):
         if not await self.ensure_voice(ctx):
@@ -154,9 +156,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                                   after=lambda e: print(f'Player error: {e}') if e else None)
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
+    @token_cost(10)
     @commands.command(
         name="재생", aliases=["play", "p"],
-        help="유튜브 url을 통해 음악을 재생합니다."
+        help="유튜브 url을 통해 음악을 재생합니다. (소모: 10 :coin:)"
              "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(*url*) (-s)"
     )
     async def play_song(self, ctx, url: str, stream=None):
@@ -176,9 +179,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await ctx.send(msg)
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
+    @token_cost(10)
     @commands.command(
         name="검색", aliases=["search"],
-        help="유튜브 검색을 통해 목록을 가져옵니다."
+        help="유튜브 검색을 통해 목록을 가져옵니다. (소모: 10 :coin:)"
              "\n채팅으로 1~5의 숫자를 치면 해당 번호의 링크를 재생합니다.", usage="* str()"
     )
     async def yt_search(self, ctx, *, args):
@@ -276,7 +280,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
     @commands.command(
         name="노래맞추기", aliases=["노래퀴즈", "musicquiz"],
-        help="노래를 듣고 제목을 맞춰보세요!"
+        help="노래를 듣고 제목을 맞춰보세요! (정답 시 1 :coin: 지급)"
              "\n사용법: %노래맞추기 [force/f] [loop=n] [tag=kor|eng|jap|all]"
              "\n예시: %노래맞추기 loop=5"
              "\n예시: %노래맞추기 force loop=3 tag=kor+jap", usage="[force/f] [loop=n] [tag=kor|eng|jap|all]"
@@ -549,7 +553,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 except asyncio.TimeoutError:
                     await ctx.send(f"시간 초과! (정답: {official_title})")
                 else:
-                    await ctx.send(f"🎉 {message.author.display_name} 님 정답! (정답: {official_title})")
+                    new_coins = await self.app.db.add_coins(message.author.id, 1)
+                    await ctx.send(
+                        f"🎉 {message.author.display_name} 님 정답! (정답: {official_title})\n"
+                        f":coin: **+1 토큰 지급!** (보유: {new_coins:,}개)"
+                    )
 
                 # 한 라운드가 끝나면 음성 정지 및 대기 시간 부여
                 voice = get(self.app.voice_clients, guild=ctx.guild)

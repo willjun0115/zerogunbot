@@ -13,16 +13,24 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
 
     @commands.command(
         name="안녕", aliases=["인사", "ㅎㅇ", "hello", "hi"],
-        help="짧은 인사를 건넵니다.", usage="*", hidden=True
+        help="짧은 인사를 건네고 일일 보상(10 :coin:)을 받습니다.", usage="*"
     )
     async def hello(self, ctx):
         what_message = random.randint(1, 3)
         if what_message == 1:
-            await ctx.channel.send('안녕하세요? ' + ctx.author.name + ' 님, 오늘도 좋은 하루 보내세요!')
+            msg = '안녕하세요? ' + ctx.author.name + ' 님, 오늘도 좋은 하루 보내세요!'
         elif what_message == 2:
-            await ctx.channel.send('안녕하세요? ' + ctx.author.name + ' 님, 오늘 하루 힘내세요!')
+            msg = '안녕하세요? ' + ctx.author.name + ' 님, 오늘 하루 힘내세요!'
         else:
-            await ctx.channel.send(ctx.author.name + ' 님, 안녕하세요!')
+            msg = ctx.author.name + ' 님, 안녕하세요!'
+
+        reward_given, coins = await self.app.db.claim_daily_reward(ctx.author.id, reward_type="greeting", amount=10)
+        if reward_given:
+            msg += f"\n:coin: **일일 보상 10토큰**을 획득하셨습니다! (현재 잔액: {coins} :coin:)"
+        else:
+            msg += f"\n(오늘의 일일 보상은 이미 받으셨습니다. 내일 다시 만나요!)"
+
+        await ctx.channel.send(msg)
 
     @commands.has_permissions(manage_messages=True)
     @token_cost(5)

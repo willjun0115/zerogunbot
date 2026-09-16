@@ -1,5 +1,6 @@
 import aiosqlite
 import os
+import datetime
 from typing import Any, Optional, Tuple, Dict
 
 
@@ -55,6 +56,14 @@ class Database:
             await db.execute("""
                 CREATE INDEX IF NOT EXISTS idx_coins 
                 ON user_data(coins DESC)
+            """)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS daily_rewards (
+                    user_id INTEGER NOT NULL,
+                    reward_type TEXT NOT NULL,
+                    reward_date TEXT NOT NULL,
+                    PRIMARY KEY (user_id, reward_type)
+                )
             """)
             await db.commit()
 
@@ -315,3 +324,66 @@ class Database:
             ) as cursor:
                 row = await cursor.fetchone()
                 return row[0] if row is not None else None
+
+    async def claim_daily_reward(
+        self, user_id: int, reward_type: str = "greeting", amount: int = 10, date_str: Optional[str] = None
+    ) -> Tuple[bool, int]:
+        """
+        유저별 일일 보상을 지급합니다.
+        - 오늘 이미 보상을 수령했으면 (False, 현재 코인 수)를 반환합니다.
+        - 오늘 첫 수령이면 보상(amount)을 원자적으로 추가하고 (True, 갱신된 코인 수)를 반환합니다.
+        - 날짜는 기본적으로 한국 표준시(KST, UTC+9) 기준 YYYY-MM-DD 형식으로 관리됩니다.
+        """
+        if date_str is None:
+            kst = datetime.timezone(datetime.timedelta(hours=9))
+            date_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
+
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+            await db.execute("PRAGMA busy_timeout = 5000;")
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS daily_rewards (
+                    user_id INTEGER NOT NULL,
+                    reward_type TEXT NOT NULL,
+                    reward_date TEXT NOT NULL,
+                    PRIMARY KEY (user_id, reward_type)
+                )
+            """)
+            cursor = await db.execute(
+                """
+                INSERT INTO daily_rewards (user_id, reward_type, reward_date)
+                VALUES (?, ?, ?)
+                ON CONFLICT(user_id, reward_type) DO UPDATE SET
+                    reward_date = excluded.reward_date
+                WHERE daily_rewards.reward_date != excluded.reward_date
+                """,
+                (user_id, reward_type, date_str)
+            )
+            claimed = cursor.rowcount > 0
+
+            if claimed:
+                # 당일 첫 수령: 코인 지급 (원자적 UPSERT)
+                async with db.execute(
+                    """
+                    INSERT INTO user_data (user_id, coins, luck, ability, updated_at)
+                    VALUES (?, MAX(0, ?), 0, NULL, CURRENT_TIMESTAMP)
+                    ON CONFLICT(user_id) DO UPDATE SET
+                        coins = MAX(0, user_data.coins + ?),
+                        updated_at = CURRENT_TIMESTAMP
+                    RETURNING coins
+                    """,
+                    (user_id, amount, amount)
+                ) as coin_cur:
+                    coin_row = await coin_cur.fetchone()
+                    new_coins = coin_row[0] if coin_row is not None else amount
+                await db.commit()
+                return True, new_coins
+            else:
+                # 이미 수령함: 현재 코인 잔액 조회
+                async with db.execute(
+                    "SELECT coins FROM user_data WHERE user_id = ?",
+                    (user_id,)
+                ) as coin_cur:
+                    coin_row = await coin_cur.fetchone()
+                    current_coins = coin_row[0] if coin_row is not None else 0
+                return False, current_coins
+

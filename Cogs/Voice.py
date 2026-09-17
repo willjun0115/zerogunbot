@@ -93,6 +93,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.quiz_task = None
         self.music_queues = {}
         self.now_playing = {}
+        self.queue_loop = {}       # guild_id -> bool
+        self.queue_auto = {}       # guild_id -> target_n (int) or None
+        self.auto_history = {}     # guild_id -> set of normalized titles
+        self.auto_fetching = {}    # guild_id -> bool
 
     def clear_mp3(self):
         for file in os.listdir("./"):
@@ -133,10 +137,12 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="음성 채널을 나갑니다.", usage="*"
     )
     async def leave_ch(self, ctx):
-        if ctx.guild and ctx.guild.id in self.music_queues:
-            self.music_queues[ctx.guild.id].clear()
-        if ctx.guild and ctx.guild.id in self.now_playing:
+        if ctx.guild:
+            self.music_queues.pop(ctx.guild.id, None)
             self.now_playing.pop(ctx.guild.id, None)
+            self.queue_loop.pop(ctx.guild.id, None)
+            self.queue_auto.pop(ctx.guild.id, None)
+            self.auto_history.pop(ctx.guild.id, None)
         if ctx.voice_client:
             await ctx.voice_client.disconnect()
             await ctx.send("연결을 끊습니다.")
@@ -260,9 +266,81 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         print(f"[Music] 선별 실패로 기본 유튜브 검색 사용: {fallback_url}")
         return fallback_url
 
+    async def fill_auto_queue(self, guild_id: int, target_channel=None):
+        """대기열 수가 목표치 N보다 적을 때 스포티파이 추천 곡으로 대기열을 자동 보충합니다."""
+        target_n = self.queue_auto.get(guild_id)
+        if not target_n or target_n <= 0:
+            return
+
+        if self.auto_fetching.get(guild_id, False):
+            return
+        self.auto_fetching[guild_id] = True
+
+        try:
+            queue = self.music_queues.setdefault(guild_id, [])
+            history = self.auto_history.setdefault(guild_id, set())
+
+            if len(queue) >= target_n:
+                return
+
+            needed = target_n - len(queue)
+
+            now = self.now_playing.get(guild_id)
+            seed_query = None
+            if queue:
+                seed_query = queue[-1].get("title")
+            elif now:
+                seed_query = now.get("title")
+
+            if not seed_query:
+                seed_query = "K-Pop Hits"
+
+            recs, _ = spotify_helper.get_recommendations(seed_query, limit=max(needed + 3, 5))
+            if not recs:
+                return
+
+            added_count = 0
+            guild = self.app.get_guild(guild_id)
+
+            for cand in recs:
+                cand_title = cand.get("title")
+                cand_artist = cand.get("artist")
+                if not cand_title:
+                    continue
+
+                full_name = f"{cand_artist} - {cand_title}"
+                clean_name = f"{cand_artist} {cand_title}".lower().replace(" ", "")
+
+                if clean_name in history or any(clean_name == q.get("title", "").lower().replace(" ", "") for q in queue):
+                    continue
+
+                clean_url = await self.find_clean_audio_url(cand_artist, cand_title)
+                history.add(clean_name)
+                if len(history) > 50:
+                    history.pop()
+
+                channel = target_channel or (now.get("channel") if now else None) or (queue[0].get("channel") if queue else None)
+
+                queue.append({
+                    "url": clean_url,
+                    "title": full_name,
+                    "stream": True,
+                    "channel": channel,
+                    "requester": self.app.user,
+                    "is_auto": True
+                })
+                added_count += 1
+
+                if len(queue) >= target_n:
+                    break
+
+            if added_count > 0:
+                print(f"[AutoQueue] {guild.name if guild else guild_id}: 자동 추천 {added_count}곡 추가 완료 (대기열: {len(queue)}/{target_n})")
+        finally:
+            self.auto_fetching[guild_id] = False
+
     async def play_next_song(self, guild_id: int):
         """대기열에서 다음 곡을 꺼내 자동으로 이어서 재생합니다."""
-        queue = self.music_queues.get(guild_id, [])
         guild = self.app.get_guild(guild_id)
         if not guild:
             return
@@ -272,6 +350,25 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 self.music_queues[guild_id].clear()
             self.now_playing.pop(guild_id, None)
             return
+
+        # 루프(loop) 모드: 직전에 끝난 곡이 있으면 대기열 맨 뒤로 재등록
+        prev_track = self.now_playing.get(guild_id)
+        if prev_track and self.queue_loop.get(guild_id, False):
+            self.music_queues.setdefault(guild_id, []).append({
+                "url": prev_track["url"],
+                "title": prev_track["title"],
+                "stream": prev_track.get("stream", True),
+                "channel": prev_track.get("channel"),
+                "requester": prev_track.get("requester"),
+                "is_auto": prev_track.get("is_auto", False)
+            })
+
+        queue = self.music_queues.get(guild_id, [])
+
+        # 대기열이 비었지만 자동 추천(Auto) 모드가 켜져 있다면 보충 시도
+        if not queue and self.queue_auto.get(guild_id):
+            await self.fill_auto_queue(guild_id)
+            queue = self.music_queues.get(guild_id, [])
 
         if not queue:
             self.now_playing.pop(guild_id, None)
@@ -283,12 +380,19 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         channel = next_track.get("channel")
         requester = next_track.get("requester")
 
+        # 자동 추천(Auto) 모드가 켜져 있다면, 곡이 빠져나간 만큼 백그라운드 자동 보충
+        if self.queue_auto.get(guild_id):
+            asyncio.create_task(self.fill_auto_queue(guild_id, target_channel=channel))
+
         try:
             player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
             self.now_playing[guild_id] = {
                 "title": player.title,
                 "requester": requester,
                 "url": url,
+                "stream": stream,
+                "channel": channel,
+                "is_auto": next_track.get("is_auto", False)
             }
 
             def after_callback(e):
@@ -299,7 +403,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             voice.play(player, after=after_callback)
 
             if channel:
-                req_name = requester.display_name if requester else "알 수 없음"
+                req_name = "🤖 자동추천" if next_track.get("is_auto") else (requester.display_name if requester else "알 수 없음")
                 await channel.send(f"🎶 **다음 곡 재생:** {player.title} (신청: {req_name})")
         except Exception as e:
             print(f"[Queue Error] 다음 곡 재생 실패 ({url}): {e}")
@@ -381,6 +485,9 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                     "title": player.title,
                     "requester": ctx.author,
                     "url": url,
+                    "stream": stream,
+                    "channel": ctx.channel,
+                    "is_auto": False
                 }
 
                 def after_callback(e):
@@ -493,47 +600,123 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @commands.command(
         name="정지", aliases=["stop", "s"],
-        help="음악 재생을 정지하고 대기열을 모두 비웁니다.", usage="*"
+        help="음악 재생을 정지하고 대기열 및 옵션을 모두 초기화합니다.", usage="*"
     )
     async def stop_song(self, ctx):
-        if ctx.guild and ctx.guild.id in self.music_queues:
-            self.music_queues[ctx.guild.id].clear()
-        if ctx.guild and ctx.guild.id in self.now_playing:
+        if ctx.guild:
+            self.music_queues.pop(ctx.guild.id, None)
             self.now_playing.pop(ctx.guild.id, None)
+            self.queue_loop.pop(ctx.guild.id, None)
+            self.queue_auto.pop(ctx.guild.id, None)
+            self.auto_history.pop(ctx.guild.id, None)
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             voice.stop()
-        await ctx.send("⏹️ **음악 재생을 정지하고 대기열을 모두 비웠습니다.**")
+        await ctx.send("⏹️ **음악 재생을 정지하고 대기열과 설정을 모두 초기화했습니다.**")
 
     @commands.command(
         name="대기열", aliases=["queue", "q"],
-        help="현재 재생 중인 곡과 대기 중인 곡 목록을 확인합니다.", usage="*"
+        help="대기열 목록을 조회하거나 루프/자동추천 옵션을 설정합니다.\n"
+             "사용법:\n"
+             "• %대기열 : 현재 재생 중인 곡과 대기 목록 및 상태 확인\n"
+             "• %대기열 loop (또는 루프) : 대기열 루프 모드 ON/OFF 토글\n"
+             "• %대기열 auto [n] (또는 자동 [n]) : 스포티파이 자동 추천 N곡 유지 모드 ON/OFF (기본 5곡)",
+        usage="* (loop/루프 | auto/자동 (*n*))"
     )
-    async def show_queue(self, ctx):
-        queue = self.music_queues.get(ctx.guild.id, [])
-        now = self.now_playing.get(ctx.guild.id)
+    async def show_queue(self, ctx, *args):
+        arg_str = " ".join(args).strip().lower()
+        guild_id = ctx.guild.id
+        queue = self.music_queues.setdefault(guild_id, [])
 
+        # (1) loop 옵션 토글
+        if arg_str.startswith("loop") or arg_str.startswith("루프"):
+            current = self.queue_loop.get(guild_id, False)
+            if "on" in arg_str:
+                self.queue_loop[guild_id] = True
+            elif "off" in arg_str:
+                self.queue_loop[guild_id] = False
+            else:
+                self.queue_loop[guild_id] = not current
+
+            status = "활성화(ON)" if self.queue_loop[guild_id] else "비활성화(OFF)"
+            emoji = "🔁" if self.queue_loop[guild_id] else "➡️"
+            note = " (곡이 끝나면 대기열 맨 뒤로 다시 등록됩니다)" if self.queue_loop[guild_id] else ""
+            await ctx.send(f"{emoji} **대기열 루프 모드가 {status}되었습니다.**{note}")
+            return
+
+        # (2) auto 옵션 설정
+        if arg_str.startswith("auto") or arg_str.startswith("자동"):
+            tokens = arg_str.split()
+            current_target = self.queue_auto.get(guild_id)
+
+            if "off" in tokens:
+                self.queue_auto[guild_id] = None
+                await ctx.send("🤖 **스포티파이 자동 추천(Auto) 모드가 비활성화되었습니다.**")
+                return
+
+            target_n = None
+            for tok in tokens[1:]:
+                if tok.isdigit():
+                    target_n = int(tok)
+                    break
+
+            if target_n is None:
+                if current_target:
+                    self.queue_auto[guild_id] = None
+                    await ctx.send("🤖 **스포티파이 자동 추천(Auto) 모드가 비활성화되었습니다.**")
+                    return
+                else:
+                    target_n = max(len(queue), 5)
+
+            target_n = max(1, min(target_n, 20))
+            self.queue_auto[guild_id] = target_n
+
+            msg = await ctx.send(
+                f"🤖 **스포티파이 자동 추천(Auto) 모드가 활성화되었습니다!** (대기열 `{target_n}`곡 상시 유지)\n"
+                f"추천 곡을 탐색 중입니다... :hourglass_flowing_sand:"
+            )
+            await self.fill_auto_queue(guild_id, target_channel=ctx.channel)
+            await msg.edit(
+                content=f"🤖 **스포티파이 자동 추천(Auto) 모드 작동 중!** (대기열 `{len(self.music_queues[guild_id])}/{target_n}`곡 채움 완료)"
+            )
+            return
+
+        # (3) 기본 대기열 목록 조회
+        now = self.now_playing.get(guild_id)
         if not now and not queue:
-            await ctx.send("현재 재생 중이거나 대기 중인 곡이 없습니다.")
+            loop_status = "ON" if self.queue_loop.get(guild_id) else "OFF"
+            auto_val = self.queue_auto.get(guild_id)
+            auto_status = f"ON ({auto_val}곡 유지)" if auto_val else "OFF"
+            await ctx.send(
+                f"현재 재생 중이거나 대기 중인 곡이 없습니다.\n"
+                f"(모드 설정: 🔁 루프 `{loop_status}` | 🤖 자동추천 `{auto_status}`)"
+            )
             return
 
         embed = discord.Embed(title="🎵 재생 대기열", color=0x1DB954)
         if now:
             requester = now.get("requester")
-            req_name = requester.display_name if requester else "알 수 없음"
+            req_name = "🤖 자동추천" if now.get("is_auto") else (requester.display_name if requester else "알 수 없음")
             embed.add_field(name="▶️ 현재 재생 중", value=f"**{now['title']}** (신청: {req_name})", inline=False)
 
         if queue:
             q_text = ""
             for i, item in enumerate(queue[:10], 1):
                 r = item.get("requester")
-                r_name = r.display_name if r else "알 수 없음"
+                r_name = "🤖 Auto" if item.get("is_auto") else (r.display_name if r else "알 수 없음")
                 q_text += f"`{i}.` **{item.get('title', '알 수 없음')}** (신청: {r_name})\n"
             if len(queue) > 10:
                 q_text += f"\n...외 {len(queue) - 10}곡 대기 중"
             embed.add_field(name=f"대기 목록 (총 {len(queue)}곡)", value=q_text, inline=False)
         else:
             embed.add_field(name="대기 목록", value="대기 중인 곡이 없습니다.", inline=False)
+
+        loop_status = "ON" if self.queue_loop.get(guild_id) else "OFF"
+        auto_val = self.queue_auto.get(guild_id)
+        auto_status = f"ON ({auto_val}곡 유지)" if auto_val else "OFF"
+        embed.set_footer(
+            text=f"🔁 루프: {loop_status} | 🤖 자동추천(Auto): {auto_status} • 설정: %대기열 loop, %대기열 auto [n]"
+        )
 
         await ctx.send(embed=embed)
 

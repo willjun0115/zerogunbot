@@ -352,21 +352,28 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await msg.edit(content=f":warning: {seed_name}")
             return
 
+        is_fallback = any(t.get("source") == "itunes_fallback" for t in recs)
         embed = discord.Embed(
             title=f"🎧 '{seed_name}' 기반 추천 곡",
-            description="스포티파이 알고리즘이 추천하는 비슷한 분위기의 노래입니다.",
+            description="스포티파이 알고리즘이 추천하는 비슷한 분위기의 노래입니다." if not is_fallback else "해당 아티스트 및 장르 기반 인기 추천 곡 목록입니다.",
             color=0x1DB954
         )
         for i, t in enumerate(recs, 1):
+            url = t.get("spotify_url")
+            link_text = "Spotify에서 듣기" if t.get("source") == "spotify" else "곡 정보 보기"
+            album_info = f"앨범: {t.get('album', '알 수 없음')}"
+            val = f"[{link_text}]({url}) · {album_info}" if url else album_info
             embed.add_field(
                 name=f"{i}. {t['title']} - {t['artist']}",
-                value=f"[Spotify에서 듣기]({t['spotify_url']})" if t.get("spotify_url") else f"앨범: {t.get('album', '알 수 없음')}",
+                value=val,
                 inline=False
             )
         if recs and recs[0].get("cover_url"):
             embed.set_thumbnail(url=recs[0]["cover_url"])
+        
+        footer_text = "Spotify Recommendations" if not is_fallback else "Music Recommendations (Fallback)"
         embed.set_footer(
-            text="Spotify Recommendations",
+            text=footer_text,
             icon_url="https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green.png"
         )
 

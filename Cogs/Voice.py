@@ -97,6 +97,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.queue_auto = {}       # guild_id -> target_n (int) or None
         self.auto_history = {}     # guild_id -> set of normalized titles
         self.auto_fetching = {}    # guild_id -> bool
+        self.recent_played = {}    # guild_id -> list of recent song titles (up to 10)
 
     def clear_mp3(self):
         for file in os.listdir("./"):
@@ -143,6 +144,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             self.queue_loop.pop(ctx.guild.id, None)
             self.queue_auto.pop(ctx.guild.id, None)
             self.auto_history.pop(ctx.guild.id, None)
+            self.recent_played.pop(ctx.guild.id, None)
         if ctx.voice_client:
             await ctx.voice_client.disconnect()
             await ctx.send("연결을 끊습니다.")
@@ -288,20 +290,32 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             needed = target_n - len(queue)
 
             now = self.now_playing.get(guild_id)
-            seed_query = None
-            if queue:
-                seed_query = queue[-1].get("title")
-            elif now:
-                seed_query = now.get("title")
+            # 최대 5곡 시드 수집 (현재 재생 곡 + 대기열 곡 + 최근 재생 히스토리)
+            seeds: list[str] = []
+            if now and now.get("title"):
+                seeds.append(now["title"])
 
-            if seed_query:
-                seed_query = clean_music_title(seed_query)
-            if not seed_query:
-                seed_query = "K-Pop Hits"
+            # 대기열의 곡들 추가 (역순으로 최근 곡부터)
+            for item in reversed(queue):
+                t = item.get("title")
+                if t and t not in seeds:
+                    seeds.append(t)
+                if len(seeds) >= 5:
+                    break
 
-            recs, _ = spotify_helper.get_recommendations(seed_query, limit=max(needed + 5, 12))
+            # 최근 재생 히스토리에서 추가
+            for t in reversed(self.recent_played.get(guild_id, [])):
+                if t and t not in seeds:
+                    seeds.append(t)
+                if len(seeds) >= 5:
+                    break
+
+            if not seeds:
+                seeds = ["K-Pop Hits"]
+
+            recs, seed_name = spotify_helper.get_recommendations(seeds, limit=max(needed + 5, 12))
             if not recs:
-                recs, _ = spotify_helper.get_recommendations("K-Pop Hits", limit=max(needed + 5, 12))
+                recs, _ = spotify_helper.get_recommendations(["K-Pop Hits"], limit=max(needed + 5, 12))
 
             if not recs:
                 print(f"[AutoQueue] {guild_id}: 추천 곡을 가져오지 못했습니다.")
@@ -412,6 +426,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 "channel": channel,
                 "is_auto": next_track.get("is_auto", False)
             }
+            rp = self.recent_played.setdefault(guild_id, [])
+            if player.title not in rp:
+                rp.append(player.title)
+            if len(rp) > 10:
+                rp.pop(0)
 
             def after_callback(e):
                 if e:
@@ -507,6 +526,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                     "channel": ctx.channel,
                     "is_auto": False
                 }
+                rp = self.recent_played.setdefault(ctx.guild.id, [])
+                if player.title not in rp:
+                    rp.append(player.title)
+                if len(rp) > 10:
+                    rp.pop(0)
 
                 def after_callback(e):
                     if e:
@@ -631,6 +655,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             self.queue_loop.pop(ctx.guild.id, None)
             self.queue_auto.pop(ctx.guild.id, None)
             self.auto_history.pop(ctx.guild.id, None)
+            self.recent_played.pop(ctx.guild.id, None)
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             voice.stop()

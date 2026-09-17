@@ -17,6 +17,27 @@ except ImportError:
     SpotifyException = Exception
 
 
+def clean_music_title(raw: str) -> str:
+    """유튜브 제목 등에서 MV, 노이즈 태그 등을 제거하여 순수 음원/아티스트 검색어만 남깁니다."""
+    if not raw:
+        return ""
+    # 1. 괄호 태그 제거: [MV], (Official Audio), [가사] 등
+    s = re.sub(r'\[.*?\]|\(.*?\)|\{.*?\}', ' ', raw)
+    # 2. 일본어 인용 부호 등 제거 (내용은 유지)
+    s = s.replace('「', ' ').replace('」', ' ').replace('『', ' ').replace('』', ' ')
+    # 3. 비디오/음원 관련 노이즈 키워드 제거
+    patterns = [
+        r'(?i)\b(official\s*(music\s*)?video|music\s*video|official\s*audio|official|audio|mv|m/v)\b',
+        r'(?i)\b(lyrics|lyric\s*video|가사|자막|special\s*clip|live\s*clip|performance\s*video)\b',
+        r'(?i)\b(hd|4k|1080p|remastered|color\s*coded|stage|fancam)\b'
+    ]
+    for p in patterns:
+        s = re.sub(p, ' ', s)
+    # 4. 따옴표 및 연속 공백 정리
+    s = re.sub(r'[\'\"‘’“”]', '', s)
+    return ' '.join(s.split())
+
+
 class SpotifyHelper:
     def __init__(self):
         self._sp: Optional[spotipy.Spotify] = None
@@ -183,12 +204,23 @@ class SpotifyHelper:
         """스포티파이 API 미설정/제한 시 아티스트 및 장르 기반 추천 곡을 수집합니다."""
         try:
             url = "https://itunes.apple.com/search"
-            params = {"term": query, "entity": "song", "limit": 1}
-            resp = requests.get(url, params=params, timeout=5)
-            if resp.status_code != 200 or not resp.json().get("results"):
+            cleaned_query = clean_music_title(query)
+            search_candidates = [cleaned_query] if cleaned_query != query else []
+            search_candidates.append(query)
+            search_candidates.extend(["K-Pop Hits", "Popular Songs", "NewJeans", "IVE"])
+
+            seed = None
+            for cand_query in search_candidates:
+                if not cand_query:
+                    continue
+                resp = requests.get(url, params={"term": cand_query, "entity": "song", "limit": 5}, timeout=5)
+                if resp.status_code == 200 and resp.json().get("results"):
+                    seed = resp.json()["results"][0]
+                    break
+
+            if not seed:
                 return [], f"'{query}'에 해당하는 곡 정보를 찾지 못했습니다."
 
-            seed = resp.json()["results"][0]
             seed_name = f"{seed.get('artistName', '')} - {seed.get('trackName', '')}".strip()
             artist_id = seed.get("artistId")
             genre = seed.get("primaryGenreName", "")
@@ -199,7 +231,7 @@ class SpotifyHelper:
             # 1. 동일 아티스트 인기곡 조회
             if artist_id:
                 lookup_url = "https://itunes.apple.com/lookup"
-                lookup_resp = requests.get(lookup_url, params={"id": artist_id, "entity": "song", "limit": 4}, timeout=5)
+                lookup_resp = requests.get(lookup_url, params={"id": artist_id, "entity": "song", "limit": 10}, timeout=5)
                 if lookup_resp.status_code == 200:
                     for item in lookup_resp.json().get("results", []):
                         t_name = item.get("trackName")
@@ -217,7 +249,7 @@ class SpotifyHelper:
 
             # 2. 동일 장르 인기곡 추가
             if len(recs) < limit and genre:
-                genre_resp = requests.get(url, params={"term": genre, "entity": "song", "limit": 10}, timeout=5)
+                genre_resp = requests.get(url, params={"term": genre, "entity": "song", "limit": 25}, timeout=5)
                 if genre_resp.status_code == 200:
                     for item in genre_resp.json().get("results", []):
                         t_name = item.get("trackName")
@@ -248,12 +280,14 @@ class SpotifyHelper:
         """
         self._ensure_client()
         track_id = self.extract_spotify_track_id(query)
-        track_name = query
+        cleaned_query = clean_music_title(query) if not track_id else query
+        search_term = cleaned_query or query
+        track_name = search_term
 
         if self._sp:
             try:
                 if not track_id:
-                    results = self._sp.search(q=query, type="track", limit=1)
+                    results = self._sp.search(q=search_term, type="track", limit=1)
                     items = results.get("tracks", {}).get("items", [])
                     if items:
                         track_id = items[0]["id"]
@@ -282,7 +316,7 @@ class SpotifyHelper:
                 print(f"[SpotifyHelper] 스포티파이 추천 API 제한 또는 오류: {err_str[:120]}")
 
         # 스포티파이 API 미설정 또는 Premium 403 제한 시 안정적인 폴백 제공
-        return self._fetch_recommendations_fallback(query, limit=limit)
+        return self._fetch_recommendations_fallback(search_term, limit=limit)
 
 
 # 전역 인스턴스

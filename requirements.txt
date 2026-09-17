@@ -9,3 +9,4 @@ pyupbit
 numpy
 python-dotenv
 aiosqlite
+spotipy

@@ -4,6 +4,7 @@ from discord.utils import get
 import asyncio
 import io
 import datetime
+import re
 
 
 class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
@@ -111,7 +112,8 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
         name="DB편집", aliases=["editdb"],
-        help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()"
+        help="DB를 편집합니다. (관리자 권한)", usage="* str(*selector*) @*member* int()",
+        hidden=True
     )
     async def edit_db(self, ctx, selector, member: discord.Member, val):
         if len(selector) != 1:
@@ -149,13 +151,16 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
     @commands.command(
         name="DB출력", aliases=["db출력", "dumpdb", "exportdb", "DB조회", "db조회"],
-        help="DB 내용을 채팅으로 출력하거나 텍스트 파일로 반환합니다. (관리자 권한)\n"
+        help="DB 테이블 내용을 출력하거나 텍스트 파일로 내보냅니다. (관리자 권한)\n"
              "사용법:\n"
-             "• %DB출력 (기본: 상위 요약 + 전체 텍스트 파일 첨부)\n"
+             "• %DB출력 (기본: user_data 테이블 요약 + 텍스트 파일 첨부)\n"
+             "• %DB출력 from <테이블명> (예: %DB출력 from daily_rewards)\n"
+             "• %DB출력 select * from <테이블명> limit <숫자>\n"
+             "• %DB출력 tables (전체 테이블 목록 조회)\n"
              "• %DB출력 파일 (텍스트 파일만 첨부)\n"
              "• %DB출력 채팅 (채팅창 요약만 출력)\n"
-             "• %DB출력 @유저 (특정 유저의 DB 조회)",
-        usage="* (@member / str(*mode*))"
+             "• %DB출력 @유저 (특정 유저의 user_data 조회)",
+        usage="* (from *table*) (limit *n*) (@member / str(*mode*))"
     )
     async def dump_db(self, ctx, *args):
         # 1. 특정 유저를 멘션한 경우: 단일 유저 DB 조회
@@ -179,100 +184,168 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             await ctx.send(embed=embed)
             return
 
-        # 2. 전체 목록 덤프
-        file_only = False
-        chat_only = False
+        query_str = " ".join(args).strip()
+        query_lower = query_str.lower()
 
-        for arg in args:
-            arg_lower = arg.lower()
-            if arg_lower in ['파일', 'file', '-f']:
-                file_only = True
-            elif arg_lower in ['채팅', 'chat', '-c', '출력']:
-                chat_only = True
+        # 전체 테이블 목록 확인
+        valid_tables = await self.app.db.get_tables()
 
-        records = await self.app.db.dump_data()
-
-        if not records:
-            await ctx.send(":warning: 데이터베이스에 저장된 유저 데이터가 없습니다.")
+        # 2. 테이블 목록 조회 요청인 경우
+        if query_lower in ['tables', 'table', '테이블', '테이블목록', 'list']:
+            embed = discord.Embed(
+                title="🗄️ 데이터베이스 테이블 목록",
+                description=f"현재 데이터베이스에 존재하는 테이블 목록입니다 ({len(valid_tables)}개).",
+                color=0x3498db
+            )
+            for t in valid_tables:
+                try:
+                    cols, rows = await self.app.db.dump_table(t)
+                    embed.add_field(
+                        name=f"📋 {t}",
+                        value=f"컬럼: `{', '.join(cols)}`\n레코드 수: `{len(rows):,}개`",
+                        inline=False
+                    )
+                except Exception:
+                    embed.add_field(name=f"📋 {t}", value="조회 불가", inline=False)
+            embed.set_footer(text="특정 테이블을 조회하려면 '%DB출력 from <테이블명>'을 입력하세요.")
+            await ctx.send(embed=embed)
             return
 
-        # 텍스트 파일 포맷팅 생성 (표 형태)
+        # 3. 출력 모드 플래그 파싱
+        file_only = any(f in query_lower.split() for f in ['파일', 'file', '-f'])
+        chat_only = any(f in query_lower.split() for f in ['채팅', 'chat', '-c', '출력'])
+
+        # 4. SQL 스타일 테이블명 추출 (예: from <table_name>, table=<table_name>, 직접 이름 등)
+        target_table = None
+        m_from = re.search(r'(?:from|table)\s+([a-zA-Z0-9_]+)', query_str, re.IGNORECASE)
+        if m_from:
+            target_table = m_from.group(1).lower()
+        else:
+            m_eq = re.search(r'(?:table|t)=([a-zA-Z0-9_]+)', query_str, re.IGNORECASE)
+            if m_eq:
+                target_table = m_eq.group(1).lower()
+            else:
+                for arg in args:
+                    if arg.lower() in valid_tables:
+                        target_table = arg.lower()
+                        break
+
+        if not target_table:
+            target_table = 'user_data'
+
+        if target_table not in valid_tables:
+            await ctx.send(
+                f":x: `{target_table}` 테이블이 존재하지 않습니다.\n"
+                f"사용 가능한 테이블: {', '.join(f'`{t}`' for t in valid_tables)}"
+            )
+            return
+
+        # 5. LIMIT 파싱 (예: limit 10, limit=10)
+        limit = None
+        m_limit = re.search(r'(?:limit)\s+(\d+)', query_str, re.IGNORECASE)
+        if not m_limit:
+            m_limit = re.search(r'(?:limit)=(\d+)', query_str, re.IGNORECASE)
+        if m_limit:
+            limit = int(m_limit.group(1))
+
+        # 6. 테이블 데이터 조회
+        try:
+            columns, rows = await self.app.db.dump_table(target_table, limit=limit)
+        except Exception as e:
+            await ctx.send(f":x: 테이블 조회 중 오류가 발생했습니다: {e}")
+            return
+
+        if not rows:
+            await ctx.send(f":warning: `{target_table}` 테이블에 데이터가 없습니다.")
+            return
+
+        # 7. 텍스트 파일 포맷팅 생성 (표 형태)
         now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        col_widths = [max(len(str(col)), 8) for col in columns]
+        for row in rows:
+            for idx, val in enumerate(row):
+                col_widths[idx] = min(max(col_widths[idx], len(str(val if val is not None else "-"))), 40)
+
+        header_line = " | ".join(f"{columns[i]:<{col_widths[i]}}" for i in range(len(columns)))
+        sep_line = "-" * len(header_line)
+
+        limit_suffix = f" (LIMIT {limit})" if limit else ""
         lines = [
-            "=" * 86,
-            f"[ ZeroGunBot Database Export ]",
+            "=" * len(header_line),
+            f"[ ZeroGunBot Database Export: {target_table} ]",
             f"추출 일시: {now_str} (KST)",
-            f"총 레코드: {len(records)}개",
-            "=" * 86,
-            f"{'유저 ID':<20} | {'닉네임/이름':<20} | {'토큰($)':<12} | {'행운(%)':<8} | {'능력(*)':<10} | {'최근 변경 일시'}",
-            "-" * 86
+            f"조회 레코드: {len(rows)}개{limit_suffix}",
+            "=" * len(header_line),
+            header_line,
+            sep_line
         ]
 
-        for r in records:
-            uid = r["user_id"]
-            user = self.app.get_user(uid)
-            if user:
-                name_str = user.name
-            else:
-                member = ctx.guild.get_member(uid) if ctx.guild else None
-                name_str = member.display_name if member else "알 수 없음"
-
-            if len(name_str) > 18:
-                name_str = name_str[:15] + "..."
-
-            ability_str = str(r["ability"]) if r["ability"] is not None else "-"
-            updated_str = str(r["updated_at"]) if r["updated_at"] else "-"
-            coins_str = f"{r['coins']:,}"
-            luck_str = f"{r['luck']:,}"
-
-            lines.append(
-                f"{uid:<20} | {name_str:<20} | {coins_str:<12} | {luck_str:<8} | {ability_str:<10} | {updated_str}"
+        for row in rows:
+            row_str = " | ".join(
+                f"{str(row[i] if row[i] is not None else '-'):<{col_widths[i]}}"
+                for i in range(len(row))
             )
+            lines.append(row_str)
 
-        lines.append("=" * 86)
+        lines.append("=" * len(header_line))
         full_text = "\n".join(lines)
 
-        # 텍스트 파일 버퍼 생성
         file_buffer = io.BytesIO(full_text.encode('utf-8'))
-        file_name = f"db_export_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        file_name = f"db_{target_table}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         discord_file = discord.File(fp=file_buffer, filename=file_name)
 
-        # 파일만 전송하는 옵션인 경우
         if file_only:
             await ctx.send(
-                content=f"📁 **데이터베이스 내보내기 완료** (총 `{len(records)}`개)",
+                content=f"📁 **`{target_table}` 테이블 내보내기 완료** (총 `{len(rows)}`개)",
                 file=discord_file
             )
             return
 
-        # 채팅 출력 (임베드 요약)
+        # 8. 채팅 출력 (임베드 요약)
         embed = discord.Embed(
-            title="📊 데이터베이스 조회",
-            description=f"총 **{len(records)}**개의 유저 데이터가 조회되었습니다.",
+            title=f"📊 데이터베이스 조회: `{target_table}`",
+            description=f"조회된 레코드: **{len(rows)}**개{limit_suffix}",
             color=0x3498db
         )
 
-        preview_limit = min(10, len(records))
+        preview_limit = min(10, len(rows))
         preview_text_list = []
-        for i, r in enumerate(records[:preview_limit]):
-            uid = r["user_id"]
-            user = self.app.get_user(uid)
-            name_str = user.name if user else f"<@{uid}>"
-            coins_str = f"{r['coins']:,}"
-            luck_str = f"{r['luck']:,}"
-            ability_str = f" / ✨ `{r['ability']}`" if r["ability"] else ""
-            preview_text_list.append(
-                f"**{i+1}.** {name_str} (`{uid}`): 🪙 **{coins_str}** | 🍀 **{luck_str}**{ability_str}"
-            )
+        for i, row in enumerate(rows[:preview_limit]):
+            if target_table == "user_data":
+                uid = row[0]
+                user = self.app.get_user(uid)
+                if user:
+                    name_str = user.name
+                else:
+                    member = ctx.guild.get_member(uid) if ctx.guild else None
+                    name_str = member.display_name if member else f"<@{uid}>"
+
+                coins_str = f"{row[1]:,}" if len(row) > 1 and row[1] is not None else "0"
+                luck_str = f"{row[2]:,}" if len(row) > 2 and row[2] is not None else "0"
+                ability_str = f" / ✨ `{row[3]}`" if len(row) > 3 and row[3] else ""
+                preview_text_list.append(
+                    f"**{i+1}.** {name_str} (`{uid}`): 🪙 **{coins_str}** | 🍀 **{luck_str}**{ability_str}"
+                )
+            elif target_table == "daily_rewards":
+                uid = row[0]
+                rtype = row[1] if len(row) > 1 else "-"
+                rdate = row[2] if len(row) > 2 else "-"
+                preview_text_list.append(
+                    f"**{i+1}.** <@{uid}> (`{uid}`) | 유형: `{rtype}` | 수령일: `{rdate}`"
+                )
+            else:
+                row_summary = " | ".join(f"`{columns[j]}`: {row[j]}" for j in range(min(len(columns), 3)))
+                preview_text_list.append(f"**{i+1}.** {row_summary}")
 
         embed.add_field(
-            name=f"상위 목록 ({preview_limit}/{len(records)})",
-            value="\n".join(preview_text_list),
+            name=f"상위 목록 ({preview_limit}/{len(rows)})",
+            value="\n".join(preview_text_list) if preview_text_list else "데이터 없음",
             inline=False
         )
 
-        if len(records) > preview_limit and chat_only:
-            embed.set_footer(text="전체 목록을 파일로 받으려면 '%DB출력 파일'을 입력하세요.")
+        if len(rows) > preview_limit and chat_only:
+            embed.set_footer(text=f"전체 목록을 파일로 받으려면 '%DB출력 from {target_table} 파일'을 입력하세요.")
         else:
             embed.set_footer(text="상세 전체 데이터는 첨부된 텍스트 파일을 확인하세요.")
 

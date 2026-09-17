@@ -173,6 +173,36 @@ class Database:
                     })
                 return results
 
+    async def get_tables(self) -> list[str]:
+        """데이터베이스의 모든 테이블 이름 목록을 반환합니다."""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return [r[0] for r in rows]
+
+    async def dump_table(self, table_name: str, limit: Optional[int] = None) -> Tuple[list[str], list[tuple]]:
+        """
+        지정된 테이블의 컬럼 목록과 전체 행 데이터를 반환합니다.
+        테이블명을 화이트리스트로 검증하여 SQL Injection을 방지합니다.
+        """
+        valid_tables = await self.get_tables()
+        if table_name not in valid_tables:
+            raise ValueError(f"존재하지 않는 테이블입니다: {table_name}")
+
+        async with aiosqlite.connect(self.db_path) as db:
+            query = f"SELECT * FROM {table_name}"
+            params = []
+            if limit and limit > 0:
+                query += " LIMIT ?"
+                params.append(limit)
+
+            async with db.execute(query, params) as cursor:
+                columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                rows = await cursor.fetchall()
+                return columns, rows
+
     async def find_id(self, selector: str, user_id: int, *args, **kwargs) -> Optional[LegacyRecord]:
         """
         기존 find_id(selector, user_id) 호출과의 하위 호환을 위한 메서드.

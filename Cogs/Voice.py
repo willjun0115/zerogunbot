@@ -91,6 +91,8 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     def __init__(self, app):
         self.app = app
         self.quiz_task = None
+        self.music_queues = {}
+        self.now_playing = {}
 
     def clear_mp3(self):
         for file in os.listdir("./"):
@@ -131,6 +133,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         help="음성 채널을 나갑니다.", usage="*"
     )
     async def leave_ch(self, ctx):
+        if ctx.guild and ctx.guild.id in self.music_queues:
+            self.music_queues[ctx.guild.id].clear()
+        if ctx.guild and ctx.guild.id in self.now_playing:
+            self.now_playing.pop(ctx.guild.id, None)
         if ctx.voice_client:
             await ctx.voice_client.disconnect()
             await ctx.send("연결을 끊습니다.")
@@ -245,9 +251,61 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
         best_entry = max(entries, key=calculate_audio_score)
         if best_entry and best_entry.get('id'):
-            return f"https://www.youtube.com/watch?v={best_entry['id']}"
+            video_url = f"https://www.youtube.com/watch?v={best_entry['id']}"
+            score = calculate_audio_score(best_entry)
+            print(f"[Music] 선별된 유튜브 음원: {best_entry.get('title')} ({best_entry.get('uploader')}) | 점수: {score}점 | URL: {video_url}")
+            return video_url
 
-        return f"ytsearch:{base_query}"
+        fallback_url = f"ytsearch:{base_query}"
+        print(f"[Music] 선별 실패로 기본 유튜브 검색 사용: {fallback_url}")
+        return fallback_url
+
+    async def play_next_song(self, guild_id: int):
+        """대기열에서 다음 곡을 꺼내 자동으로 이어서 재생합니다."""
+        queue = self.music_queues.get(guild_id, [])
+        guild = self.app.get_guild(guild_id)
+        if not guild:
+            return
+        voice = get(self.app.voice_clients, guild=guild)
+        if not voice or not voice.is_connected():
+            if guild_id in self.music_queues:
+                self.music_queues[guild_id].clear()
+            self.now_playing.pop(guild_id, None)
+            return
+
+        if not queue:
+            self.now_playing.pop(guild_id, None)
+            return
+
+        next_track = queue.pop(0)
+        url = next_track["url"]
+        stream = next_track.get("stream", True)
+        channel = next_track.get("channel")
+        requester = next_track.get("requester")
+
+        try:
+            player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
+            self.now_playing[guild_id] = {
+                "title": player.title,
+                "requester": requester,
+                "url": url,
+            }
+
+            def after_callback(e):
+                if e:
+                    print(f"Player error: {e}")
+                asyncio.run_coroutine_threadsafe(self.play_next_song(guild_id), self.app.loop)
+
+            voice.play(player, after=after_callback)
+
+            if channel:
+                req_name = requester.display_name if requester else "알 수 없음"
+                await channel.send(f"🎶 **다음 곡 재생:** {player.title} (신청: {req_name})")
+        except Exception as e:
+            print(f"[Queue Error] 다음 곡 재생 실패 ({url}): {e}")
+            if channel:
+                await channel.send(f":warning: 다음 곡을 재생하지 못했습니다: {e}\n그 다음 대기곡으로 넘어갑니다.")
+            await self.play_next_song(guild_id)
 
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @require_voice()
@@ -280,10 +338,57 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await ctx.send(f":mag: **{url}** 공식 스튜디오 음원을 탐색합니다... :headphones:")
                 url = await self.find_clean_audio_url("", url, None)
 
+            voice = ctx.voice_client
+
+            # 대기열 큐 초기화 (길드별)
+            if ctx.guild.id not in self.music_queues:
+                self.music_queues[ctx.guild.id] = []
+
+            # 이미 음악이 재생 중이거나 일시 정지 중인 경우 -> 큐에 등록!
+            if voice and (voice.is_playing() or voice.is_paused()):
+                track_title = url
+                try:
+                    search_opts = {'extract_flat': True, 'skip_download': True, 'quiet': True}
+                    with yt_dlp.YoutubeDL(search_opts) as ydl:
+                        info = await self.app.loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
+                        if info:
+                            if 'entries' in info and info['entries']:
+                                track_title = info['entries'][0].get('title', url)
+                            else:
+                                track_title = info.get('title', url)
+                except Exception:
+                    pass
+
+                self.music_queues[ctx.guild.id].append({
+                    "url": url,
+                    "title": track_title,
+                    "stream": stream,
+                    "channel": ctx.channel,
+                    "requester": ctx.author
+                })
+                queue_len = len(self.music_queues[ctx.guild.id])
+                await ctx.send(
+                    f"📑 **대기열에 추가되었습니다!** (대기 순번: {queue_len}번째)\n"
+                    f"곡명: **{track_title}**"
+                )
+                return
+
+            # 재생 중이 아닌 경우 즉시 재생 시작
             async with ctx.typing():
                 player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
-            if ctx.voice_client:
-                ctx.voice_client.play(player, after=lambda e: print(f'Player error: {e}') if e else None)
+            if voice:
+                self.now_playing[ctx.guild.id] = {
+                    "title": player.title,
+                    "requester": ctx.author,
+                    "url": url,
+                }
+
+                def after_callback(e):
+                    if e:
+                        print(f'Player error: {e}')
+                    asyncio.run_coroutine_threadsafe(self.play_next_song(ctx.guild.id), self.app.loop)
+
+                voice.play(player, after=after_callback)
                 msg = f'Now playing: {player.title}'
                 if stream is True:
                     msg = f'Now streaming: {player.title}'
@@ -388,12 +493,62 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @commands.command(
         name="정지", aliases=["stop", "s"],
-        help="음악 재생을 정지합니다.", usage="*"
+        help="음악 재생을 정지하고 대기열을 모두 비웁니다.", usage="*"
     )
     async def stop_song(self, ctx):
+        if ctx.guild and ctx.guild.id in self.music_queues:
+            self.music_queues[ctx.guild.id].clear()
+        if ctx.guild and ctx.guild.id in self.now_playing:
+            self.now_playing.pop(ctx.guild.id, None)
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             voice.stop()
+        await ctx.send("⏹️ **음악 재생을 정지하고 대기열을 모두 비웠습니다.**")
+
+    @commands.command(
+        name="대기열", aliases=["queue", "q"],
+        help="현재 재생 중인 곡과 대기 중인 곡 목록을 확인합니다.", usage="*"
+    )
+    async def show_queue(self, ctx):
+        queue = self.music_queues.get(ctx.guild.id, [])
+        now = self.now_playing.get(ctx.guild.id)
+
+        if not now and not queue:
+            await ctx.send("현재 재생 중이거나 대기 중인 곡이 없습니다.")
+            return
+
+        embed = discord.Embed(title="🎵 재생 대기열", color=0x1DB954)
+        if now:
+            requester = now.get("requester")
+            req_name = requester.display_name if requester else "알 수 없음"
+            embed.add_field(name="▶️ 현재 재생 중", value=f"**{now['title']}** (신청: {req_name})", inline=False)
+
+        if queue:
+            q_text = ""
+            for i, item in enumerate(queue[:10], 1):
+                r = item.get("requester")
+                r_name = r.display_name if r else "알 수 없음"
+                q_text += f"`{i}.` **{item.get('title', '알 수 없음')}** (신청: {r_name})\n"
+            if len(queue) > 10:
+                q_text += f"\n...외 {len(queue) - 10}곡 대기 중"
+            embed.add_field(name=f"대기 목록 (총 {len(queue)}곡)", value=q_text, inline=False)
+        else:
+            embed.add_field(name="대기 목록", value="대기 중인 곡이 없습니다.", inline=False)
+
+        await ctx.send(embed=embed)
+
+    @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
+    @commands.command(
+        name="스킵", aliases=["skip", "next"],
+        help="현재 재생 중인 음악을 건너뛰고 다음 대기곡을 재생합니다.", usage="*"
+    )
+    async def skip_song(self, ctx):
+        voice = get(self.app.voice_clients, guild=ctx.guild)
+        if voice and (voice.is_playing() or voice.is_paused()):
+            await ctx.send("⏭️ **현재 곡을 건너뛰었습니다.**")
+            voice.stop()
+        else:
+            await ctx.send(":no_entry: 현재 재생 중인 음악이 없습니다.")
 
     @commands.command(
         name="곡정보", aliases=["노래정보", "spotify", "sp"],

@@ -78,6 +78,7 @@ class SpotifyHelper:
                         "spotify_url": item.get("trackViewUrl", ""),
                         "popularity": None,
                         "preview_url": item.get("previewUrl"),
+                        "duration_ms": item.get("trackTimeMillis"),
                         "source": "itunes",
                         "premium_required": True
                     }
@@ -148,6 +149,7 @@ class SpotifyHelper:
                         "spotify_url": spotify_url,
                         "popularity": popularity,
                         "preview_url": preview_url,
+                        "duration_ms": track.get("duration_ms"),
                         "source": "spotify",
                         "premium_required": False
                     }

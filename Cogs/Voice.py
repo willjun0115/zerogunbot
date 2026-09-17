@@ -162,13 +162,100 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await self.app.db.add_coins(ctx.author.id, 5)
             await ctx.send(f":x: TTS 생성 중 오류가 발생하여 5 토큰이 환불되었습니다: {e}")
 
+    async def find_clean_audio_url(self, artist: str, title: str, target_duration_sec: float | None = None) -> str:
+        """
+        뮤직비디오 인트로/대사, 라이브, 직캠, 커버 등을 배제하고
+        유튜브에서 가장 순수한 공식 음원(Topic / Official Audio) 영상 URL을 선별합니다.
+        """
+        clean_artist = (artist or "").strip()
+        clean_title = (title or "").strip()
+        base_query = f"{clean_artist} - {clean_title}".strip(" -")
+        search_query = f"{base_query} Topic".strip()
+
+        search_opts: Any = {
+            'extract_flat': True,
+            'skip_download': True,
+            'quiet': True,
+            'no_warnings': True,
+            'socket_timeout': 10,
+        }
+        loop = self.app.loop or asyncio.get_event_loop()
+
+        try:
+            with yt_dlp.YoutubeDL(search_opts) as ydl:
+                data = await loop.run_in_executor(
+                    None, lambda: ydl.extract_info(f"ytsearch5:{search_query}", download=False)
+                )
+        except Exception:
+            return f"ytsearch:{base_query}"
+
+        entries = data.get('entries') if data else []
+        if not entries:
+            try:
+                with yt_dlp.YoutubeDL(search_opts) as ydl:
+                    data = await loop.run_in_executor(
+                        None, lambda: ydl.extract_info(f"ytsearch5:{base_query} Audio", download=False)
+                    )
+                entries = data.get('entries') if data else []
+            except Exception:
+                return f"ytsearch:{base_query}"
+
+        if not entries:
+            return f"ytsearch:{base_query}"
+
+        def calculate_audio_score(entry):
+            v_title = (entry.get('title') or '').lower()
+            uploader = (entry.get('uploader') or '').lower()
+            dur = entry.get('duration') or 0
+
+            score = 100
+
+            # 1. 긍정 채널 및 공식 음원 가산점
+            if 'topic' in uploader or 'official' in uploader:
+                score += 35
+            if 'audio' in v_title or '음원' in v_title:
+                score += 25
+
+            # 2. 노이즈 및 비음원 감점 (MV 인트로, 라이브, 커버 등 배제)
+            for neg in ['[mv]', 'm/v', 'music video', '뮤직비디오', 'official mv']:
+                if neg in v_title:
+                    score -= 40
+            for neg in ['live', '라이브', 'concert', 'fancam', '직캠', 'stage']:
+                if neg in v_title:
+                    score -= 70
+            for neg in ['cover', '커버', 'reaction', '1hour', '1시간', 'mr', 'instrumental', 'karaoke', '노래방', 'dance practice', '안무']:
+                if neg in v_title:
+                    score -= 90
+
+            # 3. 재생 시간(Duration) 정밀 매칭
+            if target_duration_sec and dur > 0:
+                diff = abs(dur - target_duration_sec)
+                if diff <= 3:
+                    score += 50
+                elif diff <= 7:
+                    score += 25
+                elif diff <= 15:
+                    score += 10
+                elif diff > 25:
+                    score -= 40
+                elif diff > 60:
+                    score -= 100
+
+            return score
+
+        best_entry = max(entries, key=calculate_audio_score)
+        if best_entry and best_entry.get('id'):
+            return f"https://www.youtube.com/watch?v={best_entry['id']}"
+
+        return f"ytsearch:{base_query}"
+
     @commands.check_any(commands.has_role("DJ"), commands.has_permissions(administrator=True))
     @require_voice()
     @token_cost(10)
     @commands.command(
         name="재생", aliases=["play", "p"],
-        help="유튜브 url을 통해 음악을 재생합니다. (소모: 10 :coin:)"
-             "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(*url*) (-s)"
+        help="유튜브 또는 스포티파이 url/곡명으로 음악을 재생합니다. (소모: 10 :coin:)"
+             "\nurl 뒤에 -s를 붙이면 스트리밍으로 재생합니다.", usage="* str(*url 또는 곡명*) (-s)"
     )
     async def play_song(self, ctx, url: str, stream=None):
         if not await self.ensure_voice(ctx):
@@ -184,9 +271,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 if track_info and track_info.get("title"):
                     artist = track_info.get("artist") or ""
                     title = track_info.get("title") or ""
-                    query = f"{artist} {title}".strip()
-                    await ctx.send(f":mag: 스포티파이 곡 감지: **{query}** (유튜브에서 검색하여 재생합니다)")
-                    url = f"ytsearch:{query}"
+                    dur_ms = track_info.get("duration_ms")
+                    target_dur_sec = (dur_ms / 1000.0) if dur_ms else None
+
+                    await ctx.send(f":mag: 스포티파이 곡 감지: **{artist} - {title}**\n:headphones: 뮤비 인트로/라이브를 배제하고 공식 스튜디오 음원을 탐색합니다...")
+                    url = await self.find_clean_audio_url(artist, title, target_dur_sec)
+            elif not url.startswith("http://") and not url.startswith("https://"):
+                await ctx.send(f":mag: **{url}** 공식 스튜디오 음원을 탐색합니다... :headphones:")
+                url = await self.find_clean_audio_url("", url, None)
 
             async with ctx.typing():
                 player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)

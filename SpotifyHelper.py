@@ -200,101 +200,152 @@ class SpotifyHelper:
         else:
             return self._fetch_spotify_oembed(query)
 
-    def _fetch_recommendations_fallback(self, query: str, limit: int = 5) -> Tuple[List[Dict[str, Any]], Optional[str]]:
-        """스포티파이 API 미설정/제한 시 아티스트 및 장르 기반 추천 곡을 수집합니다."""
+    def _fetch_recommendations_fallback(self, queries: str | List[str], limit: int = 5) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+        """스포티파이 API 미설정/제한 시 최대 5개 시드 곡의 아티스트 및 장르 기반 추천 곡을 교차 수집합니다."""
         try:
-            url = "https://itunes.apple.com/search"
-            cleaned_query = clean_music_title(query)
-            search_candidates = [cleaned_query] if cleaned_query != query else []
-            search_candidates.append(query)
-            search_candidates.extend(["K-Pop Hits", "Popular Songs", "NewJeans", "IVE"])
+            if isinstance(queries, str):
+                query_list = [queries]
+            else:
+                query_list = [q for q in queries if q and q.strip()][:5]
 
-            seed = None
-            for cand_query in search_candidates:
-                if not cand_query:
-                    continue
-                resp = requests.get(url, params={"term": cand_query, "entity": "song", "limit": 5}, timeout=5)
-                if resp.status_code == 200 and resp.json().get("results"):
-                    seed = resp.json()["results"][0]
+            if not query_list:
+                query_list = ["K-Pop Hits"]
+
+            url = "https://itunes.apple.com/search"
+            seeds = []
+            seed_names = []
+
+            for q in query_list:
+                cleaned_q = clean_music_title(q)
+                search_candidates = [cleaned_q] if cleaned_q != q else []
+                search_candidates.append(q)
+                search_candidates.extend(["K-Pop Hits", "Popular Songs"])
+
+                found_seed = None
+                for cand in search_candidates:
+                    if not cand:
+                        continue
+                    resp = requests.get(url, params={"term": cand, "entity": "song", "limit": 3}, timeout=5)
+                    if resp.status_code == 200 and resp.json().get("results"):
+                        found_seed = resp.json()["results"][0]
+                        break
+
+                if found_seed:
+                    s_name = f"{found_seed.get('artistName', '')} - {found_seed.get('trackName', '')}".strip()
+                    if s_name not in seed_names:
+                        seeds.append(found_seed)
+                        seed_names.append(s_name)
+
+            if not seeds:
+                return [], "입력된 시드에 해당하는 곡 정보를 찾지 못했습니다."
+
+            seen_titles = set()
+            for s in seeds:
+                seen_titles.add(s.get("trackName", "").lower())
+
+            per_seed_tracks: List[List[Dict[str, Any]]] = []
+
+            for s in seeds:
+                s_recs: List[Dict[str, Any]] = []
+                artist_id = s.get("artistId")
+                genre = s.get("primaryGenreName", "")
+
+                # 1. 동일 아티스트 인기곡 조회
+                if artist_id:
+                    lookup_url = "https://itunes.apple.com/lookup"
+                    lookup_resp = requests.get(lookup_url, params={"id": artist_id, "entity": "song", "limit": 8}, timeout=5)
+                    if lookup_resp.status_code == 200:
+                        for item in lookup_resp.json().get("results", []):
+                            t_name = item.get("trackName")
+                            if item.get("wrapperType") == "track" and t_name and t_name.lower() not in seen_titles:
+                                seen_titles.add(t_name.lower())
+                                artwork = item.get("artworkUrl100", "").replace("100x100bb.jpg", "600x600bb.jpg")
+                                s_recs.append({
+                                    "title": t_name,
+                                    "artist": item.get("artistName", "알 수 없음"),
+                                    "album": item.get("collectionName", "알 수 없음"),
+                                    "spotify_url": item.get("trackViewUrl", ""),
+                                    "cover_url": artwork,
+                                    "source": "itunes_fallback"
+                                })
+
+                # 2. 동일 장르 인기곡 추가
+                if len(s_recs) < 5 and genre:
+                    genre_resp = requests.get(url, params={"term": genre, "entity": "song", "limit": 15}, timeout=5)
+                    if genre_resp.status_code == 200:
+                        for item in genre_resp.json().get("results", []):
+                            t_name = item.get("trackName")
+                            if t_name and t_name.lower() not in seen_titles:
+                                seen_titles.add(t_name.lower())
+                                artwork = item.get("artworkUrl100", "").replace("100x100bb.jpg", "600x600bb.jpg")
+                                s_recs.append({
+                                    "title": t_name,
+                                    "artist": item.get("artistName", "알 수 없음"),
+                                    "album": item.get("collectionName", "알 수 없음"),
+                                    "spotify_url": item.get("trackViewUrl", ""),
+                                    "cover_url": artwork,
+                                    "source": "itunes_fallback"
+                                })
+                            if len(s_recs) >= 5:
+                                break
+
+                per_seed_tracks.append(s_recs)
+
+            # 라운드로빈 방식으로 각 시드의 추천 곡들을 골고루 교차 배치
+            combined_recs: List[Dict[str, Any]] = []
+            max_len = max((len(st) for st in per_seed_tracks), default=0)
+            for i in range(max_len):
+                for st in per_seed_tracks:
+                    if i < len(st):
+                        combined_recs.append(st[i])
+                        if len(combined_recs) >= limit:
+                            break
+                if len(combined_recs) >= limit:
                     break
 
-            if not seed:
-                return [], f"'{query}'에 해당하는 곡 정보를 찾지 못했습니다."
+            summary_name = ", ".join(seed_names[:3])
+            if len(seed_names) > 3:
+                summary_name += f" 외 {len(seed_names) - 3}곡"
 
-            seed_name = f"{seed.get('artistName', '')} - {seed.get('trackName', '')}".strip()
-            artist_id = seed.get("artistId")
-            genre = seed.get("primaryGenreName", "")
-
-            recs = []
-            seen_titles = {seed.get("trackName", "").lower()}
-
-            # 1. 동일 아티스트 인기곡 조회
-            if artist_id:
-                lookup_url = "https://itunes.apple.com/lookup"
-                lookup_resp = requests.get(lookup_url, params={"id": artist_id, "entity": "song", "limit": 10}, timeout=5)
-                if lookup_resp.status_code == 200:
-                    for item in lookup_resp.json().get("results", []):
-                        t_name = item.get("trackName")
-                        if item.get("wrapperType") == "track" and t_name and t_name.lower() not in seen_titles:
-                            seen_titles.add(t_name.lower())
-                            artwork = item.get("artworkUrl100", "").replace("100x100bb.jpg", "600x600bb.jpg")
-                            recs.append({
-                                "title": t_name,
-                                "artist": item.get("artistName", "알 수 없음"),
-                                "album": item.get("collectionName", "알 수 없음"),
-                                "spotify_url": item.get("trackViewUrl", ""),
-                                "cover_url": artwork,
-                                "source": "itunes_fallback"
-                            })
-
-            # 2. 동일 장르 인기곡 추가
-            if len(recs) < limit and genre:
-                genre_resp = requests.get(url, params={"term": genre, "entity": "song", "limit": 25}, timeout=5)
-                if genre_resp.status_code == 200:
-                    for item in genre_resp.json().get("results", []):
-                        t_name = item.get("trackName")
-                        if t_name and t_name.lower() not in seen_titles:
-                            seen_titles.add(t_name.lower())
-                            artwork = item.get("artworkUrl100", "").replace("100x100bb.jpg", "600x600bb.jpg")
-                            recs.append({
-                                "title": t_name,
-                                "artist": item.get("artistName", "알 수 없음"),
-                                "album": item.get("collectionName", "알 수 없음"),
-                                "spotify_url": item.get("trackViewUrl", ""),
-                                "cover_url": artwork,
-                                "source": "itunes_fallback"
-                            })
-                        if len(recs) >= limit:
-                            break
-
-            if recs:
-                return recs[:limit], seed_name
-            return [], f"'{query}' 기반 추천 곡을 찾지 못했습니다."
+            return combined_recs[:limit], summary_name
         except Exception as e:
             return [], f"추천 곡 탐색 중 오류 발생: {e}"
 
-    def get_recommendations(self, query: str, limit: int = 5) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+    def get_recommendations(self, queries: str | List[str], limit: int = 5) -> Tuple[List[Dict[str, Any]], Optional[str]]:
         """
-        기준 곡을 바탕으로 추천 곡 목록을 가져옵니다.
-        Spotify API 호출을 시도하며, 미설정 또는 Premium 정책 제한 시 고품질 폴백으로 즉시 자동 전환합니다.
+        최대 5개의 기준 곡(단일 문자열 또는 문자열 리스트)을 바탕으로 복합 추천 곡 목록을 가져옵니다.
+        Spotify API 호출을 우선 시도하며, 미설정 또는 Premium 정책 제한 시 고품질 다중 시드 폴백으로 자동 전환합니다.
         """
         self._ensure_client()
-        track_id = self.extract_spotify_track_id(query)
-        cleaned_query = clean_music_title(query) if not track_id else query
-        search_term = cleaned_query or query
-        track_name = search_term
+        if isinstance(queries, str):
+            query_list = [queries]
+        else:
+            query_list = [q for q in queries if q and q.strip()][:5]
+
+        if not query_list:
+            query_list = ["K-Pop Hits"]
 
         if self._sp:
             try:
-                if not track_id:
-                    results = self._sp.search(q=search_term, type="track", limit=1)
-                    items = results.get("tracks", {}).get("items", [])
-                    if items:
-                        track_id = items[0]["id"]
-                        track_name = f"{items[0]['artists'][0]['name']} - {items[0]['name']}"
+                seed_tracks = []
+                seed_names = []
+                for q in query_list:
+                    track_id = self.extract_spotify_track_id(q)
+                    if track_id:
+                        seed_tracks.append(track_id)
+                        seed_names.append(q)
+                    else:
+                        cleaned = clean_music_title(q) or q
+                        results = self._sp.search(q=cleaned, type="track", limit=1)
+                        items = results.get("tracks", {}).get("items", [])
+                        if items:
+                            seed_tracks.append(items[0]["id"])
+                            seed_names.append(f"{items[0]['artists'][0]['name']} - {items[0]['name']}")
+                    if len(seed_tracks) >= 5:
+                        break
 
-                if track_id:
-                    recs = self._sp.recommendations(seed_tracks=[track_id], limit=limit)
+                if seed_tracks:
+                    recs = self._sp.recommendations(seed_tracks=seed_tracks[:5], limit=limit)
                     rec_tracks = []
                     for t in recs.get("tracks", []):
                         artists = ", ".join([a.get("name", "") for a in t.get("artists", [])])
@@ -310,13 +361,16 @@ class SpotifyHelper:
                             "source": "spotify"
                         })
                     if rec_tracks:
-                        return rec_tracks, track_name
+                        summary_name = ", ".join(seed_names[:3])
+                        if len(seed_names) > 3:
+                            summary_name += f" 외 {len(seed_names) - 3}곡"
+                        return rec_tracks, summary_name
             except Exception as e:
                 err_str = str(e)
-                print(f"[SpotifyHelper] 스포티파이 추천 API 제한 또는 오류: {err_str[:120]}")
+                print(f"[SpotifyHelper] 스포티파이 다중 추천 API 제한 또는 오류: {err_str[:120]}")
 
-        # 스포티파이 API 미설정 또는 Premium 403 제한 시 안정적인 폴백 제공
-        return self._fetch_recommendations_fallback(search_term, limit=limit)
+        # 스포티파이 API 미설정 또는 Premium 403 제한 시 안정적인 다중 시드 폴백 제공
+        return self._fetch_recommendations_fallback(query_list, limit=limit)
 
 
 # 전역 인스턴스

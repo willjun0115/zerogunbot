@@ -12,6 +12,7 @@ import json
 import csv
 from typing import Any
 from Utils import token_cost, require_voice
+from SpotifyHelper import spotify_helper
 
 ytdl_format_options: Any = {
     'format': 'bestaudio/best',
@@ -178,6 +179,15 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         else:
             stream = False
         try:
+            if "spotify.com/track" in url or "spotify:track" in url:
+                track_info = spotify_helper.search_track(url)
+                if track_info and track_info.get("title"):
+                    artist = track_info.get("artist") or ""
+                    title = track_info.get("title") or ""
+                    query = f"{artist} {title}".strip()
+                    await ctx.send(f":mag: 스포티파이 곡 감지: **{query}** (유튜브에서 검색하여 재생합니다)")
+                    url = f"ytsearch:{query}"
+
             async with ctx.typing():
                 player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
             if ctx.voice_client:
@@ -292,6 +302,75 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         voice = get(self.app.voice_clients, guild=ctx.guild)
         if voice and voice.is_connected():
             voice.stop()
+
+    @commands.command(
+        name="곡정보", aliases=["노래정보", "spotify", "sp"],
+        help="스포티파이/음원 정보를 검색하여 상세 정보(앨범아트, 발매일 등)를 조회합니다.",
+        usage="* str(곡명 또는 스포티파이 링크)"
+    )
+    async def song_info(self, ctx, *, query: str):
+        msg = await ctx.send("음원 정보를 검색하고 있습니다... :mag:")
+        track = spotify_helper.search_track(query)
+        if not track:
+            await msg.edit(content=f":x: '{query}'에 대한 곡 정보를 찾지 못했습니다.")
+            return
+
+        embed = discord.Embed(
+            title=f"🎵 {track.get('title', '제목 없음')}",
+            url=track.get("spotify_url") or None,
+            color=0x1DB954
+        )
+        embed.add_field(name="아티스트", value=track.get("artist") or "알 수 없음", inline=True)
+        embed.add_field(name="앨범", value=track.get("album") or "알 수 없음", inline=True)
+        embed.add_field(name="발매일", value=track.get("release_date") or "정보 없음", inline=True)
+
+        if track.get("popularity") is not None:
+            embed.add_field(name="인기도", value=f"{track['popularity']}/100", inline=True)
+
+        if track.get("cover_url"):
+            embed.set_thumbnail(url=track["cover_url"])
+
+        footer_text = "Spotify" if track.get("source") == "spotify" else "Music Meta (Fallback)"
+        if track.get("premium_required"):
+            footer_text += " | ⚠️ 앱 소유자 Spotify Premium 활성화 시 전체 연동 지원"
+        embed.set_footer(
+            text=footer_text,
+            icon_url="https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green.png"
+        )
+
+        await msg.edit(content=None, embed=embed)
+
+    @commands.command(
+        name="곡추천", aliases=["추천곡", "recommend"],
+        help="입력한 곡을 기반으로 스포티파이 추천 곡 5곡을 조회합니다.",
+        usage="* str(기준 곡명 또는 링크)"
+    )
+    async def recommend_songs(self, ctx, *, query: str):
+        msg = await ctx.send(f"'{query}' 기반 추천 곡을 탐색 중입니다... :musical_note:")
+        recs, seed_name = spotify_helper.get_recommendations(query, limit=5)
+        if not recs:
+            await msg.edit(content=f":warning: {seed_name}")
+            return
+
+        embed = discord.Embed(
+            title=f"🎧 '{seed_name}' 기반 추천 곡",
+            description="스포티파이 알고리즘이 추천하는 비슷한 분위기의 노래입니다.",
+            color=0x1DB954
+        )
+        for i, t in enumerate(recs, 1):
+            embed.add_field(
+                name=f"{i}. {t['title']} - {t['artist']}",
+                value=f"[Spotify에서 듣기]({t['spotify_url']})" if t.get("spotify_url") else f"앨범: {t.get('album', '알 수 없음')}",
+                inline=False
+            )
+        if recs and recs[0].get("cover_url"):
+            embed.set_thumbnail(url=recs[0]["cover_url"])
+        embed.set_footer(
+            text="Spotify Recommendations",
+            icon_url="https://storage.googleapis.com/pr-newsroom-wp/1/2023/05/Spotify_Primary_Logo_RGB_Green.png"
+        )
+
+        await msg.edit(content=None, embed=embed)
 
     @commands.command(
         name="노래맞추기", aliases=["노래퀴즈", "musicquiz"],

@@ -349,7 +349,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @commands.command(
         name="특성", aliases=["ability"],
         help="자신의 특성을 확인합니다.\n특성은 한 가지만 보유 가능합니다.",
-        usage="*"
+        usage="*", enabled=False
     )
     async def check_ability(self, ctx):
         find, data = await self.app.find_data("db", ctx.author.id)
@@ -415,7 +415,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
     @token_cost(10)
     @commands.command(
         name="가챠", aliases=["ㄱㅊ", "gacha"],
-        help="가챠를 돌려 무작위 보상을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="* (str(*option*))"
+        help="가챠를 돌려 무작위 보상을 얻습니다.\n자세한 정보는 '%가챠정보'을 참고해주세요.", usage="* (str(*option*))", enabled=False
     )
     async def gacha(self, ctx, option=None):
         find, data = await self.app.find_data("db", ctx.author.id)
@@ -543,7 +543,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         name="가챠정보", aliases=["확률", "gachainfo"],
         help="'가챠'의 정보를 공개합니다.\n'%가챠정보 특수'를 통해 특수 가챠의 정보를 확인할 수 있습니다."
              "\n'%가챠정보 특성'을 통해 특성 가챠의 정보를 확인할 수 있습니다."
-             "\n'%가챠정보 *item*'을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))"
+             "\n'%가챠정보 *item*'을 통해 아이템의 이벤트 목록을 확인할 수 있습니다.", usage="* (str()) (str(adjusted))", enabled=False
     )
     async def gacha_info(self, ctx, args: str | None = None, option: str | None = None):
         ability_name: str | None = None
@@ -1249,6 +1249,94 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                             + ' (' + hand[2] + ')', inline=True)
                         await ctx.send(embed=embed)
 
+    @commands.command(
+        name="워들", aliases=["wordle"],
+        help="5글자 영단어를 5번의 시도 안에 맞히는 워들 게임입니다."
+             "\n🟩: 위치와 글자가 모두 일치"
+             "\n🟨: 단어에 포함되어 있으나 위치가 다름"
+             "\n⬛: 단어에 포함되지 않음"
+             "\n'포기'를 입력하면 게임을 중단합니다.",
+        usage="*"
+    )
+    async def wordle(self, ctx):
+        words = ["APPLE", "BREAD", "CHAIR", "DREAM", "EARTH", "FLAME", "GRAPE", "HEART", "LIGHT", "MUSIC"]
+        target_word = random.choice(words)
+        max_attempts = 5
+        history = []
+
+        start_embed = discord.Embed(
+            title="< 워들 (Wordle) >",
+            description=f"{ctx.author.display_name} 님, 5글자 영단어를 맞혀보세요!\n"
+                        f"기회는 총 **{max_attempts}번** 주어집니다.\n"
+                        f"(포기하려면 `포기`를 입력하세요)"
+        )
+        start_embed.add_field(name="진행 상황", value=f"0 / {max_attempts} 번째 시도", inline=False)
+        await ctx.send(embed=start_embed)
+
+        def check(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+
+        for attempt in range(1, max_attempts + 1):
+            guess = None
+            while True:
+                try:
+                    msg = await self.app.wait_for("message", check=check, timeout=60.0)
+                except asyncio.TimeoutError:
+                    await ctx.send(f"⏰ 시간 초과! 정답은 **{target_word}** 였습니다.")
+                    return
+
+                content = msg.content.strip().upper()
+
+                if content in ["포기", "QUIT", "EXIT"]:
+                    await ctx.send(f"🏳️ 게임을 포기하셨습니다. 정답은 **{target_word}** 였습니다.")
+                    return
+
+                if len(content) != 5 or not content.isalpha():
+                    await ctx.send("⚠️ 알파벳 5글자로 된 단어를 입력해주세요!", delete_after=3)
+                    continue
+
+                guess = content
+                break
+
+            # 워들 판정 (그린/옐로우/블랙)
+            feedback = ['⬛'] * 5
+            target_chars = list(target_word)
+
+            # 1차: 위치와 글자가 모두 일치하는 경우 (Green)
+            for i in range(5):
+                if guess[i] == target_chars[i]:
+                    feedback[i] = '🟩'
+                    target_chars[i] = None
+
+            # 2차: 글자는 포함되나 위치가 다른 경우 (Yellow)
+            for i in range(5):
+                if feedback[i] != '🟩' and guess[i] in target_chars:
+                    feedback[i] = '🟨'
+                    target_chars[target_chars.index(guess[i])] = None
+
+            formatted_guess = ' '.join(list(guess))
+            formatted_feedback = ''.join(feedback)
+            history.append(f"`{formatted_guess}`\n{formatted_feedback}")
+
+            embed = discord.Embed(
+                title="< 워들 (Wordle) >",
+                description=f"{ctx.author.display_name} 님의 워들 현황 ({attempt} / {max_attempts})"
+            )
+            embed.add_field(name="시도 기록", value="\n\n".join(history), inline=False)
+
+            if guess == target_word:
+                embed.color = discord.Color.green()
+                await ctx.send(content=f"🎉 **축하합니다!** {attempt}번 만에 단어를 맞히셨습니다!", embed=embed)
+                return
+
+            if attempt == max_attempts:
+                embed.color = discord.Color.red()
+                await ctx.send(content=f"😢 **아쉽네요!** 기회를 모두 소진했습니다. 정답은 **{target_word}** 였습니다.", embed=embed)
+                return
+
+            await ctx.send(embed=embed)
+
 
 async def setup(app):
     await app.add_cog(Game(app))
+

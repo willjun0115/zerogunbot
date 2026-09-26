@@ -542,6 +542,17 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         if self.queue_auto.get(guild_id):
             asyncio.create_task(self.fill_auto_queue(guild_id, target_channel=channel))
 
+        # pending 형태(스포티파이 플레이리스트/앨범 대기곡)인 경우 재생 직전에 고품질 음원 선별 수행
+        if url.startswith("pending:"):
+            t_artist = next_track.get("artist", "")
+            t_name = next_track.get("track_name", "")
+            t_dur = next_track.get("target_dur_sec")
+            try:
+                url = await self.find_clean_audio_url(t_artist, t_name, t_dur)
+            except Exception as e:
+                print(f"[Queue Error] 음원 탐색 오류 ({t_name}): {e}", flush=True)
+                url = f"ytsearch:{t_artist} {t_name}".strip()
+
         try:
             player = await YTDLSource.from_url(url, loop=self.app.loop, stream=stream)
             self.now_playing[guild_id] = {
@@ -591,7 +602,69 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         else:
             stream = False
         try:
-            if "spotify.com/track" in url or "spotify:track" in url:
+            # 1. 스포티파이 플레이리스트 또는 앨범 감지
+            entity_type, entity_id = spotify_helper.extract_spotify_entity_type_and_id(url)
+            if entity_type in ("playlist", "album") and entity_id:
+                msg_load = await ctx.send(f":mag: 스포티파이 {entity_type} 수록곡 목록을 불러오는 중입니다... :hourglass_flowing_sand:")
+                col_info = await self.app.loop.run_in_executor(
+                    None, lambda: spotify_helper.fetch_spotify_collection(entity_type, entity_id)
+                )
+                if not col_info or not col_info.get("tracks"):
+                    await self.app.db.add_coins(ctx.author.id, 10)
+                    await msg_load.edit(content=f":x: 스포티파이 {entity_type}의 곡 정보를 가져오지 못하여 10 토큰이 환불되었습니다.")
+                    return
+
+                tracks = col_info["tracks"]
+                col_name = col_info.get("name", "스포티파이 컬렉션")
+                total_count = len(tracks)
+
+                voice = ctx.voice_client
+                if ctx.guild.id not in self.music_queues:
+                    self.music_queues[ctx.guild.id] = []
+
+                # 첫 번째 곡 정보
+                first_t = tracks[0]
+                f_title = first_t["title"]
+                f_artist = first_t.get("artist", "")
+                f_dur_sec = (first_t["duration_ms"] / 1000.0) if first_t.get("duration_ms") else None
+                first_full_name = f"{f_artist} - {f_title}" if f_artist else f_title
+
+                # 나머지 곡들은 대기열에 pending 형태로 즉시 등록 (딜레이 최소화)
+                for t in tracks[1:]:
+                    t_artist = t.get("artist", "")
+                    t_title = t["title"]
+                    full_name = f"{t_artist} - {t_title}" if t_artist else t_title
+                    dur_sec = (t["duration_ms"] / 1000.0) if t.get("duration_ms") else None
+                    self.music_queues[ctx.guild.id].append({
+                        "url": f"pending:{full_name}",
+                        "title": full_name,
+                        "artist": t_artist,
+                        "track_name": t_title,
+                        "target_dur_sec": dur_sec,
+                        "stream": stream,
+                        "channel": ctx.channel,
+                        "requester": ctx.author
+                    })
+
+                await msg_load.edit(content=f"📑 스포티파이 **{col_name}** 감지! (총 {total_count}곡)\n:headphones: 1번째 곡({first_full_name})을 준비하고 나머지 {total_count - 1}곡을 대기열에 추가했습니다.")
+
+                first_clean_url = await self.find_clean_audio_url(f_artist, f_title, f_dur_sec)
+
+                # 이미 재생 중인 경우 1번째 곡도 대기열에 추가
+                if voice and (voice.is_playing() or voice.is_paused()):
+                    self.music_queues[ctx.guild.id].insert(0, {
+                        "url": first_clean_url,
+                        "title": first_full_name,
+                        "stream": stream,
+                        "channel": ctx.channel,
+                        "requester": ctx.author
+                    })
+                    return
+
+                url = first_clean_url
+
+            # 2. 스포티파이 단일 트랙 감지
+            elif entity_type == "track" or "spotify.com/track" in url or "spotify:track" in url:
                 track_info = spotify_helper.search_track(url)
                 if track_info and track_info.get("title"):
                     artist = track_info.get("artist") or ""
@@ -599,8 +672,10 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                     dur_ms = track_info.get("duration_ms")
                     target_dur_sec = (dur_ms / 1000.0) if dur_ms else None
 
-                    await ctx.send(f":mag: 스포티파이 곡 감지: **{artist} - {title}**\n:headphones: 뮤비 인트로/라이브를 배제하고 공식 스튜디오 음원을 탐색합니다...")
+                    await ctx.send(f":mag: 스포티파이 곡 감지: **{artist} - {title}**\n:headphones: 공식 스튜디오 음원을 탐색합니다...")
                     url = await self.find_clean_audio_url(artist, title, target_dur_sec)
+
+            # 3. 텍스트 검색 키워드인 경우
             elif not url.startswith("http://") and not url.startswith("https://"):
                 await ctx.send(f":mag: **{url}** 공식 스튜디오 음원을 탐색합니다... :headphones:")
                 url = await self.find_clean_audio_url("", url, None)

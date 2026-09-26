@@ -10,6 +10,7 @@ import yt_dlp
 from gtts import gTTS
 import json
 import csv
+import re
 from typing import Any
 from Utils import token_cost, require_voice
 from SpotifyHelper import spotify_helper, clean_music_title
@@ -176,15 +177,27 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             await self.app.db.add_coins(ctx.author.id, 5)
             await ctx.send(f":x: TTS 생성 중 오류가 발생하여 5 토큰이 환불되었습니다: {e}")
 
-    async def find_clean_audio_url(self, artist: str, title: str, target_duration_sec: float | None = None) -> str:
+    async def find_clean_audio_url(self, artist: str, title: str, target_duration_sec: float | None = None, synonyms: list[str] | None = None) -> str:
         """
-        뮤직비디오 인트로/대사, 라이브, 직캠, 커버 등을 배제하고
-        유튜브에서 가장 순수한 공식 음원(Topic / Official Audio) 영상 URL을 선별합니다.
+        뮤직비디오 인트로/대사, 라이브, 직캠, 커버, 콘서트 등을 배제하고
+        유튜브에서 가장 순수한 공식 음원(Topic / Official Audio / 스튜디오 음원 가사 영상) URL을 선별합니다.
         """
         clean_artist = (artist or "").strip()
         clean_title = (title or "").strip()
         base_query = f"{clean_artist} - {clean_title}".strip(" -")
-        search_query = f"{base_query} Topic".strip()
+        if not base_query:
+            return ""
+
+        loop = self.app.loop or asyncio.get_event_loop()
+
+        # 0. 재생 시간(target_duration_sec)이 없으면 Spotify / iTunes를 통해 음원 정규 재생 시간 자동 조회
+        if target_duration_sec is None and spotify_helper.is_configured():
+            try:
+                track_info = await loop.run_in_executor(None, lambda: spotify_helper.search_track(base_query))
+                if track_info and track_info.get("duration_ms"):
+                    target_duration_sec = track_info["duration_ms"] / 1000.0
+            except Exception:
+                pass
 
         search_opts: Any = {
             'extract_flat': True,
@@ -193,76 +206,155 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             'no_warnings': True,
             'socket_timeout': 10,
         }
-        loop = self.app.loop or asyncio.get_event_loop()
 
-        try:
-            with yt_dlp.YoutubeDL(search_opts) as ydl:
-                data = await loop.run_in_executor(
-                    None, lambda: ydl.extract_info(f"ytsearch5:{search_query}", download=False)
-                )
-        except Exception:
-            return f"ytsearch:{base_query}"
-
-        entries = [e for e in ((data.get('entries') or []) if data else []) if e and isinstance(e, dict)]
-        if not entries:
-            try:
-                with yt_dlp.YoutubeDL(search_opts) as ydl:
-                    data = await loop.run_in_executor(
-                        None, lambda: ydl.extract_info(f"ytsearch5:{base_query} Audio", download=False)
-                    )
-                entries = [e for e in ((data.get('entries') or []) if data else []) if e and isinstance(e, dict)]
-            except Exception:
-                return f"ytsearch:{base_query}"
-
-        if not entries:
-            return f"ytsearch:{base_query}"
-
+        # 음원 선별 채점 함수
         def calculate_audio_score(entry):
             if not entry or not isinstance(entry, dict):
-                return -999
+                return -9999
             v_title = (entry.get('title') or '').lower()
             uploader = (entry.get('uploader') or '').lower()
             dur = entry.get('duration') or 0
 
             score = 100
 
-            # 1. 긍정 채널 및 공식 음원 가산점
-            if 'topic' in uploader or 'official' in uploader:
-                score += 35
-            if 'audio' in v_title or '음원' in v_title:
+            # 1. 라이브, 방송 무대, 페스티벌, 직캠 강력 감점 (-350)
+            LIVE_KEYWORDS = [
+                'live', '라이브', '세로라이브', '세로 라이브', '잇츠라이브', "it's live", 'its live',
+                'concert', '콘서트', 'fancam', '직캠', 'fanchant', '응원법', 'stage', '스테이지',
+                '온스테이지', 'onstage', '딩고', 'dingo', '킬링보이스', 'killing voice',
+                '비긴어게인', 'begin again', '리무진서비스', 'leemujin', 'the first take', 'first take',
+                '퍼스트 테이크', '퍼스트테이크', '더 시즌즈', 'the seasons', '스케치북', 'sketchbook',
+                '불후의 명곡', 'immortal song', '러브레터', '음악캠프', '열린음악회', '뮤직뱅크',
+                'music bank', '음악중심', '쇼챔피언', 'show champion', '인기가요', 'inkigayo',
+                '엠카운트다운', 'm countdown', 'kpop stage', 'festival', '페스티벌', '공연',
+                'busking', '버스킹', 'acoustic live', 'live clip', '라이브 클립', 'special clip',
+                '스페셜 클립', '현장', '직찍', '무대'
+            ]
+            for neg in LIVE_KEYWORDS:
+                if neg in v_title or neg in uploader:
+                    score -= 350
+                    break
+
+            # 2. 비음원, 반주, 커버, 가공 음원 감점 (-400)
+            NON_STUDIO_KEYWORDS = [
+                'mr', 'inst', 'instrumental', '반주', 'karaoke', '노래방', 'tj노래방', 'tj 노래방', '금영',
+                'cover', '커버', 'reaction', '리액션', 'dance practice', '안무', 'choreo', 'tutorial',
+                'remix', '리믹스', 'speed up', 'sped up', 'slowed', 'nightcore', '8d audio',
+                'parody', '패러디', 'mashup', '매시업'
+            ]
+            for neg in NON_STUDIO_KEYWORDS:
+                if neg in v_title or neg in uploader:
+                    score -= 400
+                    break
+
+            # 3. 쇼츠, 티저, 모음집, 루프 감점 (-500)
+            SHORT_OR_LOOP_KEYWORDS = [
+                'shorts', '쇼츠', 'teaser', '티저', 'trailer', '예고',
+                '1hour', '1시간', '30분', '연속재생', '반복재생', '모음', 'playlist', '플레이리스트', 'loop'
+            ]
+            for neg in SHORT_OR_LOOP_KEYWORDS:
+                if neg in v_title:
+                    score -= 500
+                    break
+
+            # 4. 뮤직비디오 인트로/효과음 감점 (-45)
+            MV_KEYWORDS = ['[mv]', 'm/v', 'music video', '뮤직비디오', 'official mv']
+            for neg in MV_KEYWORDS:
+                if neg in v_title:
+                    score -= 45
+                    break
+
+            # 5. 공식 음원 및 Topic 채널 가산점
+            if any(k in uploader for k in ['- topic', '- 토픽']) or uploader.endswith('topic') or uploader.endswith('토픽'):
+                score += 120
+            elif 'official' in uploader or '공식' in uploader:
                 score += 25
 
-            # 2. 노이즈 및 비음원 감점 (MV 인트로, 라이브, 커버 등 배제)
-            for neg in ['[mv]', 'm/v', 'music video', '뮤직비디오', 'official mv']:
-                if neg in v_title:
-                    score -= 40
-            for neg in ['live', '라이브', 'concert', 'fancam', '직캠', 'stage']:
-                if neg in v_title:
-                    score -= 70
-            for neg in ['cover', '커버', 'reaction', '1hour', '1시간', 'mr', 'instrumental', 'karaoke', '노래방', 'dance practice', '안무']:
-                if neg in v_title:
-                    score -= 90
+            if 'official audio' in v_title:
+                score += 50
+            elif '음원' in v_title:
+                score += 35
+            elif 'audio' in v_title:
+                score += 25
 
-            # 3. 재생 시간(Duration) 정밀 매칭
-            if target_duration_sec and dur > 0:
+            # 6. 스튜디오 음원 기반 클린 가사 영상 우대
+            if ('가사' in v_title or 'lyrics' in v_title or '웅키' in uploader) and score > 0:
+                score += 30
+
+            # 7. 제목/동의어 관련도 확인
+            all_title_terms = [clean_title] + (synonyms or [])
+            matched_title = any(term.lower() in v_title for term in all_title_terms if term)
+            if matched_title:
+                score += 40
+            else:
+                title_words = [w for w in re.findall(r'[\w]+', clean_title.lower()) if len(w) >= 2]
+                if title_words and not any(w in v_title for w in title_words):
+                    score -= 150
+
+            # 8. 재생 시간(Duration) 정밀 매칭
+            if dur < 60 or dur > 600:
+                score -= 500
+            elif target_duration_sec and dur > 0:
                 diff = abs(dur - target_duration_sec)
                 if diff <= 3:
-                    score += 50
+                    score += 70
                 elif diff <= 7:
-                    score += 25
+                    score += 40
                 elif diff <= 15:
-                    score += 10
+                    score += 15
                 elif diff > 25:
-                    score -= 40
+                    score -= 50
                 elif diff > 60:
-                    score -= 100
+                    score -= 200
+            elif not target_duration_sec and dur > 0:
+                if 150 <= dur <= 300:
+                    score += 15
+                elif dur < 90 or dur > 450:
+                    score -= 50
 
             return score
 
-        best_entry = max(entries, key=calculate_audio_score)
+        # 1차 검색: Topic 기반 탐색 (ytsearch10)
+        entries_dict: dict[str, Any] = {}
+        try:
+            with yt_dlp.YoutubeDL(search_opts) as ydl:
+                data = await loop.run_in_executor(
+                    None, lambda: ydl.extract_info(f"ytsearch10:{base_query} Topic", download=False)
+                )
+            for e in ((data.get('entries') or []) if data else []):
+                if e and isinstance(e, dict) and e.get('id'):
+                    entries_dict[e['id']] = e
+        except Exception:
+            pass
+
+        # 후보 평가
+        best_score = -9999
+        if entries_dict:
+            best_cand = max(entries_dict.values(), key=calculate_audio_score)
+            best_score = calculate_audio_score(best_cand)
+
+        # 2차 검색: 1차 점수가 낮거나(Topic/공식 음원 부재) 후보가 없으면 음원/Official Audio 검색 보강
+        if best_score < 80:
+            try:
+                with yt_dlp.YoutubeDL(search_opts) as ydl:
+                    data = await loop.run_in_executor(
+                        None, lambda: ydl.extract_info(f"ytsearch10:{base_query} 음원", download=False)
+                    )
+                for e in ((data.get('entries') or []) if data else []):
+                    if e and isinstance(e, dict) and e.get('id'):
+                        entries_dict[e['id']] = e
+            except Exception:
+                pass
+
+        if not entries_dict:
+            fallback_url = f"ytsearch:{base_query}"
+            print(f"[Music] 검색 결과가 없어 기본 유튜브 검색 사용: {fallback_url}")
+            return fallback_url
+
+        best_entry = max(entries_dict.values(), key=calculate_audio_score)
+        score = calculate_audio_score(best_entry)
         if best_entry and best_entry.get('id'):
             video_url = f"https://www.youtube.com/watch?v={best_entry['id']}"
-            score = calculate_audio_score(best_entry)
             print(f"[Music] 선별된 유튜브 음원: {best_entry.get('title')} ({best_entry.get('uploader')}) | 점수: {score}점 | URL: {video_url}")
             return video_url
 
@@ -1082,54 +1174,21 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                             await msg.edit(content=f"⚠️ 저장된 링크 재생에 실패하여 유튜브 검색으로 재시도합니다. (사유: {e})")
                         player = None
 
-                # 2. 링크 재생 실패 및 검색 필요 시
+                # 2. 링크 재생 실패 및 검색 필요 시 (공식 음원 선별 알고리즘 적용)
                 if not player:
                     if song_type == "csv":
-                        query = f"{artist} {title}"
-                        search_opts: Any = {
-                            'extract_flat': True,
-                            'skip_download': True,
-                            'quiet': True,
-                            'no_warnings': True,
-                            'socket_timeout': 10,
-                        }
                         try:
-                            with yt_dlp.YoutubeDL(search_opts) as ydl:
-                                data = await loop.run_in_executor(
-                                    None, lambda: ydl.extract_info(f"ytsearch5:{query}", download=False)
-                                )
-                        except Exception as e:
-                            await msg.edit(content=f":x: 음원 검색 중 에러가 발생했습니다: {e}")
-                            return
-
-                        if not data or 'entries' not in data or len(data['entries']) == 0:  # type: ignore
-                            await msg.edit(content=f":x: '{query}' 검색 결과가 없습니다.")
-                            return
-
-                        # Find the first video entry
-                        entry = None
-                        for e in data['entries']:
-                            ie_key = e.get('ie_key', '')
-                            entry_url = e.get('url') or ''
-                            if ie_key == 'Youtube' or 'watch?v=' in entry_url:
-                                entry = e
-                                break
-
-                        if not entry:
-                            await msg.edit(content=f":x: '{query}' 검색 결과가 없습니다.")
-                            return
-
-                        video_id = entry.get('id')
-                        music_url = f"https://www.youtube.com/watch?v={video_id}"
-
-                        await msg.edit(content=f"음원을 재생합니다! tag:{', '.join(tags)} 🎶")
-
-                        try:
+                            clean_url = await self.find_clean_audio_url(artist, title, synonyms=synonyms)
+                            if not clean_url:
+                                await msg.edit(content=f":x: '{official_title}' 음원을 선별하지 못했습니다.")
+                                continue
+                            music_url = clean_url
                             async with ctx.typing():
                                 player = await YTDLSource.from_url(music_url, loop=self.app.loop, stream=True)
+                            await msg.edit(content=f"음원을 재생합니다! tag:{', '.join(tags)} 🎶")
                         except Exception as e:
-                            await msg.edit(content=f":x: 검색된 음원 추출 중 에러가 발생했습니다: {e}")
-                            return
+                            await msg.edit(content=f":x: '{official_title}' 음원 재생 중 에러가 발생했습니다: {e}")
+                            continue
                     else:
                         await ctx.send(f":x: 플레이리스트 음원({title}) 재생에 실패하여 다음 곡으로 건너뜁니다.")
                         continue

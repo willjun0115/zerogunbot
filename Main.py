@@ -1,3 +1,4 @@
+import sys
 import random
 import discord
 from discord.ext import commands
@@ -5,6 +6,21 @@ from discord.utils import get
 import os
 import datetime
 from dotenv import load_dotenv
+
+# 라즈베리 파이 systemd 등 백그라운드 환경에서 print() 출력이 버퍼링 없이 journalctl에 즉시 찍히도록 설정
+reconfig_out = getattr(sys.stdout, 'reconfigure', None)
+if callable(reconfig_out):
+    try:
+        reconfig_out(line_buffering=True)
+    except Exception:
+        pass
+
+reconfig_err = getattr(sys.stderr, 'reconfigure', None)
+if callable(reconfig_err):
+    try:
+        reconfig_err(line_buffering=True)
+    except Exception:
+        pass
 
 prefix = '%'
 intents = discord.Intents.all()

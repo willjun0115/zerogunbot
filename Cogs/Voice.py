@@ -207,6 +207,13 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             'socket_timeout': 10,
         }
 
+        GENERIC_TOPIC_UPLOADERS = ['발라드 가수들', 'various artists', 'release', 'tribute', '트리뷰트', 'ky noraebang', 'tj karaoke', 'tj노래방', '금영']
+
+        # 아티스트 검색 및 일치 검사용 범용 토큰 분리
+        artist_lower = clean_artist.lower().strip()
+        artist_compact = artist_lower.replace(" ", "")
+        artist_tokens = [t for t in re.findall(r'[\w]+', artist_lower) if len(t) >= 2] or ([artist_lower] if artist_lower else [])
+
         # 음원 선별 채점 함수
         def calculate_audio_score(entry):
             if not entry or not isinstance(entry, dict):
@@ -264,24 +271,40 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                     score -= 45
                     break
 
-            # 5. 공식 음원 및 Topic 채널 가산점
-            if any(k in uploader for k in ['- topic', '- 토픽']) or uploader.endswith('topic') or uploader.endswith('토픽'):
-                score += 120
+            # 5. 아티스트 일치 검사 및 가산/감점 (하드코딩 매핑 없이 범용 비교)
+            v_title_compact = v_title.replace(" ", "")
+            uploader_compact = uploader.replace(" ", "")
+
+            artist_matched = False
+            if clean_artist:
+                if (artist_lower in v_title or artist_lower in uploader or
+                    (artist_compact and (artist_compact in v_title_compact or artist_compact in uploader_compact)) or
+                    any(t in v_title or t in uploader for t in artist_tokens)):
+                    artist_matched = True
+
+            is_generic_topic = any(g in uploader for g in GENERIC_TOPIC_UPLOADERS)
+            is_topic = (any(k in uploader for k in ['- topic', '- 토픽']) or uploader.endswith('topic') or uploader.endswith('토픽'))
+
+            if is_topic:
+                if is_generic_topic:
+                    score -= 300  # 발라드 가수들 - Topic 같은 잡다 커버 채널은 대폭 감점
+                elif artist_matched:
+                    score += 130
+                else:
+                    score += 10
             elif 'official' in uploader or '공식' in uploader:
-                score += 25
+                if artist_matched:
+                    score += 40
+                else:
+                    score += 10
 
-            if 'official audio' in v_title:
-                score += 50
-            elif '음원' in v_title:
-                score += 35
-            elif 'audio' in v_title:
-                score += 25
+            if clean_artist:
+                if artist_matched:
+                    score += 50
+                else:
+                    score -= 250  # 아티스트가 지정되었는데 채널/제목 어디에도 없으면 심각한 감점 (엉뚱한 곡 배제)
 
-            # 6. 스튜디오 음원 기반 클린 가사 영상 우대
-            if ('가사' in v_title or 'lyrics' in v_title or '웅키' in uploader) and score > 0:
-                score += 30
-
-            # 7. 제목/동의어 관련도 확인
+            # 6. 제목/동의어 관련도 확인
             all_title_terms = [clean_title] + (synonyms or [])
             matched_title = any(term.lower() in v_title for term in all_title_terms if term)
             if matched_title:
@@ -290,6 +313,17 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 title_words = [w for w in re.findall(r'[\w]+', clean_title.lower()) if len(w) >= 2]
                 if title_words and not any(w in v_title for w in title_words):
                     score -= 150
+
+            # 7. 공식 음원 및 클린 가사 영상 가산점
+            if 'official audio' in v_title:
+                score += 50
+            elif '음원' in v_title:
+                score += 35
+            elif 'audio' in v_title:
+                score += 25
+
+            if ('가사' in v_title or 'lyrics' in v_title or '웅키' in uploader) and score > 0:
+                score += 30
 
             # 8. 재생 시간(Duration) 정밀 매칭
             if dur < 60 or dur > 600:
@@ -348,18 +382,18 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
 
         if not entries_dict:
             fallback_url = f"ytsearch:{base_query}"
-            print(f"[Music] 검색 결과가 없어 기본 유튜브 검색 사용: {fallback_url}")
+            print(f"[Music] 검색 결과가 없어 기본 유튜브 검색 사용: {fallback_url}", flush=True)
             return fallback_url
 
         best_entry = max(entries_dict.values(), key=calculate_audio_score)
         score = calculate_audio_score(best_entry)
         if best_entry and best_entry.get('id'):
             video_url = f"https://www.youtube.com/watch?v={best_entry['id']}"
-            print(f"[Music] 선별된 유튜브 음원: {best_entry.get('title')} ({best_entry.get('uploader')}) | 점수: {score}점 | URL: {video_url}")
+            print(f"[Music] 선별된 유튜브 음원: {best_entry.get('title')} ({best_entry.get('uploader')}) | 점수: {score}점 | URL: {video_url}", flush=True)
             return video_url
 
         fallback_url = f"ytsearch:{base_query}"
-        print(f"[Music] 선별 실패로 기본 유튜브 검색 사용: {fallback_url}")
+        print(f"[Music] 선별 실패로 기본 유튜브 검색 사용: {fallback_url}", flush=True)
         return fallback_url
 
     async def fill_auto_queue(self, guild_id: int, target_channel=None):

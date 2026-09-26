@@ -1,20 +1,25 @@
 import os
 import re
 import requests
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, Any, List, Tuple, TYPE_CHECKING
 from dotenv import load_dotenv
 
 DOTENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 load_dotenv(dotenv_path=DOTENV_PATH, override=True)
 
-try:
+if TYPE_CHECKING:
     import spotipy
     from spotipy.oauth2 import SpotifyClientCredentials
     from spotipy.exceptions import SpotifyException
-except ImportError:
-    spotipy = None
-    SpotifyClientCredentials = None
-    SpotifyException = Exception
+else:
+    try:
+        import spotipy
+        from spotipy.oauth2 import SpotifyClientCredentials
+        from spotipy.exceptions import SpotifyException
+    except ImportError:
+        spotipy = None
+        SpotifyClientCredentials = None
+        SpotifyException = Exception
 
 
 def clean_music_title(raw: str) -> str:
@@ -40,7 +45,7 @@ def clean_music_title(raw: str) -> str:
 
 class SpotifyHelper:
     def __init__(self):
-        self._sp: Optional[spotipy.Spotify] = None
+        self._sp: Optional["spotipy.Spotify"] = None
         self._ensure_client()
 
     def _ensure_client(self):
@@ -49,7 +54,7 @@ class SpotifyHelper:
         self.client_id = os.getenv("SPOTIFY_CLIENT_ID") or os.getenv("SPOTIPY_CLIENT_ID")
         self.client_secret = os.getenv("SPOTIFY_CLIENT_SECRET") or os.getenv("SPOTIPY_CLIENT_SECRET")
 
-        if spotipy and self.client_id and self.client_secret and self._sp is None:
+        if spotipy and SpotifyClientCredentials and self.client_id and self.client_secret and self._sp is None:
             try:
                 auth_manager = SpotifyClientCredentials(
                     client_id=self.client_id,
@@ -147,7 +152,7 @@ class SpotifyHelper:
                     track = self._sp.track(track_id)
                 else:
                     results = self._sp.search(q=query, type="track", limit=1)
-                    items = results.get("tracks", {}).get("items", [])
+                    items = results.get("tracks", {}).get("items", []) if results else []
                     track = items[0] if items else None
 
                 if track:
@@ -337,7 +342,7 @@ class SpotifyHelper:
                     else:
                         cleaned = clean_music_title(q) or q
                         results = self._sp.search(q=cleaned, type="track", limit=1)
-                        items = results.get("tracks", {}).get("items", [])
+                        items = results.get("tracks", {}).get("items", []) if results else []
                         if items:
                             seed_tracks.append(items[0]["id"])
                             seed_names.append(f"{items[0]['artists'][0]['name']} - {items[0]['name']}")
@@ -347,7 +352,8 @@ class SpotifyHelper:
                 if seed_tracks:
                     recs = self._sp.recommendations(seed_tracks=seed_tracks[:5], limit=limit)
                     rec_tracks = []
-                    for t in recs.get("tracks", []):
+                    rec_items = recs.get("tracks", []) if recs else []
+                    for t in rec_items:
                         artists = ", ".join([a.get("name", "") for a in t.get("artists", [])])
                         album = t.get("album", {})
                         images = album.get("images", [])

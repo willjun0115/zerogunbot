@@ -203,14 +203,14 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         except Exception:
             return f"ytsearch:{base_query}"
 
-        entries = [e for e in (data.get('entries') if data else []) if e and isinstance(e, dict)]
+        entries = [e for e in ((data.get('entries') or []) if data else []) if e and isinstance(e, dict)]
         if not entries:
             try:
                 with yt_dlp.YoutubeDL(search_opts) as ydl:
                     data = await loop.run_in_executor(
                         None, lambda: ydl.extract_info(f"ytsearch5:{base_query} Audio", download=False)
                     )
-                entries = [e for e in (data.get('entries') if data else []) if e and isinstance(e, dict)]
+                entries = [e for e in ((data.get('entries') or []) if data else []) if e and isinstance(e, dict)]
             except Exception:
                 return f"ytsearch:{base_query}"
 
@@ -327,7 +327,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             for cand in recs:
                 cand_title = cand.get("title")
                 cand_artist = cand.get("artist")
-                if not cand_title:
+                if not cand_title or not cand_artist:
                     continue
 
                 full_name = f"{cand_artist} - {cand_title}"
@@ -489,7 +489,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
             if voice and (voice.is_playing() or voice.is_paused()):
                 track_title = url
                 try:
-                    search_opts = {'extract_flat': True, 'skip_download': True, 'quiet': True}
+                    search_opts: Any = {'extract_flat': True, 'skip_download': True, 'quiet': True}
                     with yt_dlp.YoutubeDL(search_opts) as ydl:
                         info = await self.app.loop.run_in_executor(None, lambda: ydl.extract_info(url, download=False))
                         if info:

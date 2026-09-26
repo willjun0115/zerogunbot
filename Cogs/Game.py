@@ -1,6 +1,7 @@
 import discord
 import random
 import asyncio
+import os
 from discord.utils import get
 from discord.ext import commands
 import operator
@@ -1249,6 +1250,28 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                                             + ' (' + hand[2] + ')', inline=True)
                         await ctx.send(embed=embed)
 
+    def load_wordle_words(self):
+        if hasattr(self, '_wordle_words') and self._wordle_words:
+            return self._wordle_words
+
+        paths = [
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "words.txt"),
+            "words.txt"
+        ]
+        words = []
+        for path in paths:
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    words = [line.strip().upper() for line in f if len(line.strip()) == 5 and line.strip().isalpha()]
+                if words:
+                    break
+
+        if not words:
+            words = ["APPLE", "BREAD", "CHAIR", "DREAM", "EARTH", "FLAME", "GRAPE", "HEART", "LIGHT", "MUSIC"]
+
+        self._wordle_words = words
+        return self._wordle_words
+
     @commands.command(
         name="워들", aliases=["wordle"],
         help="5글자 영단어를 5번의 시도 안에 맞히는 워들 게임입니다."
@@ -1259,7 +1282,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         usage="*"
     )
     async def wordle(self, ctx):
-        words = ["APPLE", "BREAD", "CHAIR", "DREAM", "EARTH", "FLAME", "GRAPE", "HEART", "LIGHT", "MUSIC"]
+        words = self.load_wordle_words()
         target_word = random.choice(words)
         max_attempts = 5
         history = []
@@ -1268,7 +1291,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             title="< 워들 (Wordle) >",
             description=f"{ctx.author.display_name} 님, 5글자 영단어를 맞혀보세요!\n"
                         f"기회는 총 **{max_attempts}번** 주어집니다.\n"
-                        f"(포기하려면 `포기`를 입력하세요)"
+                        f"(포기하려면 `포기` 또는 `EXIT`를 입력하세요)"
         )
         start_embed.add_field(name="진행 상황", value=f"0 / {max_attempts} 번째 시도", inline=False)
         await ctx.send(embed=start_embed)
@@ -1306,13 +1329,13 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             for i in range(5):
                 if guess[i] == target_chars[i]:
                     feedback[i] = '🟩'
-                    target_chars[i] = None
+                    target_chars[i] = ""
 
             # 2차: 글자는 포함되나 위치가 다른 경우 (Yellow)
             for i in range(5):
                 if feedback[i] != '🟩' and guess[i] in target_chars:
                     feedback[i] = '🟨'
-                    target_chars[target_chars.index(guess[i])] = None
+                    target_chars[target_chars.index(guess[i])] = ""
 
             formatted_guess = ' '.join(list(guess))
             formatted_feedback = ''.join(feedback)

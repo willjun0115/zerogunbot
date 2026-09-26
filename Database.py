@@ -199,8 +199,9 @@ class Database:
                 params.append(limit)
 
             async with db.execute(query, params) as cursor:
-                columns = [desc[0] for desc in cursor.description] if cursor.description else []
-                rows = await cursor.fetchall()
+                columns: list[str] = [desc[0] for desc in cursor.description] if cursor.description else []
+                raw_rows = await cursor.fetchall()
+                rows: list[tuple] = [tuple(r) for r in raw_rows]
                 return columns, rows
 
     async def find_id(self, selector: str, user_id: int, *args, **kwargs) -> Optional[LegacyRecord]:

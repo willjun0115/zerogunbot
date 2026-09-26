@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import requests
 from typing import Optional, Dict, Any, List, Tuple, TYPE_CHECKING
 from dotenv import load_dotenv
@@ -77,6 +78,57 @@ class SpotifyHelper:
         match = re.search(r"spotify:track:([a-zA-Z0-9]+)", text)
         if match:
             return match.group(1)
+        return None
+
+    def extract_spotify_entity_type_and_id(self, text: str) -> Tuple[Optional[str], Optional[str]]:
+        """스포티파이 URL 또는 URI에서 종류(track, playlist, album)와 ID를 추출합니다."""
+        m = re.search(r"spotify\.com/(track|playlist|album)/([a-zA-Z0-9]+)", text)
+        if m:
+            return m.group(1), m.group(2)
+        m = re.search(r"spotify:(track|playlist|album):([a-zA-Z0-9]+)", text)
+        if m:
+            return m.group(1), m.group(2)
+        return None, None
+
+    def fetch_spotify_collection(self, entity_type: str, entity_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Spotify 플레이리스트 또는 앨범의 수록곡 목록을 조회합니다.
+        Embed 웹 API를 통해 별도 인증이나 Premium 결제 없이도 안정적으로 곡 목록을 추출합니다.
+        """
+        try:
+            url = f"https://open.spotify.com/embed/{entity_type}/{entity_id}"
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            resp = requests.get(url, headers=headers, timeout=10)
+            if resp.status_code != 200:
+                return None
+            m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', resp.text, re.DOTALL)
+            if not m:
+                return None
+            data = json.loads(m.group(1))
+            entity = data.get('props', {}).get('pageProps', {}).get('state', {}).get('data', {}).get('entity', {})
+            name = entity.get('name') or entity.get('title') or 'Spotify 컬렉션'
+            track_list = entity.get('trackList', [])
+            tracks = []
+            for t in track_list:
+                title = t.get('title')
+                artist = t.get('subtitle') or ''
+                dur_ms = t.get('duration')
+                if title:
+                    tracks.append({
+                        "title": title,
+                        "artist": artist,
+                        "duration_ms": dur_ms,
+                    })
+            if tracks:
+                return {
+                    "type": entity_type,
+                    "id": entity_id,
+                    "name": name,
+                    "tracks": tracks,
+                    "total": len(tracks)
+                }
+        except Exception as e:
+            print(f"[SpotifyHelper] 컬렉션 조회 실패 ({entity_type}/{entity_id}): {e}")
         return None
 
     def _fetch_itunes_fallback(self, query: str) -> Optional[Dict[str, Any]]:

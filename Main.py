@@ -544,7 +544,7 @@ async def admin_dump_db(ctx, *args):
     # 7. 텍스트 파일 포맷팅 생성 (표 형태)
     now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    col_widths = [max(len(str(col)), 8) for col in columns]
+    col_widths = [max(len(col), 8) for col in columns]
     for row in rows:
         for idx, val in enumerate(row):
             col_widths[idx] = min(max(col_widths[idx], len(str(val if val is not None else "-"))), 40)
@@ -609,12 +609,14 @@ async def admin_dump_db(ctx, *args):
             preview_text_list.append(
                 f"**{i+1}.** {name_str} (`{uid}`): 🪙 **{coins_str}** | 🍀 **{luck_str}**{ability_str}"
             )
-        elif target_table == "daily_rewards":
+        elif target_table == "daily_quests":
             uid = row[0]
-            rtype = row[1] if len(row) > 1 else "-"
-            rdate = row[2] if len(row) > 2 else "-"
+            qdate = row[1] if len(row) > 1 else "-"
+            qid = row[2] if len(row) > 2 else "-"
+            comp = "완료" if len(row) > 3 and row[3] else "진행중"
+            claim = "수령" if len(row) > 4 and row[4] else "미수령"
             preview_text_list.append(
-                f"**{i+1}.** <@{uid}> (`{uid}`) | 유형: `{rtype}` | 수령일: `{rdate}`"
+                f"**{i+1}.** <@{uid}> | `{qdate}` | `{qid}` ({comp}/{claim})"
             )
         else:
             row_summary = " | ".join(f"`{columns[j]}`: {row[j]}" for j in range(min(len(columns), 3)))

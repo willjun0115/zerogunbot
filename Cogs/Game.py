@@ -2,6 +2,7 @@ import discord
 import random
 import asyncio
 import os
+import datetime
 from discord.utils import get
 from discord.ext import commands
 from Utils import token_cost
@@ -261,6 +262,78 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         n = round(coin**0.5) + random.randint(0, coin//10)
         result = await self.event_get_coin(data, n)
         return result
+
+    @commands.command(
+        name="일일퀘스트", aliases=["일일보상", "퀘스트", "일퀘", "dailyquest", "quest"],
+        help="오늘의 일일 퀘스트 3개를 확인하고 달성한 퀘스트의 보상을 수령합니다.",
+        usage="*"
+    )
+    async def daily_reward_quest(self, ctx):
+        find, data = await self.app.find_data("db", ctx.author.id)
+        if find is None:
+            await ctx.send(self.cannot_find_id)
+            return
+
+        # 1. 완료된 퀘스트 보상 자동 정산 및 목록 조회
+        reward_gained, new_balance, quests = await self.app.db.claim_daily_quests(ctx.author.id)
+
+        kst = datetime.timezone(datetime.timedelta(hours=9))
+        today_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
+
+        embed = discord.Embed(
+            title=f"📜 {ctx.author.display_name} 님의 일일 퀘스트",
+            description=f"매일 3개의 일일 퀘스트가 배정됩니다. 미션을 완료하고 보상을 받아가세요!\n"
+                        f"📅 **일자**: `{today_str}`",
+            color=0x2ecc71 if reward_gained > 0 else 0x3498db
+        )
+
+        for idx, q in enumerate(quests, start=1):
+            reward = q["reward"]
+            title = q["title"]
+            desc = q["description"]
+
+            if q["claimed"]:
+                status_badge = "✅ **수령 완료**"
+                status_icon = "🟢"
+            elif q["completed"]:
+                status_badge = "🎁 **수령 가능**"
+                status_icon = "🟡"
+            else:
+                status_badge = "⏳ **진행 중**"
+                status_icon = "⚪"
+
+            embed.add_field(
+                name=f"{status_icon} 퀘스트 {idx}. {title}",
+                value=f"• 설명: {desc}\n"
+                      f"• 보상: 🪙 **{reward} 토큰**\n"
+                      f"• 상태: {status_badge}",
+                inline=False
+            )
+
+        if reward_gained > 0:
+            embed.add_field(
+                name="🎉 보상 수령 완료!",
+                value=f"완료된 퀘스트의 보상으로 총 **{reward_gained} 토큰(:coin:)**이 지급되었습니다!\n"
+                      f"현재 보유 잔액: 🪙 **{new_balance:,}개**",
+                inline=False
+            )
+        else:
+            completed_count = sum(1 for q in quests if q["claimed"] or q["completed"])
+            if completed_count == len(quests):
+                embed.add_field(
+                    name="✨ 모든 퀘스트 완료!",
+                    value="오늘의 일일 퀘스트를 모두 완료하셨습니다. 내일 자정(00:00)에 새로운 퀘스트가 찾아옵니다!",
+                    inline=False
+                )
+            else:
+                embed.add_field(
+                    name="💡 안내",
+                    value=f"미션을 완료한 후 다시 `{self.app.prefix}일일보상`을 입력하면 보상이 자동으로 지급됩니다.",
+                    inline=False
+                )
+
+        embed.set_footer(text=f"현재 보유 잔액: {new_balance:,} 토큰 | 매일 자정(00:00 KST) 갱신")
+        await ctx.send(embed=embed)
 
     @commands.command(
         name="특성", aliases=["ability"],
@@ -584,6 +657,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 elif bot_react == hand[i]:
                     await ctx.send(ctx.author.display_name + ' 님 승리!')
                     await self.app.db.add_coins(ctx.author.id, 1)
+                    try:
+                        if await self.app.db.complete_quest(ctx.author.id, "rps"):
+                            await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 승리하기' 달성!** (`%일일보상`에서 보상을 확인하세요)")
+                    except Exception:
+                        pass
                 else:
                     await ctx.send(ctx.author.display_name + ' 님 패배')
                     await self.app.db.add_coins(ctx.author.id, -1)
@@ -636,6 +714,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         await self.app.db.add_coins(ctx.author.id, prize)
                     else:
                         await self.app.db.add_coins(ctx.author.id, num)
+                    try:
+                        if await self.app.db.complete_quest(ctx.author.id, "odd_even"):
+                            await ctx.send("🎯 **[일일 퀘스트] '%홀짝 승리하기' 달성!** (`%일일보상`에서 보상을 확인하세요)")
+                    except Exception:
+                        pass
                 else:
                     await ctx.send(ctx.author.display_name + " 님 패!")
                     await self.app.db.add_coins(ctx.author.id, -num)
@@ -1265,6 +1348,11 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             if guess == target_word:
                 embed.color = discord.Color.green()
                 await ctx.send(content=f"🎉 **축하합니다!** {attempt}번 만에 단어를 맞히셨습니다!", embed=embed)
+                try:
+                    if await self.app.db.complete_quest(ctx.author.id, "wordle"):
+                        await ctx.send("🎯 **[일일 퀘스트] '%워들 승리하기' 달성!** (`%일일보상`에서 보상을 확인하세요)")
+                except Exception:
+                    pass
                 return
 
             if attempt == max_attempts:

@@ -402,19 +402,29 @@ class Database:
             "reward": 5,
             "description": "%안녕 명령어로 봇에게 인사하기"
         },
-        "rps": {
+        "play_rps": {
+            "title": "%가위바위보 플레이하기",
+            "reward": 5,
+            "description": "%가위바위보 게임 플레이하기"
+        },
+        "win_rps": {
             "title": "%가위바위보 승리하기",
             "reward": 10,
             "description": "%가위바위보 게임에서 승리하기"
         },
-        "wordle": {
+        "win_wordle": {
             "title": "%워들 승리하기",
-            "reward": 15,
+            "reward": 10,
             "description": "%워들 게임에서 단어 맞추기"
         },
-        "odd_even": {
+        "play_odd_even": {
+            "title": "%홀짝 플레이하기",
+            "reward": 5,
+            "description": "%홀짝 게임 플레이하기"
+        },
+        "win_odd_even": {
             "title": "%홀짝 승리하기",
-            "reward": 20,
+            "reward": 10,
             "description": "%홀짝 게임에서 승리하기"
         }
     }

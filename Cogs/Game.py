@@ -658,13 +658,18 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await ctx.send(ctx.author.display_name + ' 님 승리!')
                     await self.app.db.add_coins(ctx.author.id, 1)
                     try:
-                        if await self.app.db.complete_quest(ctx.author.id, "rps"):
-                            await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 승리하기' 달성!** (`%일일보상`에서 보상을 확인하세요)")
+                        if await self.app.db.complete_quest(ctx.author.id, "win_rps"):
+                            await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 승리하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
                     except Exception:
                         pass
                 else:
                     await ctx.send(ctx.author.display_name + ' 님 패배')
                     await self.app.db.add_coins(ctx.author.id, -1)
+                try:
+                    if await self.app.db.complete_quest(ctx.author.id, "play_rps"):
+                        await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                except Exception:
+                    pass
         else:
             await ctx.send(self.cannot_find_id)
 
@@ -715,13 +720,18 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         await self.app.db.add_coins(ctx.author.id, num)
                     try:
-                        if await self.app.db.complete_quest(ctx.author.id, "odd_even"):
-                            await ctx.send("🎯 **[일일 퀘스트] '%홀짝 승리하기' 달성!** (`%일일보상`에서 보상을 확인하세요)")
+                        if await self.app.db.complete_quest(ctx.author.id, "win_odd_even"):
+                            await ctx.send("🎯 **[일일 퀘스트] '%홀짝 승리하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
                     except Exception:
                         pass
                 else:
                     await ctx.send(ctx.author.display_name + " 님 패!")
                     await self.app.db.add_coins(ctx.author.id, -num)
+                try:
+                    if await self.app.db.complete_quest(ctx.author.id, "play_odd_even"):
+                        await ctx.send("🎯 **[일일 퀘스트] '%홀짝 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                except Exception:
+                    pass
         else:
             await ctx.send(self.cannot_find_id)
 
@@ -1349,8 +1359,8 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 embed.color = discord.Color.green()
                 await ctx.send(content=f"🎉 **축하합니다!** {attempt}번 만에 단어를 맞히셨습니다!", embed=embed)
                 try:
-                    if await self.app.db.complete_quest(ctx.author.id, "wordle"):
-                        await ctx.send("🎯 **[일일 퀘스트] '%워들 승리하기' 달성!** (`%일일보상`에서 보상을 확인하세요)")
+                    if await self.app.db.complete_quest(ctx.author.id, "win_wordle"):
+                        await ctx.send("🎯 **[일일 퀘스트] '%워들 승리하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
                 except Exception:
                     pass
                 return

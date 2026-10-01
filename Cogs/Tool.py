@@ -6,6 +6,14 @@ import io
 import datetime
 import re
 import operator
+import os
+import shutil
+import platform
+import time
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 
 class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
@@ -365,6 +373,203 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
         elif luck is None:
             luck = 0
         await ctx.send(str(luck) + ' :four_leaf_clover:')
+
+    @commands.cooldown(1, 10., commands.BucketType.channel)
+    @commands.command(
+        name="서버상태", aliases=["상태", "status", "serverinfo", "시스템상태", "호스트상태"],
+        help="봇 호스트 서버(라즈베리파이)의 리소스 및 시스템 상태를 확인합니다. (쿨타임: 10초)",
+        usage="*"
+    )
+    async def server_status(self, ctx):
+        msg = await ctx.send("🔍 서버 리소스 상태를 측정하는 중입니다...")
+
+        def make_bar(percent: float, length: int = 10) -> str:
+            filled = int(round(length * (max(0.0, min(100.0, percent)) / 100)))
+            return "█" * filled + "░" * (length - filled)
+
+        # 1. CPU 정보
+        cpu_count = os.cpu_count() or 1
+        cpu_percent = 0.0
+        if psutil:
+            try:
+                cpu_percent = psutil.cpu_percent(interval=0.5)
+            except Exception:
+                cpu_percent = 0.0
+
+        # 라즈베리파이 CPU 온도 측정
+        cpu_temp = None
+        if os.path.exists("/sys/class/thermal/thermal_zone0/temp"):
+            try:
+                with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+                    cpu_temp = float(f.read().strip()) / 1000.0
+            except Exception:
+                pass
+        if cpu_temp is None and psutil and hasattr(psutil, "sensors_temperatures"):
+            try:
+                temps = psutil.sensors_temperatures()
+                if temps:
+                    for name, entries in temps.items():
+                        if entries:
+                            cpu_temp = entries[0].current
+                            break
+            except Exception:
+                pass
+        if cpu_temp is None:
+            try:
+                res = os.popen("vcgencmd measure_temp 2>/dev/null").readline()
+                if "temp=" in res:
+                    cpu_temp = float(res.replace("temp=", "").replace("'C", "").strip())
+            except Exception:
+                pass
+
+        temp_text = "측정 불가"
+        if cpu_temp is not None:
+            temp_icon = "🟢" if cpu_temp < 55 else ("🟡" if cpu_temp < 70 else "🔴")
+            temp_text = f"{temp_icon} **{cpu_temp:.1f}°C**"
+
+        # 로드 애버리지
+        load_avg_str = ""
+        if hasattr(os, "getloadavg"):
+            try:
+                l1, l5, l15 = os.getloadavg()
+                load_avg_str = f"\n• 로드 애버리지: `{l1:.2f}`, `{l5:.2f}`, `{l15:.2f}`"
+            except Exception:
+                pass
+
+        cpu_field_value = (
+            f"`{make_bar(cpu_percent)}` **{cpu_percent:.1f}%** ({cpu_count} 코어)\n"
+            f"• CPU 온도: {temp_text}{load_avg_str}"
+        )
+
+        # 2. RAM (메모리) 정보
+        mem_total_gb = 0.0
+        mem_used_gb = 0.0
+        mem_percent = 0.0
+        bot_mem_mb = 0.0
+
+        if psutil:
+            try:
+                vm = psutil.virtual_memory()
+                mem_total_gb = vm.total / (1024 ** 3)
+                mem_used_gb = vm.used / (1024 ** 3)
+                mem_percent = vm.percent
+
+                proc = psutil.Process()
+                bot_mem_mb = proc.memory_info().rss / (1024 ** 2)
+            except Exception:
+                pass
+        elif os.path.exists("/proc/meminfo"):
+            try:
+                meminfo = {}
+                with open("/proc/meminfo", "r") as f:
+                    for line in f:
+                        parts = line.split(":")
+                        if len(parts) == 2:
+                            meminfo[parts[0].strip()] = int(parts[1].strip().split()[0])
+                t_kb = meminfo.get("MemTotal", 0)
+                a_kb = meminfo.get("MemAvailable", meminfo.get("MemFree", 0))
+                u_kb = t_kb - a_kb
+                mem_total_gb = t_kb / (1024 ** 2)
+                mem_used_gb = u_kb / (1024 ** 2)
+                mem_percent = (u_kb / t_kb * 100) if t_kb else 0.0
+            except Exception:
+                pass
+
+        bot_mem_text = f"\n• 봇 점유 메모리: `{bot_mem_mb:.1f} MB`" if bot_mem_mb > 0 else ""
+        mem_field_value = (
+            f"`{make_bar(mem_percent)}` **{mem_percent:.1f}%**\n"
+            f"• 사용량: `{mem_used_gb:.2f} GB` / `{mem_total_gb:.2f} GB`{bot_mem_text}"
+        )
+
+        # 3. 스토리지 (디스크)
+        disk_path = "/" if os.name != "nt" else "."
+        try:
+            d_total, d_used, d_free = shutil.disk_usage(disk_path)
+            d_total_gb = d_total / (1024 ** 3)
+            d_used_gb = d_used / (1024 ** 3)
+            d_free_gb = d_free / (1024 ** 3)
+            d_percent = (d_used / d_total * 100) if d_total else 0.0
+            disk_field_value = (
+                f"`{make_bar(d_percent)}` **{d_percent:.1f}%**\n"
+                f"• 사용량: `{d_used_gb:.1f} GB` / `{d_total_gb:.1f} GB` (`{d_free_gb:.1f} GB` 여유)"
+            )
+        except Exception:
+            disk_field_value = "디스크 정보를 조회할 수 없습니다."
+
+        # 4. 가동 시간 (Uptime) & 지연시간
+        def format_delta(seconds: float) -> str:
+            seconds = int(seconds)
+            days, rem = divmod(seconds, 86400)
+            hours, rem = divmod(rem, 3600)
+            mins, secs = divmod(rem, 60)
+            parts = []
+            if days > 0:
+                parts.append(f"{days}일")
+            if hours > 0:
+                parts.append(f"{hours}시간")
+            if mins > 0:
+                parts.append(f"{mins}분")
+            if not parts or secs > 0:
+                parts.append(f"{secs}초")
+            return " ".join(parts)
+
+        # 봇 가동 시간
+        start_time = getattr(self.app, "start_time", None)
+        if start_time:
+            bot_uptime_sec = (datetime.datetime.now() - start_time).total_seconds()
+            bot_uptime_str = format_delta(bot_uptime_sec)
+        else:
+            bot_uptime_str = "측정 불가"
+
+        # 시스템 업타임
+        sys_uptime_str = None
+        if psutil:
+            try:
+                sys_uptime_str = format_delta(time.time() - psutil.boot_time())
+            except Exception:
+                pass
+        if sys_uptime_str is None and os.path.exists("/proc/uptime"):
+            try:
+                with open("/proc/uptime", "r") as f:
+                    up_sec = float(f.read().split()[0])
+                    sys_uptime_str = format_delta(up_sec)
+            except Exception:
+                pass
+        if sys_uptime_str is None:
+            sys_uptime_str = "측정 불가"
+
+        ping_ms = round(self.app.latency * 1000)
+        ping_icon = "🟢" if ping_ms < 100 else ("🟡" if ping_ms < 200 else "🔴")
+
+        status_field_value = (
+            f"• 봇 가동 시간: `{bot_uptime_str}`\n"
+            f"• 시스템 업타임: `{sys_uptime_str}`\n"
+            f"• 응답 속도 (Ping): {ping_icon} `{ping_ms} ms`"
+        )
+
+        # 상태별 임베드 컬러
+        if (cpu_temp and cpu_temp >= 75) or cpu_percent >= 90 or mem_percent >= 90:
+            embed_color = 0xe74c3c  # 빨강
+        elif (cpu_temp and cpu_temp >= 65) or cpu_percent >= 75 or mem_percent >= 75:
+            embed_color = 0xf39c12  # 주황
+        else:
+            embed_color = 0x2ecc71  # 초록
+
+        embed = discord.Embed(
+            title=f"🖥️ {self.app.name} 호스트 서버 상태",
+            description="호스트 서버(라즈베리파이)의 실시간 하드웨어 및 시스템 리소스 현황입니다.",
+            color=embed_color
+        )
+        embed.add_field(name="🔥 CPU", value=cpu_field_value, inline=False)
+        embed.add_field(name="🧠 RAM (메모리)", value=mem_field_value, inline=False)
+        embed.add_field(name="💾 스토리지 (디스크)", value=disk_field_value, inline=False)
+        embed.add_field(name="⏱️ 가동 시간 & 네트워크", value=status_field_value, inline=False)
+
+        os_str = f"{platform.system()} {platform.release()} ({platform.machine()})"
+        py_ver = platform.python_version()
+        embed.set_footer(text=f"OS: {os_str} | Python {py_ver}")
+
+        await msg.edit(content=None, embed=embed)
 
 
 async def prompt_user_registration(app, ctx) -> bool:

@@ -18,11 +18,11 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
     async def hello(self, ctx):
         what_message = random.randint(1, 3)
         if what_message == 1:
-            msg = '안녕하세요? ' + ctx.author.name + ' 님, 오늘도 좋은 하루 보내세요!'
+            msg = '안녕하세요? ' + ctx.author.display_name + ' 님, 오늘도 좋은 하루 보내세요!'
         elif what_message == 2:
-            msg = '안녕하세요? ' + ctx.author.name + ' 님, 오늘 하루 힘내세요!'
+            msg = '안녕하세요? ' + ctx.author.display_name + ' 님, 오늘 하루 힘내세요!'
         else:
-            msg = ctx.author.name + ' 님, 안녕하세요!'
+            msg = ctx.author.display_name + ' 님, 안녕하세요!'
 
         reward_given, coins = await self.app.db.claim_daily_reward(ctx.author.id, reward_type="greeting", amount=10)
         if reward_given:

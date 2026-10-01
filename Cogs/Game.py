@@ -274,8 +274,9 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             await ctx.send(self.cannot_find_id)
             return
 
-        # 1. 완료된 퀘스트 보상 자동 정산 및 목록 조회
-        reward_gained, new_balance, quests = await self.app.db.claim_daily_quests(ctx.author.id)
+        # 1. 완료된 퀘스트 보상 및 올클리어 보너스 자동 정산
+        reward_gained, new_balance, quests, bonus_gained = await self.app.db.claim_daily_quests(ctx.author.id)
+        is_all_cleared = len(quests) == 3 and all(q["claimed"] for q in quests)
 
         kst = datetime.timezone(datetime.timedelta(hours=9))
         today_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
@@ -283,6 +284,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         embed = discord.Embed(
             title=f"📜 {ctx.author.display_name} 님의 일일 퀘스트",
             description=f"매일 3개의 일일 퀘스트가 배정됩니다. 미션을 완료하고 보상을 받아가세요!\n"
+                        f"3개 모두 달성 시 **올클리어 보너스 10 토큰(:coin:)**을 추가 지급합니다.\n"
                         f"📅 **일자**: `{today_str}`",
             color=0x2ecc71 if reward_gained > 0 else 0x3498db
         )
@@ -311,24 +313,35 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             )
 
         if reward_gained > 0:
+            reward_lines = []
+            quest_reward = reward_gained - bonus_gained
+            if quest_reward > 0:
+                reward_lines.append(f"• 퀘스트 완료 보상: 🪙 **+{quest_reward} 토큰**")
+            if bonus_gained > 0:
+                reward_lines.append(f"• 🏆 **올클리어 보너스**: 🪙 **+{bonus_gained} 토큰**")
+            reward_lines.append(f"총 **{reward_gained} 토큰(:coin:)**이 지급되었습니다!\n현재 보유 잔액: 🪙 **{new_balance:,}개**")
+
             embed.add_field(
                 name="🎉 보상 수령 완료!",
-                value=f"완료된 퀘스트의 보상으로 총 **{reward_gained} 토큰(:coin:)**이 지급되었습니다!\n"
-                      f"현재 보유 잔액: 🪙 **{new_balance:,}개**",
+                value="\n".join(reward_lines),
                 inline=False
             )
         else:
             completed_count = sum(1 for q in quests if q["claimed"] or q["completed"])
             if completed_count == len(quests):
+                clear_msg = "오늘의 일일 퀘스트를 모두 완료하셨습니다!"
+                if is_all_cleared:
+                    clear_msg += "\n🏆 **올클리어 보너스(10 토큰) 수령 완료!**"
+                clear_msg += "\n내일 자정(00:00 KST)에 새로운 퀘스트가 찾아옵니다!"
                 embed.add_field(
                     name="✨ 모든 퀘스트 완료!",
-                    value="오늘의 일일 퀘스트를 모두 완료하셨습니다. 내일 자정(00:00)에 새로운 퀘스트가 찾아옵니다!",
+                    value=clear_msg,
                     inline=False
                 )
             else:
                 embed.add_field(
                     name="💡 안내",
-                    value=f"미션을 완료한 후 다시 `{self.app.prefix}일일보상`을 입력하면 보상이 자동으로 지급됩니다.",
+                    value=f"미션을 완료한 후 다시 `{self.app.prefix}일퀘`를 입력하면 보상이 자동으로 지급됩니다.",
                     inline=False
                 )
 

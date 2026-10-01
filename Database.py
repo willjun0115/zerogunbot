@@ -44,6 +44,7 @@ class Database:
             await db.execute("PRAGMA journal_mode = WAL;")
             await db.execute("PRAGMA synchronous = NORMAL;")
             await db.execute("PRAGMA busy_timeout = 5000;")
+
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS user_data (
                     user_id INTEGER PRIMARY KEY,
@@ -396,6 +397,8 @@ class Database:
             await db.commit()
             return deleted
 
+    ALL_CLEAR_BONUS: int = 10
+
     DAILY_QUEST_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "hello": {
             "title": "%안녕으로 봇에게 인사하기",
@@ -524,15 +527,21 @@ class Database:
                 await db.commit()
             return updated
 
-    async def claim_daily_quests(self, user_id: int, date_str: Optional[str] = None) -> Tuple[int, int, list[Dict[str, Any]]]:
+    async def claim_daily_quests(
+        self, user_id: int, date_str: Optional[str] = None
+    ) -> Tuple[int, int, list[Dict[str, Any]], int]:
         """
         완료되었으나 아직 수령하지 않은(completed=1, claimed=0) 일일 퀘스트들의 보상을 수령합니다.
-        반환값: (총 수령 토큰, 최종 코인 잔액, 갱신된 퀘스트 목록)
+        이번 수령으로 3개 퀘스트가 모두 수령 완료(all claimed) 상태가 되는 순간 올클리어 보너스(10 토큰)를 1회 지급합니다.
+        반환값: (총 수령 토큰, 최종 코인 잔액, 갱신된 퀘스트 목록, 이번에 수령한 올클리어 보너스)
         """
         quests = await self.get_or_create_daily_quests(user_id, date_str=date_str)
         if date_str is None:
             kst = datetime.timezone(datetime.timedelta(hours=9))
             date_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
+
+        # 수령 전 이미 수령 완료된 퀘스트 개수
+        already_claimed_count = sum(1 for q in quests if q["claimed"])
 
         claimable_reward = 0
         claimable_ids = []
@@ -541,7 +550,7 @@ class Database:
                 claimable_reward += q["reward"]
                 claimable_ids.append(q["quest_id"])
 
-        if claimable_reward > 0:
+        if claimable_ids:
             async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
                 for qid in claimable_ids:
                     await db.execute(
@@ -553,11 +562,18 @@ class Database:
                         (user_id, date_str, qid)
                     )
                 await db.commit()
-            new_balance = await self.add_coins(user_id, claimable_reward)
+
+        # 이번 수령을 통해 3개 모두 claimed(수령 완료) 상태가 완성된 순간에만 올클리어 보너스 10 토큰 지급
+        now_claimed_count = already_claimed_count + len(claimable_ids)
+        bonus_gained = self.ALL_CLEAR_BONUS if (already_claimed_count < 3 and now_claimed_count == 3) else 0
+
+        total_reward = claimable_reward + bonus_gained
+        if total_reward > 0:
+            new_balance = await self.add_coins(user_id, total_reward)
         else:
             coins = await self.get_coins(user_id)
             new_balance = coins if coins is not None else 0
 
         updated_quests = await self.get_or_create_daily_quests(user_id, date_str=date_str)
-        return claimable_reward, new_balance, updated_quests
+        return total_reward, new_balance, updated_quests, bonus_gained
 

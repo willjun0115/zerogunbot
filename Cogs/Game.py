@@ -6,6 +6,7 @@ from discord.utils import get
 from discord.ext import commands
 import operator
 from Utils import token_cost
+from Cogs.Tool import prompt_user_registration
 
 
 class GachaAbility:
@@ -55,7 +56,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     def __init__(self, app):
         self.app = app
-        self.cannot_find_id = 'DB에서 ID를 찾지 못했습니다.\n\'%토큰\' 명령어를 통해 ID를 등록할 수 있습니다.'
+        self.cannot_find_id = "DB에 등록되지 않은 사용자입니다.\n'%등록' 명령어를 통해 정보 수집 동의 후 등록을 진행해주세요."
         self.items = [
             GachaItem(":coin:", 50.),
             GachaItem(":four_leaf_clover:", 15.),
@@ -265,7 +266,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
     @commands.command(
         name="토큰", aliases=["코인", "token", "coin", "$"],
-        help="자신의 토큰 수를 확인합니다.\n토큰 DB에 기록되지 않았다면, 새로 ID를 등록합니다.",
+        help="자신의 토큰 수를 확인합니다.\nDB에 등록되지 않은 경우 %등록 명령어를 호출해 등록을 진행합니다.",
         usage="*"
     )
     async def check_token(self, ctx):
@@ -274,12 +275,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
             coin = data.get('$')
             await ctx.send(str(coin) + ' :coin:')
         else:
-            if ctx.author in ctx.guild.premium_subscribers:
-                data = {'$': 1000, '%': 10}
-            else:
-                data = {'$': 0, '%': 0}
-            await self.app.update_data(ctx.author.id, data, find)
-            await ctx.send('DB에 ' + ctx.author.mention + ' 님의 ID를 기록했습니다.')
+            await prompt_user_registration(self.app, ctx)
 
     @commands.cooldown(1, 60., commands.BucketType.channel)
     @commands.command(

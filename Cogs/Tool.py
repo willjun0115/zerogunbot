@@ -19,7 +19,11 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
     )
     async def help_command(self, ctx, func=None):
         if func is None:
-            embed = discord.Embed(title="도움말", description=f"접두사는 {self.app.prefix} 입니다.")
+            embed = discord.Embed(
+                title="도움말",
+                description=f"접두사는 {self.app.prefix} 입니다.\n"
+                            "%*명령어*로 더 자세한 정보를 확인하세요."
+            )
             cog_list = {"도구": "Tool", "채팅": "Chat", "음성": "Voice", "게임": "Game"}
             for x in cog_list.keys():
                 cog_data = self.app.get_cog(x)
@@ -356,7 +360,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @commands.command(
         name='암호화', aliases=["encrypt", "enc"],
-        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 999]) str()'
+        help='입력받은 문자열을 암호화해 출력합니다.', usage='* int([0, 999]) str()', enabled=False
     )
     async def chat_encryption(self, ctx, num, *, args):
         await ctx.message.delete()
@@ -369,7 +373,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @commands.command(
         name='복호화', aliases=["decrypt", "dec"],
-        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)'
+        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)', enabled=False
     )
     async def chat_decryption(self, ctx, num, *, code):
         await ctx.message.delete()
@@ -401,6 +405,187 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 await ctx.author.add_roles(ctx.guild.get_role(782684349899472916))
             else:
                 await ctx.send('잘못된 암호입니다.')
+
+    @commands.command(
+        name="등록", aliases=["register", "가입"],
+        help="정보 수집에 동의하고 DB에 사용자 정보를 등록합니다.",
+        usage="*"
+    )
+    async def register(self, ctx):
+        await prompt_user_registration(self.app, ctx)
+
+    @commands.command(
+        name="등록해제", aliases=["unregister", "탈퇴", "삭제"],
+        help="DB에서 사용자 기록을 영구적으로 삭제합니다. (삭제 시 복구 불가)",
+        usage="*"
+    )
+    async def unregister(self, ctx):
+        prefix = getattr(self.app, 'prefix', '%')
+        registered = await self.app.db.is_registered(ctx.author.id)
+        if not registered:
+            embed = discord.Embed(
+                title="ℹ️ 미등록 사용자",
+                description=f"{ctx.author.mention} 님은 현재 DB에 등록되어 있지 않습니다.\n"
+                            f"등록을 원하시면 `{prefix}등록` 명령어를 이용해주세요.",
+                color=0xe67e22
+            )
+            await ctx.send(embed=embed)
+            return
+
+        embed = discord.Embed(
+            title="⚠️ 데이터 삭제 및 등록 해제 안내",
+            description=f"{ctx.author.mention} 님, 정말로 등록을 해제하시겠습니까?\n\n"
+                        f"🚨 **주의사항 (되돌릴 수 없음)**\n"
+                        f"• **DB에서 삭제하면 정보를 다시는 되돌릴 수 없습니다.**\n"
+                        f"• 보유 중인 **토큰(:coin:)**, **행운(:four_leaf_clover:)**, **특성**, **일일 출석 보상 기록**이 영구적으로 즉시 삭제됩니다.\n"
+                        f"• 삭제 후 재등록하더라도 이전 데이터는 복구되지 않으며 초기 상태(0 코인)로 시작됩니다.\n\n"
+                        f"정말로 삭제를 진행하시려면 아래의 **체크(:white_check_mark:)**, 취소하시려면 **가위표(:x:)** 이모티콘을 눌러주세요.",
+            color=0xe74c3c
+        )
+        msg = await ctx.send(embed=embed)
+        await msg.add_reaction("✅")
+        await msg.add_reaction("❌")
+
+        def check(reaction, user):
+            return user.id == ctx.author.id and str(reaction.emoji) in ["✅", "❌"] and reaction.message.id == msg.id
+
+        try:
+            reaction, user = await self.app.wait_for("reaction_add", check=check, timeout=30.0)
+        except asyncio.TimeoutError:
+            try:
+                await msg.clear_reactions()
+            except Exception:
+                pass
+            cancel_embed = discord.Embed(
+                title="⏰ 시간 초과",
+                description="시간이 초과되어 등록 해제가 취소되었습니다. 사용자 데이터는 안전하게 유지됩니다.",
+                color=0x95a5a6
+            )
+            await msg.edit(embed=cancel_embed)
+        else:
+            try:
+                await msg.clear_reactions()
+            except Exception:
+                pass
+
+            if str(reaction.emoji) == "✅":
+                deleted = await self.app.db.delete_user(ctx.author.id)
+                if deleted:
+                    done_embed = discord.Embed(
+                        title="🗑️ 등록 해제 완료",
+                        description=f"{ctx.author.mention} 님의 모든 사용자 정보가 DB에서 영구적으로 삭제되었습니다.\n"
+                                    f"**DB에서 삭제된 정보는 되돌릴 수 없습니다.**\n\n"
+                                    f"언제든지 다시 이용을 원하시면 `{prefix}등록` 명령어를 통해 새로 등록하실 수 있습니다.\n"
+                                    f"그동안 0군봇을 이용해 주셔서 감사합니다.",
+                        color=0x95a5a6
+                    )
+                    await msg.edit(embed=done_embed)
+                else:
+                    await msg.edit(content="이미 삭제되었거나 처리 중 오류가 발생했습니다.")
+            else:
+                cancel_embed = discord.Embed(
+                    title="🛑 등록 해제 취소",
+                    description="등록 해제를 취소했습니다. 사용자 데이터가 그대로 보존됩니다.",
+                    color=0x3498db
+                )
+                await msg.edit(embed=cancel_embed)
+
+
+async def prompt_user_registration(app, ctx) -> bool:
+    """
+    사용자에게 정보 수집에 대한 내용을 고지하고 체크 이모티콘 클릭 시 DB에 등록합니다.
+    이미 등록된 경우 %등록해제를 통해 DB에서 삭제할 수 있음을 안내합니다.
+    Cogs.Game 등 다른 모듈에서 import하여 사용 가능합니다.
+    """
+    prefix = getattr(app, 'prefix', '%')
+    registered = await app.db.is_registered(ctx.author.id)
+    if registered:
+        embed = discord.Embed(
+            title="ℹ️ 이미 등록된 사용자입니다",
+            description=f"{ctx.author.mention} 님은 이미 DB에 등록되어 있습니다.\n\n"
+                        f"💡 **등록 해제(탈퇴) 안내**\n"
+                        f"등록 해제를 원하실 경우 `{prefix}등록해제` 명령어를 통해 언제든지 DB에서 정보를 삭제할 수 있습니다.\n"
+                        f"*(주의: 삭제 시 모든 보유 토큰 및 게임 데이터는 영구 삭제되며 복구할 수 없습니다.)*",
+            color=0x3498db
+        )
+        await ctx.send(embed=embed)
+        return True
+
+    embed = discord.Embed(
+        title="📋 0군봇 서비스 이용 및 정보 수집 안내",
+        description=f"{ctx.author.mention} 님, 0군봇의 토큰 및 게임 기능을 이용하시려면 아래의 정보 수집 및 이용 동의가 필요합니다.",
+        color=0x2ecc71
+    )
+    embed.add_field(
+        name="1. 수집 항목",
+        value="• 디스코드 고유 사용자 ID (Discord User ID)",
+        inline=False
+    )
+    embed.add_field(
+        name="2. 수집 및 이용 목적",
+        value="• 가상 화폐(토큰/코인) 잔액 및 거래 관리\n• 게임 데이터(행운 수치, 특성, 출석 보상 등) 기록 및 랭킹 제공",
+        inline=False
+    )
+    embed.add_field(
+        name="3. 보유 및 이용 기간",
+        value=f"• 이용자의 `{prefix}등록해제` 요청 시 또는 봇 서비스 종료 시까지 보관 (해제 시 즉시 영구 파기)",
+        inline=False
+    )
+    embed.add_field(
+        name="4. 동의 거부 권리 및 안내",
+        value="• 정보 수집에 동의하지 않으실 수 있으나, 미동의 시 토큰 및 게임 등 일부 기능 이용이 제한됩니다.\n"
+              f"• 등록 후 언제든지 `{prefix}등록해제` 명령어로 저장된 모든 정보를 삭제할 수 있습니다. (삭제 시 복구 불가)",
+        inline=False
+    )
+    embed.set_footer(text="동의하고 등록하시려면 아래의 체크(✅) 이모티콘을 눌러주세요. (제한시간: 60초)")
+
+    msg = await ctx.send(embed=embed)
+    await msg.add_reaction("✅")
+
+    def check(reaction, user):
+        return user.id == ctx.author.id and str(reaction.emoji) == "✅" and reaction.message.id == msg.id
+
+    try:
+        reaction, user = await app.wait_for("reaction_add", check=check, timeout=60.0)
+    except asyncio.TimeoutError:
+        try:
+            await msg.clear_reactions()
+        except Exception:
+            pass
+        timeout_embed = discord.Embed(
+            title="⏰ 등록 시간 초과",
+            description=f"시간이 초과되어 등록이 취소되었습니다. 다시 시도하시려면 `{prefix}등록`을 입력해주세요.",
+            color=0xe74c3c
+        )
+        await msg.edit(embed=timeout_embed)
+        return False
+    else:
+        # 서버 부스터 여부 확인
+        is_booster = False
+        if ctx.guild and hasattr(ctx.guild, 'premium_subscribers'):
+            if ctx.author in ctx.guild.premium_subscribers:
+                is_booster = True
+
+        init_coins = 1000 if is_booster else 0
+        init_luck = 10 if is_booster else 0
+
+        await app.db.register_user(ctx.author.id, coins=init_coins, luck=init_luck)
+
+        try:
+            await msg.clear_reactions()
+        except Exception:
+            pass
+
+        booster_text = f"\n✨ **서버 부스터 혜택**: 시작 보너스 🪙 1,000 코인 / 🍀 행운 10 지급 완료!\n" if is_booster else ""
+        success_embed = discord.Embed(
+            title="🎉 등록 완료",
+            description=f"{ctx.author.mention} 님의 정보가 DB에 정상적으로 등록되었습니다!\n"
+                        f"이제 0군봇의 토큰 및 게임 기능을 마음껏 이용하실 수 있습니다.{booster_text}\n"
+                        f"💡 등록을 해제하고 정보를 삭제하려면 언제든지 `{prefix}등록해제` 명령어를 입력하세요.",
+            color=0x2ecc71
+        )
+        await msg.edit(embed=success_embed)
+        return True
 
 
 async def setup(app):

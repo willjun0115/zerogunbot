@@ -41,6 +41,9 @@ class ZeroGunBot(commands.Bot):
     update_data: typing.Any
     collect_data: typing.Any
     setup_database: typing.Any
+    is_registered: typing.Any
+    register_user: typing.Any
+    delete_user: typing.Any
 
     IGNORED_COGS = {"BTC.py"}
 
@@ -130,6 +133,18 @@ async def setup_database(ctx):
     return "SQLite 데이터베이스가 정상적으로 초기화되었습니다."
 
 
+async def is_registered(user_id: int):
+    return await app.db.is_registered(user_id)
+
+
+async def register_user(user_id: int, coins: int = 0, luck: int = 0, ability=None):
+    return await app.db.register_user(user_id, coins=coins, luck=luck, ability=ability)
+
+
+async def delete_user(user_id: int):
+    return await app.db.delete_user(user_id)
+
+
 app.encrypt = encrypt
 app.decrypt = decrypt
 app.find_id = find_id
@@ -137,6 +152,9 @@ app.find_data = find_data
 app.update_data = update_data
 app.collect_data = collect_data
 app.setup_database = setup_database
+app.is_registered = is_registered
+app.register_user = register_user
+app.delete_user = delete_user
 
 
 @commands.is_owner()

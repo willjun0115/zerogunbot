@@ -418,3 +418,41 @@ class Database:
                     current_coins = coin_row[0] if coin_row is not None else 0
                 return False, current_coins
 
+    async def is_registered(self, user_id: int) -> bool:
+        """유저가 DB에 등록되어 있는지 확인합니다."""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT 1 FROM user_data WHERE user_id = ?", (user_id,)) as cursor:
+                return await cursor.fetchone() is not None
+
+    async def register_user(self, user_id: int, coins: int = 0, luck: int = 0, ability: Optional[str] = None) -> bool:
+        """
+        유저를 DB에 새로 등록합니다.
+        이미 등록된 경우 False를 반환하고, 성공적으로 새로 등록된 경우 True를 반환합니다.
+        """
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+            async with db.execute("SELECT 1 FROM user_data WHERE user_id = ?", (user_id,)) as cursor:
+                if await cursor.fetchone() is not None:
+                    return False
+
+            await db.execute(
+                """
+                INSERT INTO user_data (user_id, coins, luck, ability, updated_at)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                (user_id, max(0, coins), max(0, luck), ability)
+            )
+            await db.commit()
+            return True
+
+    async def delete_user(self, user_id: int) -> bool:
+        """
+        유저의 모든 기록(user_data, daily_rewards)을 DB에서 영구 삭제합니다.
+        삭제된 레코드가 있으면 True, 없었으면 False를 반환합니다.
+        """
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+            cursor = await db.execute("DELETE FROM user_data WHERE user_id = ?", (user_id,))
+            deleted = cursor.rowcount > 0
+            await db.execute("DELETE FROM daily_rewards WHERE user_id = ?", (user_id,))
+            await db.commit()
+            return deleted
+

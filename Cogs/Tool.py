@@ -7,6 +7,7 @@ import datetime
 import re
 import operator
 import os
+import subprocess
 import shutil
 import platform
 import time
@@ -374,17 +375,18 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             luck = 0
         await ctx.send(str(luck) + ' :four_leaf_clover:')
 
-    @commands.cooldown(1, 10., commands.BucketType.channel)
+    @commands.check_any(commands.has_permissions(administrator=True), commands.is_owner())
+    @commands.cooldown(1, 10.0, commands.BucketType.channel)
     @commands.command(
-        name="서버상태", aliases=["상태", "status", "serverinfo", "시스템상태", "호스트상태"],
-        help="봇 호스트 서버(라즈베리파이)의 리소스 및 시스템 상태를 확인합니다. (쿨타임: 10초)",
+        name="서버상태", aliases=["서버정보", "status", "serverinfo", "시스템상태", "호스트상태"],
+        help="봇 호스트 서버의 리소스 및 시스템 상태를 확인합니다. (쿨타임: 10초)",
         usage="*"
     )
     async def server_status(self, ctx):
         msg = await ctx.send("🔍 서버 리소스 상태를 측정하는 중입니다...")
 
         def make_bar(percent: float, length: int = 10) -> str:
-            filled = int(round(length * (max(0.0, min(100.0, percent)) / 100)))
+            filled = round(length * (max(0.0, min(100.0, percent)) / 100))
             return "█" * filled + "░" * (length - filled)
 
         # 1. CPU 정보
@@ -396,7 +398,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             except Exception:
                 cpu_percent = 0.0
 
-        # 라즈베리파이 CPU 온도 측정
+        # CPU 온도 측정
         cpu_temp = None
         if os.path.exists("/sys/class/thermal/thermal_zone0/temp"):
             try:
@@ -416,7 +418,12 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                 pass
         if cpu_temp is None:
             try:
-                res = os.popen("vcgencmd measure_temp 2>/dev/null").readline()
+                res = subprocess.run(
+                    ["vcgencmd", "measure_temp"],
+                    capture_output=True,
+                    text=True,
+                    timeout=1
+                ).stdout
                 if "temp=" in res:
                     cpu_temp = float(res.replace("temp=", "").replace("'C", "").strip())
             except Exception:

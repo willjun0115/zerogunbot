@@ -13,7 +13,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
 
     @commands.command(
         name="안녕", aliases=["인사", "ㅎㅇ", "hello", "hi"],
-        help="짧은 인사를 건네고 일일 보상(10 :coin:)을 받습니다.", usage="*"
+        help="짧은 인사를 건넵니다.", usage="*"
     )
     async def hello(self, ctx):
         what_message = random.randint(1, 3)
@@ -24,11 +24,13 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         else:
             msg = ctx.author.display_name + ' 님, 안녕하세요!'
 
-        reward_given, coins = await self.app.db.claim_daily_reward(ctx.author.id, reward_type="greeting", amount=10)
-        if reward_given:
-            msg += f"\n:coin: **일일 보상 10토큰**을 획득하셨습니다! (현재 잔액: {coins} :coin:)"
-        else:
-            msg += f"\n(오늘의 일일 보상은 이미 받으셨습니다. 내일 다시 만나요!)"
+        # daily quest check logic
+        try:
+            quest_done = await self.app.db.complete_quest(ctx.author.id, "hello")
+            if quest_done:
+                msg += "\n🎯 **[일일 퀘스트] '%안녕으로 봇에게 인사하기' 달성!** (`%일일보상`에서 보상을 확인하세요)"
+        except Exception:
+            pass
 
         await ctx.channel.send(msg)
 

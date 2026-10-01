@@ -58,11 +58,13 @@ class Database:
                 ON user_data(coins DESC)
             """)
             await db.execute("""
-                CREATE TABLE IF NOT EXISTS daily_rewards (
+                CREATE TABLE IF NOT EXISTS daily_quests (
                     user_id INTEGER NOT NULL,
-                    reward_type TEXT NOT NULL,
-                    reward_date TEXT NOT NULL,
-                    PRIMARY KEY (user_id, reward_type)
+                    quest_date TEXT NOT NULL,
+                    quest_id TEXT NOT NULL,
+                    completed INTEGER NOT NULL DEFAULT 0,
+                    claimed INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (user_id, quest_date, quest_id)
                 )
             """)
             await db.commit()
@@ -356,68 +358,6 @@ class Database:
                 row = await cursor.fetchone()
                 return row[0] if row is not None else None
 
-    async def claim_daily_reward(
-        self, user_id: int, reward_type: str = "greeting", amount: int = 10, date_str: Optional[str] = None
-    ) -> Tuple[bool, int]:
-        """
-        유저별 일일 보상을 지급합니다.
-        - 오늘 이미 보상을 수령했으면 (False, 현재 코인 수)를 반환합니다.
-        - 오늘 첫 수령이면 보상(amount)을 원자적으로 추가하고 (True, 갱신된 코인 수)를 반환합니다.
-        - 날짜는 기본적으로 한국 표준시(KST, UTC+9) 기준 YYYY-MM-DD 형식으로 관리됩니다.
-        """
-        if date_str is None:
-            kst = datetime.timezone(datetime.timedelta(hours=9))
-            date_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
-
-        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
-            await db.execute("PRAGMA busy_timeout = 5000;")
-            await db.execute("""
-                CREATE TABLE IF NOT EXISTS daily_rewards (
-                    user_id INTEGER NOT NULL,
-                    reward_type TEXT NOT NULL,
-                    reward_date TEXT NOT NULL,
-                    PRIMARY KEY (user_id, reward_type)
-                )
-            """)
-            cursor = await db.execute(
-                """
-                INSERT INTO daily_rewards (user_id, reward_type, reward_date)
-                VALUES (?, ?, ?)
-                ON CONFLICT(user_id, reward_type) DO UPDATE SET
-                    reward_date = excluded.reward_date
-                WHERE daily_rewards.reward_date != excluded.reward_date
-                """,
-                (user_id, reward_type, date_str)
-            )
-            claimed = cursor.rowcount > 0
-
-            if claimed:
-                # 당일 첫 수령: 코인 지급 (원자적 UPSERT)
-                async with db.execute(
-                    """
-                    INSERT INTO user_data (user_id, coins, luck, ability, updated_at)
-                    VALUES (?, MAX(0, ?), 0, NULL, CURRENT_TIMESTAMP)
-                    ON CONFLICT(user_id) DO UPDATE SET
-                        coins = MAX(0, user_data.coins + ?),
-                        updated_at = CURRENT_TIMESTAMP
-                    RETURNING coins
-                    """,
-                    (user_id, amount, amount)
-                ) as coin_cur:
-                    coin_row = await coin_cur.fetchone()
-                    new_coins = coin_row[0] if coin_row is not None else amount
-                await db.commit()
-                return True, new_coins
-            else:
-                # 이미 수령함: 현재 코인 잔액 조회
-                async with db.execute(
-                    "SELECT coins FROM user_data WHERE user_id = ?",
-                    (user_id,)
-                ) as coin_cur:
-                    coin_row = await coin_cur.fetchone()
-                    current_coins = coin_row[0] if coin_row is not None else 0
-                return False, current_coins
-
     async def is_registered(self, user_id: int) -> bool:
         """유저가 DB에 등록되어 있는지 확인합니다."""
         async with aiosqlite.connect(self.db_path) as db:
@@ -446,13 +386,168 @@ class Database:
 
     async def delete_user(self, user_id: int) -> bool:
         """
-        유저의 모든 기록(user_data, daily_rewards)을 DB에서 영구 삭제합니다.
+        유저의 모든 기록(user_data, daily_quests)을 DB에서 영구 삭제합니다.
         삭제된 레코드가 있으면 True, 없었으면 False를 반환합니다.
         """
         async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
             cursor = await db.execute("DELETE FROM user_data WHERE user_id = ?", (user_id,))
             deleted = cursor.rowcount > 0
-            await db.execute("DELETE FROM daily_rewards WHERE user_id = ?", (user_id,))
+            await db.execute("DELETE FROM daily_quests WHERE user_id = ?", (user_id,))
             await db.commit()
             return deleted
+
+    DAILY_QUEST_DEFINITIONS: Dict[str, Dict[str, Any]] = {
+        "hello": {
+            "title": "%안녕으로 봇에게 인사하기",
+            "reward": 5,
+            "description": "%안녕 명령어로 봇에게 인사하기"
+        },
+        "rps": {
+            "title": "%가위바위보 승리하기",
+            "reward": 10,
+            "description": "%가위바위보 게임에서 승리하기"
+        },
+        "wordle": {
+            "title": "%워들 승리하기",
+            "reward": 15,
+            "description": "%워들 게임에서 단어 맞추기"
+        },
+        "odd_even": {
+            "title": "%홀짝 승리하기",
+            "reward": 20,
+            "description": "%홀짝 게임에서 승리하기"
+        }
+    }
+
+    async def get_or_create_daily_quests(self, user_id: int, date_str: Optional[str] = None) -> list[Dict[str, Any]]:
+        """
+        유저의 오늘 일일 퀘스트 3개를 조회합니다.
+        오늘 배정된 퀘스트가 없다면 4개 미션 중 중복 없이 3개를 무작위 배정하여 저장합니다.
+        """
+        import random
+        if date_str is None:
+            kst = datetime.timezone(datetime.timedelta(hours=9))
+            date_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
+
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS daily_quests (
+                    user_id INTEGER NOT NULL,
+                    quest_date TEXT NOT NULL,
+                    quest_id TEXT NOT NULL,
+                    completed INTEGER NOT NULL DEFAULT 0,
+                    claimed INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (user_id, quest_date, quest_id)
+                )
+            """)
+
+            async with db.execute(
+                "SELECT quest_id, completed, claimed FROM daily_quests WHERE user_id = ? AND quest_date = ?",
+                (user_id, date_str)
+            ) as cursor:
+                rows = await cursor.fetchall()
+
+            if not rows:
+                # 4개의 후보 미션 중 중복 없이 3개 무작위 추첨
+                all_quest_ids = list(self.DAILY_QUEST_DEFINITIONS.keys())
+                selected_ids = random.sample(all_quest_ids, 3)
+
+                for qid in selected_ids:
+                    await db.execute(
+                        """
+                        INSERT OR IGNORE INTO daily_quests (user_id, quest_date, quest_id, completed, claimed)
+                        VALUES (?, ?, ?, 0, 0)
+                        """,
+                        (user_id, date_str, qid)
+                    )
+                await db.commit()
+
+                async with db.execute(
+                    "SELECT quest_id, completed, claimed FROM daily_quests WHERE user_id = ? AND quest_date = ?",
+                    (user_id, date_str)
+                ) as cursor:
+                    rows = await cursor.fetchall()
+
+            result = []
+            for qid, completed, claimed in rows:
+                info = self.DAILY_QUEST_DEFINITIONS.get(qid, {
+                    "title": qid,
+                    "reward": 10,
+                    "description": qid
+                })
+                result.append({
+                    "quest_id": qid,
+                    "title": info["title"],
+                    "reward": info["reward"],
+                    "description": info["description"],
+                    "completed": bool(completed),
+                    "claimed": bool(claimed),
+                    "date": date_str
+                })
+            return result
+
+    async def complete_quest(self, user_id: int, quest_id: str, date_str: Optional[str] = None) -> bool:
+        """
+        유저가 특정 일일 퀘스트를 완료했을 때 호출합니다.
+        당일 해당 퀘스트가 배정되어 있고 아직 미완료 상태였던 경우 True를 반환합니다.
+        """
+        # 먼저 오늘자 퀘스트가 생성되어 있는지 확인 및 생성
+        quests = await self.get_or_create_daily_quests(user_id, date_str=date_str)
+        if not any(q["quest_id"] == quest_id for q in quests):
+            return False
+
+        if date_str is None:
+            kst = datetime.timezone(datetime.timedelta(hours=9))
+            date_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
+
+        async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+            cursor = await db.execute(
+                """
+                UPDATE daily_quests
+                SET completed = 1
+                WHERE user_id = ? AND quest_date = ? AND quest_id = ? AND completed = 0
+                """,
+                (user_id, date_str, quest_id)
+            )
+            updated = cursor.rowcount > 0
+            if updated:
+                await db.commit()
+            return updated
+
+    async def claim_daily_quests(self, user_id: int, date_str: Optional[str] = None) -> Tuple[int, int, list[Dict[str, Any]]]:
+        """
+        완료되었으나 아직 수령하지 않은(completed=1, claimed=0) 일일 퀘스트들의 보상을 수령합니다.
+        반환값: (총 수령 토큰, 최종 코인 잔액, 갱신된 퀘스트 목록)
+        """
+        quests = await self.get_or_create_daily_quests(user_id, date_str=date_str)
+        if date_str is None:
+            kst = datetime.timezone(datetime.timedelta(hours=9))
+            date_str = datetime.datetime.now(kst).strftime("%Y-%m-%d")
+
+        claimable_reward = 0
+        claimable_ids = []
+        for q in quests:
+            if q["completed"] and not q["claimed"]:
+                claimable_reward += q["reward"]
+                claimable_ids.append(q["quest_id"])
+
+        if claimable_reward > 0:
+            async with aiosqlite.connect(self.db_path, timeout=10.0) as db:
+                for qid in claimable_ids:
+                    await db.execute(
+                        """
+                        UPDATE daily_quests
+                        SET claimed = 1
+                        WHERE user_id = ? AND quest_date = ? AND quest_id = ?
+                        """,
+                        (user_id, date_str, qid)
+                    )
+                await db.commit()
+            new_balance = await self.add_coins(user_id, claimable_reward)
+        else:
+            coins = await self.get_coins(user_id)
+            new_balance = coins if coins is not None else 0
+
+        updated_quests = await self.get_or_create_daily_quests(user_id, date_str=date_str)
+        return claimable_reward, new_balance, updated_quests
 

@@ -47,6 +47,7 @@ class ZeroGunBot(commands.Bot):
     is_registered: typing.Any
     register_user: typing.Any
     delete_user: typing.Any
+    start_time: datetime.datetime
 
     @property
     def name(self) -> str:
@@ -74,6 +75,7 @@ app.name = "0군봇"
 app.db = Database()
 app.global_guild_id = 943244634602213396
 app.prefix = prefix
+app.start_time = datetime.datetime.now()
 
 rn = random.randint(0, 999)
 temp = None

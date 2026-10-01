@@ -11,6 +11,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     def __init__(self, app):
         self.app = app
+        self.chat_decryption.help = f'{self.app.name}이 암호화한 암호를 입력받아 복호화해 출력합니다.'
 
 
     @commands.command(
@@ -373,7 +374,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
 
     @commands.command(
         name='복호화', aliases=["decrypt", "dec"],
-        help='0군봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)', enabled=False
+        help='봇이 암호화한 암호를 입력받아 복호화해 출력합니다.', usage='* int([0, 999]) str(*code*)', enabled=False
     )
     async def chat_decryption(self, ctx, num, *, code):
         await ctx.message.delete()
@@ -437,9 +438,9 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
             description=f"{ctx.author.mention} 님, 정말로 등록을 해제하시겠습니까?\n\n"
                         f"🚨 **주의사항 (되돌릴 수 없음)**\n"
                         f"• **DB에서 삭제하면 정보를 다시는 되돌릴 수 없습니다.**\n"
-                        f"• 보유 중인 **토큰(:coin:)**, **행운(:four_leaf_clover:)**, **특성**, **일일 출석 보상 기록**이 영구적으로 즉시 삭제됩니다.\n"
+                        f"• 보유 중인 **토큰(:coin:)** 등 모든 데이터가 영구적으로 삭제됩니다.\n"
                         f"• 삭제 후 재등록하더라도 이전 데이터는 복구되지 않으며 초기 상태(0 코인)로 시작됩니다.\n\n"
-                        f"정말로 삭제를 진행하시려면 아래의 **체크(:white_check_mark:)**, 취소하시려면 **가위표(:x:)** 이모티콘을 눌러주세요.",
+                        f"정말로 삭제를 진행하시려면 아래의 ✅, 취소하시려면 ❌ 아이콘을 눌러주세요.",
             color=0xe74c3c
         )
         msg = await ctx.send(embed=embed)
@@ -475,8 +476,7 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                         title="🗑️ 등록 해제 완료",
                         description=f"{ctx.author.mention} 님의 모든 사용자 정보가 DB에서 영구적으로 삭제되었습니다.\n"
                                     f"**DB에서 삭제된 정보는 되돌릴 수 없습니다.**\n\n"
-                                    f"언제든지 다시 이용을 원하시면 `{prefix}등록` 명령어를 통해 새로 등록하실 수 있습니다.\n"
-                                    f"그동안 0군봇을 이용해 주셔서 감사합니다.",
+                                    f"언제든지 다시 이용을 원하시면 `{prefix}등록` 명령어를 통해 새로 등록하실 수 있습니다.",
                         color=0x95a5a6
                     )
                     await msg.edit(embed=done_embed)
@@ -498,6 +498,7 @@ async def prompt_user_registration(app, ctx) -> bool:
     Cogs.Game 등 다른 모듈에서 import하여 사용 가능합니다.
     """
     prefix = getattr(app, 'prefix', '%')
+    bot_name = getattr(app, 'name', "0군봇")
     registered = await app.db.is_registered(ctx.author.id)
     if registered:
         embed = discord.Embed(
@@ -512,8 +513,8 @@ async def prompt_user_registration(app, ctx) -> bool:
         return True
 
     embed = discord.Embed(
-        title="📋 0군봇 서비스 이용 및 정보 수집 안내",
-        description=f"{ctx.author.mention} 님, 0군봇의 토큰 및 게임 기능을 이용하시려면 아래의 정보 수집 및 이용 동의가 필요합니다.",
+        title=f"📋 {bot_name} 서비스 이용 및 정보 수집 안내",
+        description=f"{ctx.author.mention} 님, {bot_name}의 토큰 및 게임 기능을 이용하시려면 아래의 정보 수집 및 이용 동의가 필요합니다.",
         color=0x2ecc71
     )
     embed.add_field(
@@ -523,7 +524,7 @@ async def prompt_user_registration(app, ctx) -> bool:
     )
     embed.add_field(
         name="2. 수집 및 이용 목적",
-        value="• 가상 화폐(토큰/코인) 잔액 및 거래 관리\n• 게임 데이터(행운 수치, 특성, 출석 보상 등) 기록 및 랭킹 제공",
+        value="• 가상 화폐(:coin:) 관리\n• 게임 데이터(행운 수치, 출석 보상 등) 기록 및 랭킹 제공",
         inline=False
     )
     embed.add_field(
@@ -580,7 +581,7 @@ async def prompt_user_registration(app, ctx) -> bool:
         success_embed = discord.Embed(
             title="🎉 등록 완료",
             description=f"{ctx.author.mention} 님의 정보가 DB에 정상적으로 등록되었습니다!\n"
-                        f"이제 0군봇의 토큰 및 게임 기능을 마음껏 이용하실 수 있습니다.{booster_text}\n"
+                        f"이제 {bot_name}의 토큰 및 게임 기능을 마음껏 이용하실 수 있습니다.{booster_text}\n"
                         f"💡 등록을 해제하고 정보를 삭제하려면 언제든지 `{prefix}등록해제` 명령어를 입력하세요.",
             color=0x2ecc71
         )

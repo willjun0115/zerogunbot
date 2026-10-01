@@ -31,6 +31,7 @@ from Database import Database
 from Utils import InsufficientTokensError, UserNotRegisteredError, NotInVoiceChannelError
 
 class ZeroGunBot(commands.Bot):
+    _name: str = "0군봇"
     global_guild_id: int
     prefix: str
     db: Database
@@ -44,6 +45,14 @@ class ZeroGunBot(commands.Bot):
     is_registered: typing.Any
     register_user: typing.Any
     delete_user: typing.Any
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @name.setter
+    def name(self, value: str):
+        self._name = value
 
     IGNORED_COGS = {"BTC.py"}
 
@@ -59,6 +68,7 @@ app = ZeroGunBot(
     strip_after_prefix=True,
     intents=intents
 )
+app.name = "0군봇"
 app.db = Database()
 app.global_guild_id = 943244634602213396
 app.prefix = prefix
@@ -76,7 +86,6 @@ def encrypt(num, args):
         code = code + cc
     return code
 
-
 def decrypt(num, code):
     args = ""
     for c in code:
@@ -86,7 +95,6 @@ def decrypt(num, code):
         args = args + cc
     return args
 
-
 @app.event
 async def on_ready():
     await app.change_presence(status=discord.Status.offline)
@@ -95,14 +103,12 @@ async def on_ready():
     game = discord.Game(prefix + "도움말")
     await app.change_presence(status=discord.Status.online, activity=game)
 
-
 @app.event
 async def on_message(message):
     if message.author.bot:
         return None
     else:
         await app.process_commands(message)
-
 
 @app.event
 async def on_member_join(member):
@@ -111,35 +117,29 @@ async def on_member_join(member):
         await channel.send("새 친구가 등장했습니다!")
 
 
+# Database 관련 함수
 async def find_id(selector, id):
     return await app.db.find_id(selector, id)
-
 
 async def find_data(db_name, user_id=None):
     target = user_id if user_id is not None else db_name
     return await app.db.find_data(target)
 
-
 async def update_data(user_id, data: dict, message=None):
     return await app.db.update_data(user_id, data, message=message)
 
-
 async def collect_data(db_name=None):
     return await app.db.collect_data()
-
 
 async def setup_database(ctx):
     await app.db.init_db()
     return "SQLite 데이터베이스가 정상적으로 초기화되었습니다."
 
-
 async def is_registered(user_id: int):
     return await app.db.is_registered(user_id)
 
-
 async def register_user(user_id: int, coins: int = 0, luck: int = 0, ability=None):
     return await app.db.register_user(user_id, coins=coins, luck=luck, ability=ability)
-
 
 async def delete_user(user_id: int):
     return await app.db.delete_user(user_id)
@@ -157,6 +157,7 @@ app.register_user = register_user
 app.delete_user = delete_user
 
 
+# 관리자용 명령어
 @commands.is_owner()
 @app.group(name="admin", aliases=["%"])
 async def admin_command(ctx):

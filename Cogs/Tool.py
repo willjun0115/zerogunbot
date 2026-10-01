@@ -5,6 +5,7 @@ import asyncio
 import io
 import datetime
 import re
+import operator
 
 
 class Tool(commands.Cog, name="도구", description="다양한 기능의 명령어 카테고리입니다."):
@@ -283,6 +284,87 @@ class Tool(commands.Cog, name="도구", description="다양한 기능의 명령�
                     color=0x3498db
                 )
                 await msg.edit(embed=cancel_embed)
+
+    @commands.command(
+        name="토큰", aliases=["코인", "token", "coin", "$"],
+        help="자신의 토큰 수를 확인합니다.\nDB에 등록되지 않은 경우 %등록 명령어를 호출해 등록을 진행합니다.",
+        usage="*"
+    )
+    async def check_token(self, ctx):
+        find, data = await self.app.find_data("db", ctx.author.id)
+        if find is not None:
+            coin = data.get('$')
+            await ctx.send(str(coin) + ' :coin:')
+        else:
+            await prompt_user_registration(self.app, ctx)
+
+    @commands.cooldown(1, 60., commands.BucketType.channel)
+    @commands.command(
+        name="토큰순위", aliases=["순위", "rank"],
+        help="현재 토큰 보유 순위를 조회합니다. (쿨타임 1분)", usage="*"
+    )
+    async def token_rank(self, ctx):
+        global_guild = self.app.get_guild(self.app.global_guild_id)
+        text = "현재 토큰 순위 (유저명/토큰/점유율)"
+        msg = await ctx.send("DB를 조회 중입니다... :mag:")
+        members = {}
+        data_dict = await self.app.collect_data()
+        for member_id in data_dict.keys():
+            data = data_dict.get(member_id)
+            try:
+                member = await ctx.guild.fetch_member(member_id)
+            except Exception:
+                members[member_id] = data.get('$')
+            else:
+                members[member] = data.get('$')
+        if len(members) == 0:
+            embed = discord.Embed(title="<토큰 랭킹>", description=text)
+            embed.add_field(name="해당 시즌에 참여한 유저가 없어요", value="ㅜ.ㅜ", inline=True)
+            await msg.edit(content=None, embed=embed)
+            return
+
+        coin_mass = sum(members.values())
+        members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
+        embed = discord.Embed(title="<토큰 랭킹>", description=text)
+        winner = members[0]
+        names = ""
+        coins = ""
+        shares = ""
+        n = 1
+        if len(members) <= 1:
+            names = "-"
+            coins = "-"
+            shares = "-"
+        else:
+            for md in members[1:]:
+                n += 1
+                if n == 2:
+                    names += f":second_place: {md[0]}\n"
+                elif n == 3:
+                    names += f":third_place: {md[0]}\n"
+                else:
+                    names += f"{n}. {md[0]}\n"
+                coins += f"{md[1]}\n"
+                shares += f"({100 * md[1] / coin_mass:0.2f}%)\n"
+        embed.add_field(name=f":first_place: " + str(winner[0]) + " :crown:", value=names, inline=True)
+        embed.add_field(name=f"{winner[1]} :coin:", value=coins, inline=True)
+        embed.add_field(name=f"({100 * winner[1] / coin_mass:0.2f}%)", value=shares, inline=True)
+        await msg.edit(content=None, embed=embed)
+
+    @commands.command(
+        name="행운", aliases=["luck"],
+        help="자신의 행운 중첩량을 확인합니다.",
+        usage="*"
+    )
+    async def luck(self, ctx):
+        find, data = await self.app.find_data("db", ctx.author.id)
+        luck = data.get('%')
+        if find is None:
+            await ctx.send(f"DB에 등록되지 않은 사용자입니다.\n'{self.app.prefix}등록' 명령어를 통해 정보 수집 동의 후 등록을 진행해주세요.")
+            return
+        elif luck is None:
+            luck = 0
+        await ctx.send(str(luck) + ' :four_leaf_clover:')
 
 
 async def prompt_user_registration(app, ctx) -> bool:

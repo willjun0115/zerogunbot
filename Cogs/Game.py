@@ -4,9 +4,7 @@ import asyncio
 import os
 from discord.utils import get
 from discord.ext import commands
-import operator
 from Utils import token_cost
-from Cogs.Tool import prompt_user_registration
 
 
 class GachaAbility:
@@ -263,85 +261,6 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         n = round(coin**0.5) + random.randint(0, coin//10)
         result = await self.event_get_coin(data, n)
         return result
-
-    @commands.command(
-        name="토큰", aliases=["코인", "token", "coin", "$"],
-        help="자신의 토큰 수를 확인합니다.\nDB에 등록되지 않은 경우 %등록 명령어를 호출해 등록을 진행합니다.",
-        usage="*"
-    )
-    async def check_token(self, ctx):
-        find, data = await self.app.find_data("db", ctx.author.id)
-        if find is not None:
-            coin = data.get('$')
-            await ctx.send(str(coin) + ' :coin:')
-        else:
-            await prompt_user_registration(self.app, ctx)
-
-    @commands.cooldown(1, 60., commands.BucketType.channel)
-    @commands.command(
-        name="토큰순위", aliases=["순위", "rank"],
-        help="현재 토큰 보유 순위를 조회합니다. (쿨타임 1분)", usage="*"
-    )
-    async def token_rank(self, ctx):
-        global_guild = self.app.get_guild(self.app.global_guild_id)
-        text = "현재 토큰 순위 (유저명/토큰/점유율)"
-        msg = await ctx.send("DB를 조회 중입니다... :mag:")
-        members = {}
-        data_dict = await self.app.collect_data()
-        for member_id in data_dict.keys():
-            data = data_dict.get(member_id)
-            try:
-                member = await ctx.guild.fetch_member(member_id)
-            except:
-                members[member_id] = data.get('$')
-            else:
-                members[member] = data.get('$')
-        if len(members) == 0:
-            embed = discord.Embed(title="<토큰 랭킹>", description=text)
-            embed.add_field(name="해당 시즌에 참여한 유저가 없어요", value="ㅜ.ㅜ", inline=True)
-            await msg.edit(content=None, embed=embed)
-        coin_mass = sum(members.values())
-        members = sorted(members.items(), key=operator.itemgetter(1), reverse=True)
-        embed = discord.Embed(title="<토큰 랭킹>", description=text)
-        winner = members[0]
-        names = ""
-        coins = ""
-        shares = ""
-        n = 1
-        if len(members) <= 1:
-            names = "-"
-            coins = "-"
-            shares = "-"
-        else:
-            for md in members[1:]:
-                n += 1
-                if n == 2:
-                    names += f":second_place: {md[0]}\n"
-                elif n == 3:
-                    names += f":third_place: {md[0]}\n"
-                else:
-                    names += f"{n}. {md[0]}\n"
-                coins += f"{md[1]}\n"
-                shares += f"({100 * md[1] / coin_mass:0.2f}%)\n"
-        embed.add_field(name=f":first_place: " + str(winner[0]) + " :crown:", value=names, inline=True)
-        embed.add_field(name=f"{winner[1]} :coin:", value=coins, inline=True)
-        embed.add_field(name=f"({100 * winner[1] / coin_mass:0.2f}%)", value=shares, inline=True)
-        await msg.edit(content=None, embed=embed)
-
-    @commands.command(
-        name="행운", aliases=["luck"],
-        help="자신의 행운 중첩량을 확인합니다.",
-        usage="*"
-    )
-    async def luck(self, ctx):
-        find, data = await self.app.find_data("db", ctx.author.id)
-        luck = data.get('%')
-        if find is None:
-            await ctx.send(self.cannot_find_id)
-            return
-        elif luck is None:
-            luck = 0
-        await ctx.send(str(luck) + ' :four_leaf_clover:')
 
     @commands.command(
         name="특성", aliases=["ability"],

@@ -1140,6 +1140,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 return
 
         self.quiz_task = asyncio.create_task(self._run_quiz(ctx, tag_filters, loop_count))
+        try:
+            if await self.app.db.complete_quest(ctx.author.id, "play_musicquiz"):
+                await ctx.send("🎯 **[일일 퀘스트] '%노래맞추기 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+        except Exception:
+            pass
 
     async def _run_quiz(self, ctx, tag_filters, loop_count):
         loop = self.app.loop or asyncio.get_event_loop()

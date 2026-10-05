@@ -432,13 +432,18 @@ class Database:
         },
         "play_song": {
             "title": "%노래 틀기",
-            "reward": 10,
+            "reward": 20,
             "description": "%재생 또는 %검색 명령어로 노래 틀기"
         },
         "play_blackjack": {
             "title": "%블랙잭 플레이하기",
             "reward": 20,
             "description": "%블랙잭 게임 플레이하기"
+        },
+        "play_musicquiz": {
+            "title": "%노래퀴즈 플레이하기",
+            "reward": 20,
+            "description": "%노래퀴즈 게임 플레이하기"
         }
     }
 

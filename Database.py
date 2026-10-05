@@ -415,6 +415,21 @@ class Database:
             "reward": 10,
             "description": "%가위바위보 게임에서 승리하기"
         },
+        "play_gamble": {
+            "title": "%도박 플레이하기",
+            "reward": 5,
+            "description": "%도박 게임 플레이하기"
+        },
+        "win_gamble_10": {
+            "title": "%도박 10토큰 이상 수익 얻기",
+            "reward": 10,
+            "description": "%도박 게임 한 번에 10토큰 이상 수익 얻기"
+        },
+        "win_gamble_50": {
+            "title": "%도박 50토큰 이상 수익 얻기",
+            "reward": 30,
+            "description": "%도박 게임 한 번에 50토큰 이상 수익 얻기"
+        },
         "win_wordle": {
             "title": "%워들 승리하기",
             "reward": 10,
@@ -441,9 +456,9 @@ class Database:
             "description": "%블랙잭 게임 플레이하기"
         },
         "play_musicquiz": {
-            "title": "%노래퀴즈 플레이하기",
-            "reward": 20,
-            "description": "%노래퀴즈 게임 플레이하기"
+            "title": "%노래맞추기 플레이하기",
+            "reward": 15,
+            "description": "%노래맞추기 게임 플레이하기"
         }
     }
 

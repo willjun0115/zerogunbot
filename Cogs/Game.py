@@ -412,6 +412,19 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         embed.add_field(name="> 손익", value=f"{prize} :coin:")
         await ctx.send(embed=embed)
 
+        # 퀘스트 완료 검사
+        try:
+            await self.app.db.complete_quest(ctx.author.id, "play_gamble")
+            await ctx.send("🎯 **[일일 퀘스트] '%도박 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+            if prize >= 10:
+                await self.app.db.complete_quest(ctx.author.id, "win_gamble_10")
+                await ctx.send("🎯 **[일일 퀘스트] '%도박 10토큰 이상 수익 얻기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+            if prize >= 50:
+                await self.app.db.complete_quest(ctx.author.id, "win_gamble_50")
+                await ctx.send("🎯 **[일일 퀘스트] '%도박 50토큰 이상 수익 얻기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+        except Exception:
+            pass
+
     @commands.cooldown(1, 10., commands.BucketType.user)
     @commands.bot_has_permissions(administrator=True)
     @token_cost(10)

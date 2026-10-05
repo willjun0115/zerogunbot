@@ -429,6 +429,16 @@ class Database:
             "title": "%홀짝 승리하기",
             "reward": 10,
             "description": "%홀짝 게임에서 승리하기"
+        },
+        "play_song": {
+            "title": "%노래 틀기",
+            "reward": 10,
+            "description": "%재생 또는 %검색 명령어로 노래 틀기"
+        },
+        "play_blackjack": {
+            "title": "%블랙잭 플레이하기",
+            "reward": 20,
+            "description": "%블랙잭 게임 플레이하기"
         }
     }
 

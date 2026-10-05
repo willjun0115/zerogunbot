@@ -1050,6 +1050,18 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     else:
                         embed.add_field(name=member.name, value=str(board[member]), inline=True)
                 await ctx.send(embed=embed)
+                completed_members = []
+
+                # 퀘스트 완료 검사
+                for member in members:
+                    try:
+                        if await self.app.db.complete_quest(member.id, "play_blackjack"):
+                            completed_members.append(member.display_name)
+                    except Exception:
+                        pass
+                if completed_members:
+                    names_str = ", ".join(completed_members)
+                    await ctx.send(f"🎯 **[일일 퀘스트] {names_str} 님, '%블랙잭 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
 
     @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(

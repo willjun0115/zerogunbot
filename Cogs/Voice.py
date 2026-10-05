@@ -713,6 +713,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                     f"📑 **대기열에 추가되었습니다!** (대기 순번: {queue_len}번째)\n"
                     f"곡명: **{track_title}**"
                 )
+                try:
+                    if await self.app.db.complete_quest(ctx.author.id, "play_song"):
+                        await ctx.send("🎯 **[일일 퀘스트] '%노래 틀기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                except Exception:
+                    pass
                 return
 
             # 재생 중이 아닌 경우 즉시 재생 시작
@@ -743,6 +748,11 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 if stream is True:
                     msg = f'Now streaming: {player.title}'
                 await ctx.send(msg)
+                try:
+                    if await self.app.db.complete_quest(ctx.author.id, "play_song"):
+                        await ctx.send("🎯 **[일일 퀘스트] '%노래 틀기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                except Exception:
+                    pass
 
                 # 자동 추천(Auto) 모드가 켜져 있다면 백그라운드로 즉시 대기열 채우기 시작
                 if self.queue_auto.get(ctx.guild.id):

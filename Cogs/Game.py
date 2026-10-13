@@ -414,16 +414,22 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
 
         # 퀘스트 완료 검사
         try:
-            await self.app.db.complete_quest(ctx.author.id, "play_gamble")
-            await ctx.send("🎯 **[일일 퀘스트] '%도박 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
-            if prize >= 10:
-                await self.app.db.complete_quest(ctx.author.id, "win_gamble_10")
-                await ctx.send("🎯 **[일일 퀘스트] '%도박 10토큰 이상 수익 얻기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
-            if prize >= 50:
-                await self.app.db.complete_quest(ctx.author.id, "win_gamble_50")
-                await ctx.send("🎯 **[일일 퀘스트] '%도박 50토큰 이상 수익 얻기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+            if await self.app.db.complete_quest(ctx.author.id, "play_gamble"):
+                await ctx.send("🎯 **[일일 퀘스트] '%도박 플레이하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
         except Exception:
             pass
+        if prize >= 10:
+            try:
+                if await self.app.db.complete_quest(ctx.author.id, "win_gamble_10"):
+                    await ctx.send("🎯 **[일일 퀘스트] '%도박 10토큰 이상 수익 얻기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
+            except Exception:
+                pass
+        if prize >= 50:
+            try:
+                if await self.app.db.complete_quest(ctx.author.id, "win_gamble_50"):
+                    await ctx.send("🎯 **[일일 퀘스트] '%도박 50토큰 이상 수익 얻기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
+            except Exception:
+                pass
 
     @commands.cooldown(1, 10., commands.BucketType.user)
     @commands.bot_has_permissions(administrator=True)
@@ -685,7 +691,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await self.app.db.add_coins(ctx.author.id, 1)
                     try:
                         if await self.app.db.complete_quest(ctx.author.id, "win_rps"):
-                            await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 승리하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                            await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 승리하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
                     except Exception:
                         pass
                 else:
@@ -693,7 +699,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await self.app.db.add_coins(ctx.author.id, -1)
                 try:
                     if await self.app.db.complete_quest(ctx.author.id, "play_rps"):
-                        await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                        await ctx.send("🎯 **[일일 퀘스트] '%가위바위보 플레이하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
                 except Exception:
                     pass
         else:
@@ -747,7 +753,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         await self.app.db.add_coins(ctx.author.id, num)
                     try:
                         if await self.app.db.complete_quest(ctx.author.id, "win_odd_even"):
-                            await ctx.send("🎯 **[일일 퀘스트] '%홀짝 승리하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                            await ctx.send("🎯 **[일일 퀘스트] '%홀짝 승리하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
                     except Exception:
                         pass
                 else:
@@ -755,7 +761,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                     await self.app.db.add_coins(ctx.author.id, -num)
                 try:
                     if await self.app.db.complete_quest(ctx.author.id, "play_odd_even"):
-                        await ctx.send("🎯 **[일일 퀘스트] '%홀짝 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                        await ctx.send("🎯 **[일일 퀘스트] '%홀짝 플레이하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
                 except Exception:
                     pass
         else:
@@ -1074,7 +1080,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                         pass
                 if completed_members:
                     names_str = ", ".join(completed_members)
-                    await ctx.send(f"🎯 **[일일 퀘스트] {names_str} 님, '%블랙잭 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                    await ctx.send(f"🎯 **[일일 퀘스트] {names_str} 님, '%블랙잭 플레이하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
 
     @commands.cooldown(1, 60., commands.BucketType.guild)
     @commands.command(
@@ -1398,7 +1404,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
                 await ctx.send(content=f"🎉 **축하합니다!** {attempt}번 만에 단어를 맞히셨습니다!", embed=embed)
                 try:
                     if await self.app.db.complete_quest(ctx.author.id, "win_wordle"):
-                        await ctx.send("🎯 **[일일 퀘스트] '%워들 승리하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                        await ctx.send("🎯 **[일일 퀘스트] '%워들 승리하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
                 except Exception:
                     pass
                 return

@@ -28,7 +28,7 @@ class Chat(commands.Cog, name="채팅", description="채팅 및 채팅 채널 �
         try:
             quest_done = await self.app.db.complete_quest(ctx.author.id, "hello")
             if quest_done:
-                msg += "\n🎯 **[일일 퀘스트] '%안녕으로 봇에게 인사하기' 달성!** (`%일일보상`에서 보상을 확인하세요)"
+                msg += "\n🎯 **[일일 퀘스트] '%안녕으로 봇에게 인사하기' 달성!** (`%일일보상`에서 보상을 수령하세요)"
         except Exception:
             pass
 

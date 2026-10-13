@@ -715,7 +715,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 )
                 try:
                     if await self.app.db.complete_quest(ctx.author.id, "play_song"):
-                        await ctx.send("🎯 **[일일 퀘스트] '%노래 틀기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                        await ctx.send("🎯 **[일일 퀘스트] '%노래 틀기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
                 except Exception:
                     pass
                 return
@@ -750,7 +750,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
                 await ctx.send(msg)
                 try:
                     if await self.app.db.complete_quest(ctx.author.id, "play_song"):
-                        await ctx.send("🎯 **[일일 퀘스트] '%노래 틀기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                        await ctx.send("🎯 **[일일 퀘스트] '%노래 틀기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
                 except Exception:
                     pass
 
@@ -1142,7 +1142,7 @@ class Voice(commands.Cog, name="음성", description="음성 채널 및 보이�
         self.quiz_task = asyncio.create_task(self._run_quiz(ctx, tag_filters, loop_count))
         try:
             if await self.app.db.complete_quest(ctx.author.id, "play_musicquiz"):
-                await ctx.send("🎯 **[일일 퀘스트] '%노래맞추기 플레이하기' 달성!** (`%일퀘`에서 보상을 확인하세요)")
+                await ctx.send("🎯 **[일일 퀘스트] '%노래맞추기 플레이하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
         except Exception:
             pass
 

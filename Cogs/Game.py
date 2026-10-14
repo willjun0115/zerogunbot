@@ -412,7 +412,7 @@ class Game(commands.Cog, name="게임", description="오락 및 도박과 관련
         embed.add_field(name="> 손익", value=f"{prize} :coin:")
         await ctx.send(embed=embed)
 
-        # 퀘스트 완료 검사
+        # daily quest check logic
         try:
             if await self.app.db.complete_quest(ctx.author.id, "play_gamble"):
                 await ctx.send("🎯 **[일일 퀘스트] '%도박 플레이하기' 달성!** (`%일퀘`에서 보상을 수령하세요)")
